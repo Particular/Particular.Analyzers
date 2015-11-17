@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+    <metadata>
+        <id>Particular.CodeRules</id>
+        <version>$version$-beta0001</version>
+        <authors>Particular</authors>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <developmentDependency>true</developmentDependency>
+        <description>Build assets for enforcing coding style.</description>
+        <dependencies>
+            <dependency id="RefactoringEssentials" version="2.1.0" />
+            <dependency id="StyleCop.Analyzers" version="1.0.0-beta015" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\..\src\Particular.CodeRules\Particular.CodeRules.props" target="build\Particular.CodeRules.props" />
+        <file src="..\..\src\Particular.CodeRules\Particular.ruleset" target="content\Particular.ruleset" />
+    </files>
+</package>
