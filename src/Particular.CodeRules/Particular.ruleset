@@ -7,17 +7,52 @@
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
     <Rule Id="CS0168" Action="Error" />
     <Rule Id="CS0169" Action="Error" />
-    <Rule Id="CS8019" Action="Error" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
     <Rule Id="IDE0003" Action="Error" />
+    <Rule Id="IDE0005" Action="Error" />
   </Rules>
   <Rules AnalyzerId="RefactoringEssentials" RuleNamespace="RefactoringEssentials">
+    <Rule Id="CS0169FieldIsNeverUsedAnalyzer" Action="Info" />
+    <Rule Id="CS0183ExpressionIsAlwaysOfProvidedTypeAnalyzer" Action="Info" />
+    <Rule Id="CS0618UsageOfObsoleteMemberAnalyzer" Action="Info" />
+    <Rule Id="CS1573ParameterHasNoMatchingParamTagAnalyzer" Action="Info" />
+    <Rule Id="CS1717AssignmentMadeToSameVariableAnalyzer" Action="Info" />
+    <Rule Id="ExpressionIsNeverOfProvidedTypeAnalyzer" Action="Info" />
+    <Rule Id="InconsistentNaming" Action="Info" />
     <Rule Id="RECS0001" Action="Error" />
+    <Rule Id="RECS0003" Action="Info" />
     <Rule Id="RECS0004" Action="Error" />
     <Rule Id="RECS0005" Action="Error" />
+    <Rule Id="RECS0006" Action="Info" />
+    <Rule Id="RECS0007" Action="Info" />
+    <Rule Id="RECS0008" Action="Info" />
+    <Rule Id="RECS0009" Action="Info" />
     <Rule Id="RECS0013" Action="Error" />
-    <Rule Id="RECS0014" Action="Error" />
+    <Rule Id="RECS0016" Action="Info" />
+    <Rule Id="RECS0017" Action="Info" />
+    <Rule Id="RECS0018" Action="Info" />
+    <Rule Id="RECS0019" Action="Info" />
+    <Rule Id="RECS0020" Action="Info" />
+    <Rule Id="RECS0021" Action="Info" />
+    <Rule Id="RECS0022" Action="Info" />
+    <Rule Id="RECS0023" Action="Info" />
+    <Rule Id="RECS0024" Action="Info" />
+    <Rule Id="RECS0025" Action="Info" />
+    <Rule Id="RECS0026" Action="Info" />
+    <Rule Id="RECS0027" Action="Info" />
+    <Rule Id="RECS0028" Action="Info" />
+    <Rule Id="RECS0029" Action="Info" />
+    <Rule Id="RECS0030" Action="Info" />
+    <Rule Id="RECS0031" Action="Info" />
+    <Rule Id="RECS0034" Action="Info" />
+    <Rule Id="RECS0035" Action="Info" />
+    <Rule Id="RECS0039" Action="Info" />
+    <Rule Id="RECS0060" Action="Info" />
+    <Rule Id="RECS0061" Action="Info" />
+    <Rule Id="RECS0062" Action="Info" />
+    <Rule Id="RECS0063" Action="Info" />
+    <Rule Id="RECS0064" Action="Info" />
     <Rule Id="RECS0065" Action="Error" />
     <Rule Id="RECS0066" Action="Error" />
     <Rule Id="RECS0067" Action="Error" />
@@ -25,17 +60,50 @@
     <Rule Id="RECS0072" Action="Error" />
     <Rule Id="RECS0073" Action="Error" />
     <Rule Id="RECS0074" Action="Error" />
+    <Rule Id="RECS0080" Action="Info" />
+    <Rule Id="RECS0081" Action="Info" />
+    <Rule Id="RECS0082" Action="Info" />
+    <Rule Id="RECS0084" Action="Info" />
+    <Rule Id="RECS0085" Action="Info" />
+    <Rule Id="RECS0088" Action="Info" />
+    <Rule Id="RECS0089" Action="Info" />
+    <Rule Id="RECS0090" Action="Info" />
     <Rule Id="RECS0091" Action="Error" />
+    <Rule Id="RECS0095" Action="Info" />
     <Rule Id="RECS0096" Action="Error" />
+    <Rule Id="RECS0098" Action="Info" />
     <Rule Id="RECS0099" Action="Error" />
     <Rule Id="RECS0103" Action="Error" />
     <Rule Id="RECS0104" Action="Error" />
+    <Rule Id="RECS0107" Action="Info" />
+    <Rule Id="RECS0108" Action="Info" />
     <Rule Id="RECS0110" Action="Error" />
+    <Rule Id="RECS0111" Action="Info" />
+    <Rule Id="RECS0112" Action="Info" />
+    <Rule Id="RECS0115" Action="Info" />
+    <Rule Id="RECS0117" Action="Info" />
+    <Rule Id="RECS0119" Action="Info" />
+    <Rule Id="RECS0124" Action="Info" />
+    <Rule Id="RECS0125" Action="Info" />
+    <Rule Id="RECS0130" Action="Info" />
+    <Rule Id="RECS0133" Action="Info" />
+    <Rule Id="RECS0135" Action="Info" />
+    <Rule Id="RECS0136" Action="Info" />
+    <Rule Id="RECS0137" Action="Info" />
+    <Rule Id="RECS0139" Action="Info" />
     <Rule Id="RECS0142" Action="Error" />
+    <Rule Id="RECS0143" Action="Info" />
     <Rule Id="RECS0144" Action="Error" />
     <Rule Id="RECS0145" Action="Error" />
+    <Rule Id="RECS0146" Action="Info" />
+    <Rule Id="RECS0149" Action="Info" />
     <Rule Id="RECS0154" Action="Error" />
+    <Rule Id="RECS0155" Action="Info" />
     <Rule Id="RECS0156" Action="Error" />
+    <Rule Id="RECS0157" Action="Info" />
+    <Rule Id="RECS0161" Action="Info" />
+    <Rule Id="RECS0162" Action="Info" />
+    <Rule Id="RECS0163" Action="Info" />
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1000" Action="Hidden" />
@@ -67,7 +135,7 @@
     <Rule Id="SA1026" Action="Hidden" />
     <Rule Id="SA1027" Action="Hidden" />
     <Rule Id="SA1028" Action="Hidden" />
-    <Rule Id="SA1100" Action="Error" />
+    <Rule Id="SA1100" Action="Hidden" />
     <Rule Id="SA1101" Action="Hidden" />
     <Rule Id="SA1102" Action="Hidden" />
     <Rule Id="SA1103" Action="Hidden" />
