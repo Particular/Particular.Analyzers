@@ -2,6 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <RunCodeAnalysis>true</RunCodeAnalysis>
-        <CodeAnalysisRuleSet>Particular.ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Particular.ruleset</CodeAnalysisRuleSet>
     </PropertyGroup>
 </Project>

@@ -14,6 +14,6 @@
     </metadata>
     <files>
         <file src="..\..\src\Particular.CodeRules\Particular.CodeRules.props" target="build\Particular.CodeRules.props" />
-        <file src="..\..\src\Particular.CodeRules\Particular.ruleset" target="content\Particular.ruleset" />
+        <file src="..\..\src\Particular.CodeRules\Particular.ruleset" target="build\Particular.ruleset" />
     </files>
 </package>
