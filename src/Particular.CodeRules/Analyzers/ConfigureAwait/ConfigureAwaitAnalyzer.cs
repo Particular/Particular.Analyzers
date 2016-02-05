@@ -1,11 +1,11 @@
-﻿using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-namespace Particular.CodeRules.Analyzers.ConfigureAwait
+﻿namespace Particular.CodeRules.Analyzers.ConfigureAwait
 {
+    using System.Collections.Immutable;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using Microsoft.CodeAnalysis.Diagnostics;
+
     /// <summary>
     ///     The analyzer to identify any missing ConfigureAwaits
     /// </summary>

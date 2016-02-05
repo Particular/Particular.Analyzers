@@ -1,15 +1,15 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-namespace Particular.CodeRules.Analyzers.ConfigureAwait
+﻿namespace Particular.CodeRules.Analyzers.ConfigureAwait
 {
+    using System.Collections.Immutable;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CodeActions;
+    using Microsoft.CodeAnalysis.CodeFixes;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
+
     /// <summary>
     ///     The code fix for any missing ConfigureAwaits
     /// </summary>
@@ -24,6 +24,15 @@ namespace Particular.CodeRules.Analyzers.ConfigureAwait
         ///     The fixable diagnostic ids.
         /// </value>
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ConfigureAwaitAnalyzer.RuleIdentifier);
+
+        /// <summary>
+        /// Gets the fix all provider type
+        /// </summary>
+        /// <returns>The type of provider applicable</returns>
+        public sealed override FixAllProvider GetFixAllProvider()
+        {
+            return WellKnownFixAllProviders.BatchFixer;
+        }
 
         /// <summary>
         ///     Registers the code fixes asynchronous.
