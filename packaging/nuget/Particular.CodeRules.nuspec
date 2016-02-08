@@ -3,17 +3,22 @@
     <metadata>
         <id>Particular.CodeRules</id>
         <version>$version$</version>
+        <title>Particular.CodeRules</title>
         <authors>Particular</authors>
+        <owners>Particular</owners>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <developmentDependency>true</developmentDependency>
-        <description>Build assets for enforcing coding style.</description>
+        <description>Build assets and code analyzers for enforcing coding style.</description>
         <dependencies>
             <dependency id="RefactoringEssentials" version="2.1.0" />
-            <dependency id="StyleCop.Analyzers" version="1.0.0-beta015" />
+            <dependency id="StyleCop.Analyzers" version="1.0.0" />
         </dependencies>
     </metadata>
     <files>
         <file src="..\..\src\Particular.CodeRules\Particular.CodeRules.props" target="build\Particular.CodeRules.props" />
         <file src="..\..\src\Particular.CodeRules\Particular.ruleset" target="build\Particular.ruleset" />
+
+        <file src="..\..\src\Particular.CodeRules\bin\Release\*.dll" target="analyzers\dotnet\cs" exclude="**\System.Reflection.Metadata.*;" />
+        <file src="..\..\src\Particular.CodeRules\tools\*.ps1" target="tools\" />
     </files>
 </package>
