@@ -9,10 +9,6 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <developmentDependency>true</developmentDependency>
         <description>Build assets and code analyzers for enforcing coding style.</description>
-        <dependencies>
-            <dependency id="RefactoringEssentials" version="2.1.0" />
-            <dependency id="StyleCop.Analyzers" version="1.0.0" />
-        </dependencies>
     </metadata>
     <files>
         <file src="..\..\src\Particular.CodeRules\Particular.CodeRules.props" target="build\Particular.CodeRules.props" />

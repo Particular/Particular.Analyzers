@@ -1,4 +1,4 @@
-﻿namespace Particular.CodeRules.Analyzers.ConfigureAwait
+﻿namespace Particular.CodeRules.ConfigureAwait
 {
     using System.Collections.Immutable;
     using Microsoft.CodeAnalysis;
@@ -41,7 +41,12 @@
 
         private void AnalyzeForConfigureFalse(SyntaxNodeAnalysisContext context)
         {
-            var node = (AwaitExpressionSyntax) context.Node;
+            if (GeneratedCodeRecognition.IsFromGeneratedCode(context))
+            {
+                return;
+            }
+
+            var node = (AwaitExpressionSyntax)context.Node;
             if (node.Expression != null)
             {
                 var type = ModelExtensions.GetTypeInfo(context.SemanticModel, node.Expression).Type;

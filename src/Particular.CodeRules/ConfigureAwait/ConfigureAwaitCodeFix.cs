@@ -1,4 +1,4 @@
-﻿namespace Particular.CodeRules.Analyzers.ConfigureAwait
+﻿namespace Particular.CodeRules.ConfigureAwait
 {
     using System.Collections.Immutable;
     using System.Linq;
