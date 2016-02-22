@@ -14,7 +14,7 @@
         <file src="..\..\src\Particular.CodeRules\Particular.CodeRules.props" target="build\Particular.CodeRules.props" />
         <file src="..\..\src\Particular.CodeRules\Particular.ruleset" target="build\Particular.ruleset" />
 
-        <file src="..\..\src\Particular.CodeRules\bin\Release\*.dll" target="analyzers\dotnet\cs" exclude="**\System.Reflection.Metadata.*;" />
+        <file src="..\..\src\Particular.CodeRules\bin\Release\Particular.CodeRules.dll" target="analyzers\dotnet\cs" />
         <file src="..\..\src\Particular.CodeRules\tools\*.ps1" target="tools\" />
     </files>
 </package>

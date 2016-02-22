@@ -14,7 +14,7 @@
     ///     The code fix for any missing ConfigureAwaits
     /// </summary>
     /// <seealso cref="T:Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider" />
-    [ExportCodeFixProvider(ConfigureAwaitAnalyzer.RuleIdentifier, LanguageNames.CSharp)]
+    [ExportCodeFixProvider(DiagnosticIds.UseConfigureAwait, LanguageNames.CSharp)]
     public class ConfigureAwaitCodeFix : CodeFixProvider
     {
         /// <summary>
@@ -23,7 +23,7 @@
         /// <value>
         ///     The fixable diagnostic ids.
         /// </value>
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ConfigureAwaitAnalyzer.RuleIdentifier);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.UseConfigureAwait);
 
         /// <summary>
         /// Gets the fix all provider type
@@ -54,6 +54,11 @@
                 CodeAction.Create("Add ConfigureAwait(true)",
                     cancellationToken => AddConfigureAwait(context.Document, declaration, true, cancellationToken),
                     "Add ConfigureAwait(true)"), diagnostic);
+
+            context.RegisterCodeFix(
+                CodeAction.Create("Add ConfigureAwait(false)",
+                    cancellationToken => AddConfigureAwait(context.Document, declaration, false, cancellationToken),
+                    "Add ConfigureAwait(false)"), diagnostic);
         }
 
         private Task<Document> AddConfigureAwait(Document document, AwaitExpressionSyntax awaitSyntax, bool value, CancellationToken cancellationToken)

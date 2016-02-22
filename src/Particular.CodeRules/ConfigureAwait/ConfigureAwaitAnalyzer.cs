@@ -14,21 +14,12 @@
     public class ConfigureAwaitAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>
-        ///     The rule identifier for the configure await analyzer. Particular Code Rules 0001
-        /// </summary>
-        public const string RuleIdentifier = "PCR0001";
-
-        internal static DiagnosticDescriptor RuleDescriptor = new DiagnosticDescriptor(RuleIdentifier,
-            "Await used without specifying ConfigureAwait", "Await used without specifying ConfigureAwait", "Usage",
-            DiagnosticSeverity.Warning, true);
-
-        /// <summary>
         ///     Gets the list of supported diagnostics for the analyzer.
         /// </summary>
         /// <value>
         ///     The supported diagnostics.
         /// </value>
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(RuleDescriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.UseConfigureAwait);
 
         /// <summary>
         ///     Initializes the specified analyzer on the <paramref name="context" />.
@@ -52,7 +43,7 @@
                 var type = ModelExtensions.GetTypeInfo(context.SemanticModel, node.Expression).Type;
                 if (type.ContainingNamespace.ToString() == "System.Threading.Tasks" && type.Name == "Task")
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(RuleDescriptor, node.GetLocation()));
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UseConfigureAwait, node.GetLocation()));
                 }
             }
         }

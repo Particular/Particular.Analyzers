@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-namespace Particular.CodeRules
+﻿namespace Particular.CodeRules
 {
+    using System;
+    using System.Collections.Immutable;
+    using System.IO;
+    using System.Linq;
+    using System.Threading;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.Diagnostics;
+
     // Taken from https://github.com/icsharpcode/RefactoringEssentials/blob/master/RefactoringEssentials/Util/GeneratedCodeRecognition.cs
     public static class GeneratedCodeRecognition
     {
