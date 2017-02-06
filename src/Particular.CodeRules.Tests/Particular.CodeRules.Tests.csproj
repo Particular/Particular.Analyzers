@@ -36,6 +36,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AwaitOrCaptureTasksAnalyzerTests.cs" />
     <Compile Include="ConfigureAwaitAnalyzerTests.cs" />
     <Compile Include="ConfigureAwaitCodeFixTests.cs" />
     <Compile Include="Helpers\AnalyzerTestFixture.cs" />
