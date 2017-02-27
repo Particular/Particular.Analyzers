@@ -106,6 +106,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AwaitOrCaptureTasks\AwaitOrCaptureTasksAnalyzer.cs" />
     <Compile Include="ConfigureAwait\ConfigureAwaitAnalyzer.cs" />
     <Compile Include="ConfigureAwait\ConfigureAwaitCodeFix.cs" />
     <Compile Include="DiagnosticIds.cs" />
