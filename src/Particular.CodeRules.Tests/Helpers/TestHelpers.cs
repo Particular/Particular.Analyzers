@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Particular.CodeRules.Tests
@@ -65,6 +66,7 @@ namespace Particular.CodeRules.Tests
 
             return new AdhocWorkspace()
                 .AddProject("TestProject", languageName)
+                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddMetadataReferences(references)
                 .AddDocument("TestDocument", code);
         }

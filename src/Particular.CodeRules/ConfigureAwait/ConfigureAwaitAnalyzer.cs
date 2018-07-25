@@ -32,7 +32,7 @@
 
         private void AnalyzeForConfigureFalse(SyntaxNodeAnalysisContext context)
         {
-            if (GeneratedCodeRecognition.IsFromGeneratedCode(context))
+            if (context.IsFromGeneratedCode())
             {
                 return;
             }
@@ -41,7 +41,7 @@
             if (node.Expression != null)
             {
                 var type = ModelExtensions.GetTypeInfo(context.SemanticModel, node.Expression).Type;
-                if (type.ContainingNamespace.ToString() == "System.Threading.Tasks" && type.Name == "Task")
+                if (type.ContainingNamespace?.ToString() == "System.Threading.Tasks" && type.Name == "Task")
                 {
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.UseConfigureAwait, node.GetLocation()));
                 }
