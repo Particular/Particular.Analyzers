@@ -45,7 +45,7 @@ namespace Particular.CodeRules.Tests
         protected async Task HasDiagnostic(Document document, TextSpan span, string diagnosticId)
         {
             var diagnostics = await GetDiagnostics(document);
-            Assert.Equal(1, diagnostics.Length);
+            Assert.Single(diagnostics);
 
             var diagnostic = diagnostics[0];
             Assert.Equal(diagnosticId, diagnostic.Id);
@@ -59,10 +59,10 @@ namespace Particular.CodeRules.Tests
             var exceptions = new List<ExceptionDispatchInfo>();
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty), 
-                (exception, analyzer, diagnostic) => exceptions.Add(ExceptionDispatchInfo.Capture(exception)), 
-                false, 
-                false, 
+                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                (exception, analyzer, diagnostic) => exceptions.Add(ExceptionDispatchInfo.Capture(exception)),
+                false,
+                false,
                 false);
             var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions);
             var discarded = compilation.GetDiagnostics(CancellationToken.None);

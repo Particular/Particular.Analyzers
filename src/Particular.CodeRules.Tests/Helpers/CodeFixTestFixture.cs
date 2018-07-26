@@ -57,7 +57,7 @@ namespace Particular.CodeRules.Tests
         private static async Task CodeAction(CodeAction codeAction, Document document, string expectedCode)
         {
             var operations = await codeAction.GetOperationsAsync(CancellationToken.None);
-            Assert.Equal(1, operations.Length);
+            Assert.Single(operations);
 
             var operation = operations[0];
             var workspace = document.Project.Solution.Workspace;
