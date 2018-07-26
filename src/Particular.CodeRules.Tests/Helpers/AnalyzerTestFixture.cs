@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -54,8 +56,15 @@ namespace Particular.CodeRules.Tests
         private async Task<ImmutableArray<Diagnostic>> GetDiagnostics(Document document)
         {
             var analyzers = ImmutableArray.Create(CreateAnalyzer());
+            var exceptions = new List<ExceptionDispatchInfo>();
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
-            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, cancellationToken: CancellationToken.None);
+            var analyzerOptions = new CompilationWithAnalyzersOptions(
+                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty), 
+                (exception, analyzer, diagnostic) => exceptions.Add(ExceptionDispatchInfo.Capture(exception)), 
+                false, 
+                false, 
+                false);
+            var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions);
             var discarded = compilation.GetDiagnostics(CancellationToken.None);
 
             var tree = await document.GetSyntaxTreeAsync(CancellationToken.None);
@@ -68,6 +77,12 @@ namespace Particular.CodeRules.Tests
                 {
                     builder.Add(diagnostic);
                 }
+            }
+
+            // throw exceptions from analyzers to fail the test
+            foreach (var exceptionDispatchInfo in exceptions)
+            {
+                exceptionDispatchInfo.Throw();
             }
 
             return builder.ToImmutable();

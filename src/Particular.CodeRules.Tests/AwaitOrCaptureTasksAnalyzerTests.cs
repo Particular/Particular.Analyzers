@@ -78,6 +78,23 @@ class C
 
 
         [Fact]
+        public Task DynamicTaskIsDropped()
+        {
+            const string code = @"
+using System.Threading.Tasks;
+class C
+{
+    public Task Foo(dynamic x)
+    {
+        [|Foo(x)|];
+
+        return Task.CompletedTask;
+    }
+}";
+            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+        }
+
+        [Fact]
         public Task GenericTaskOfValueTypeIsDropped()
         {
             const string code = @"

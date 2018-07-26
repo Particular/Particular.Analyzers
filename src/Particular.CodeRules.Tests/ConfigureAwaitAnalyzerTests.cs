@@ -35,5 +35,21 @@ class C
 }";
             return NoDiagnostic(code, DiagnosticIds.UseConfigureAwait);
         }
+
+        [Fact]
+        public Task IgnoreDynamics()
+        {
+            const string code = @"
+using System.Threading.Tasks;
+class C
+{
+    public async Task Foo(dynamic x)
+    {
+        await Foo(x);
+    }
+}";
+
+            return NoDiagnostic(code, DiagnosticIds.UseConfigureAwait);
+        }
     }
 }
