@@ -1,21 +1,10 @@
-MIT License
+By accessing NServiceBus code here, you are agreeing to the following licensing terms.
+If you do not agree to these terms, do not access the NServiceBus code.
 
-Copyright (c) 2010-2016 NServiceBus Ltd. doing business as Particular Software.
+Your license to the NServiceBus source and/or binaries is governed by the Reciprocal Public License 1.5 (RPL1.5) license as described here: 
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+https://www.opensource.org/licenses/rpl1.5.txt
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+If you do not wish to release the source of software you build using NServiceBus, you may use NServiceBus source and/or binaries under the License Agreement described here:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+https://particular.net/LicenseAgreement
