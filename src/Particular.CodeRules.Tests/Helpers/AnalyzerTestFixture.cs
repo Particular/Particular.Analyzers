@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -21,29 +22,29 @@ namespace Particular.CodeRules.Tests
     {
         protected abstract DiagnosticAnalyzer CreateAnalyzer();
 
-        protected Task NoDiagnostic(string code, string diagnosticId)
+        protected Task NoDiagnostic(string code)
         {
             var document = TestHelpers.GetDocument(code, LanguageName);
-            return NoDiagnostic(document, diagnosticId);
+            return NoDiagnostic(document);
         }
 
-        protected async Task NoDiagnostic(Document document, string diagnosticId)
+        protected async Task NoDiagnostic(Document document)
         {
+            if (document == null) throw new ArgumentNullException(nameof(document));
             var diagnostics = await GetDiagnostics(document).ConfigureAwait(false);
             Assert.Empty(diagnostics);
         }
 
         protected Task HasDiagnostic(string markupCode, string diagnosticId)
         {
-            Document document;
-            TextSpan span;
-            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out document, out span), "No markup detected in test code.");
+            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out var document, out var span), "No markup detected in test code.");
 
             return HasDiagnostic(document, span, diagnosticId);
         }
 
         protected async Task HasDiagnostic(Document document, TextSpan span, string diagnosticId)
         {
+            if (document == null) throw new ArgumentNullException(nameof(document));
             var diagnostics = await GetDiagnostics(document).ConfigureAwait(false);
             Assert.Single(diagnostics);
 

@@ -23,15 +23,14 @@ namespace Particular.CodeRules.Tests
 
         protected Task TestCodeFix(string markupCode, string expected, DiagnosticDescriptor descriptor, int count = 1, int index = 0)
         {
-            Document document;
-            TextSpan span;
-            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out document, out span), "No markup detected in test code.");
+            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out var document, out var span), "No markup detected in test code.");
 
             return TestCodeFix(document, span, expected, descriptor, count, index);
         }
 
         protected async Task TestCodeFix(Document document, TextSpan span, string expected, DiagnosticDescriptor descriptor, int count = 1, int index = 0)
         {
+            if (document == null) throw new ArgumentNullException(nameof(document));
             var codeFixes = await GetCodeFixes(document, span, descriptor).ConfigureAwait(false);
             Assert.Equal(count, codeFixes.Length);
 
@@ -41,8 +40,8 @@ namespace Particular.CodeRules.Tests
         private async Task<ImmutableArray<CodeAction>> GetCodeFixes(Document document, TextSpan span, DiagnosticDescriptor descriptor)
         {
             var builder = ImmutableArray.CreateBuilder<CodeAction>();
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix =
-                (a, _) => builder.Add(a);
+
+            void registerCodeFix(CodeAction a, ImmutableArray<Diagnostic> _) => builder.Add(a);
 
             var tree = await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
             var diagnostic = Diagnostic.Create(descriptor, Location.Create(tree, span));

@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -12,12 +13,14 @@ namespace Particular.CodeRules.Tests
     {
         public static bool TryGetCodeAndSpanFromMarkup(string markupCode, out string code, out TextSpan span)
         {
+            if (markupCode == null) throw new ArgumentNullException(nameof(markupCode));
+
             code = null;
-            span = default(TextSpan);
+            span = default;
 
             var builder = new StringBuilder();
 
-            var start = markupCode.IndexOf("[|");
+            var start = markupCode.IndexOf("[|", System.StringComparison.Ordinal);
             if (start < 0)
             {
                 return false;
@@ -25,7 +28,7 @@ namespace Particular.CodeRules.Tests
 
             builder.Append(markupCode.Substring(0, start));
 
-            var end = markupCode.IndexOf("|]");
+            var end = markupCode.IndexOf("|]", System.StringComparison.Ordinal);
             if (end < 0)
             {
                 return false;
@@ -47,8 +50,7 @@ namespace Particular.CodeRules.Tests
 
         public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, ImmutableList<MetadataReference> references, out Document document, out TextSpan span)
         {
-            string code;
-            if (!TryGetCodeAndSpanFromMarkup(markupCode, out code, out span))
+            if (!TryGetCodeAndSpanFromMarkup(markupCode, out var code, out span))
             {
                 document = null;
                 return false;
@@ -64,7 +66,9 @@ namespace Particular.CodeRules.Tests
                 MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.GetLocation()),
                 MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.GetLocation()));
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             return new AdhocWorkspace()
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 .AddProject("TestProject", languageName)
                 .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddMetadataReferences(references)

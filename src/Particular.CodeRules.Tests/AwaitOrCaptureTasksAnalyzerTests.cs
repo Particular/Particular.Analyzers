@@ -18,7 +18,7 @@ class C
         await Task.Delay(1);
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return NoDiagnostic(code);
         }
 
 
@@ -36,7 +36,7 @@ class C
         return task;
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return NoDiagnostic(code);
         }
 
 
@@ -53,7 +53,7 @@ class C
         return Task.Delay(1);
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return NoDiagnostic(code);
         }
 
 
@@ -155,7 +155,7 @@ class C
 
 
         [Fact]
-        public Task InvokingTaskReturningFunc_OkIfAwaited()
+        public Task InvokingTaskReturningFuncOkIfAwaited()
         {
             const string code = @"
 using System;
@@ -171,7 +171,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return NoDiagnostic(code);
         }
 
 
@@ -201,7 +201,7 @@ class C
 
 
         [Fact]
-        public Task InvokingTaskReturningDelegate_OkIfAwaited()
+        public Task InvokingTaskReturningDelegateOkIfAwaited()
         {
             const string code = @"
 using System;
@@ -219,7 +219,7 @@ class C
 
     public delegate Task TaskyDelegate();
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return NoDiagnostic(code);
         }
 
 
@@ -261,7 +261,7 @@ class C
         return func(1,2,3,4,5);
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return NoDiagnostic(code);
         }
     }
 }
