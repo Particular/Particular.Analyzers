@@ -32,10 +32,10 @@ namespace Particular.CodeRules.Tests
 
         protected async Task TestCodeFix(Document document, TextSpan span, string expected, DiagnosticDescriptor descriptor, int count = 1, int index = 0)
         {
-            var codeFixes = await GetCodeFixes(document, span, descriptor);
+            var codeFixes = await GetCodeFixes(document, span, descriptor).ConfigureAwait(false);
             Assert.Equal(count, codeFixes.Length);
 
-            await CodeAction(codeFixes[index], document, expected);
+            await CodeAction(codeFixes[index], document, expected).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<CodeAction>> GetCodeFixes(Document document, TextSpan span, DiagnosticDescriptor descriptor)
@@ -44,19 +44,19 @@ namespace Particular.CodeRules.Tests
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix =
                 (a, _) => builder.Add(a);
 
-            var tree = await document.GetSyntaxTreeAsync(CancellationToken.None);
+            var tree = await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
             var diagnostic = Diagnostic.Create(descriptor, Location.Create(tree, span));
             var context = new CodeFixContext(document, diagnostic, registerCodeFix, CancellationToken.None);
 
             var provider = CreateProvider();
-            await provider.RegisterCodeFixesAsync(context);
+            await provider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
 
             return builder.ToImmutable();
         }
 
         private static async Task CodeAction(CodeAction codeAction, Document document, string expectedCode)
         {
-            var operations = await codeAction.GetOperationsAsync(CancellationToken.None);
+            var operations = await codeAction.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
             Assert.Single(operations);
 
             var operation = operations[0];
@@ -65,7 +65,7 @@ namespace Particular.CodeRules.Tests
 
             var newDocument = workspace.CurrentSolution.GetDocument(document.Id);
 
-            var sourceText = await newDocument.GetTextAsync(CancellationToken.None);
+            var sourceText = await newDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
             var text = sourceText.ToString();
 
             Assert.Equal(expectedCode, text);

@@ -13,7 +13,7 @@
     /// <summary>
     ///     The code fix for any missing ConfigureAwaits
     /// </summary>
-    /// <seealso cref="T:Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider" />
+    /// <seealso cref="Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider" />
     [ExportCodeFixProvider(DiagnosticIds.UseConfigureAwait, LanguageNames.CSharp)]
     public class ConfigureAwaitCodeFix : CodeFixProvider
     {
@@ -77,7 +77,7 @@
             return ReplaceAsync(document, oldExpression, newExpression, cancellationToken);
         }
 
-        private async Task<Document> ReplaceAsync(Document document, SyntaxNode oldSyntax, SyntaxNode newSyntax, CancellationToken cancellationToken)
+        private static async Task<Document> ReplaceAsync(Document document, SyntaxNode oldSyntax, SyntaxNode newSyntax, CancellationToken cancellationToken)
         {
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = oldRoot.ReplaceNode(oldSyntax, newSyntax);

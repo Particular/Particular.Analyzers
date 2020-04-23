@@ -29,13 +29,11 @@
         private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var node = context.Node as InvocationExpressionSyntax;
-            var parentNode = node?.Parent as ExpressionStatementSyntax;
-
-            if (parentNode != null)
+            if (node?.Parent is ExpressionStatementSyntax)
             {
                 var symbol = context.SemanticModel.GetSymbolInfo(node.Expression).Symbol;
 
-                if (IsDroppedTask(context, symbol))
+                if (IsDroppedTask(symbol))
                 {
                     var location = node.GetLocation();
                     var diagnostic = Diagnostic.Create(DiagnosticDescriptors.AwaitOrCaptureTasks, location);
@@ -44,11 +42,11 @@
             }
         }
 
-        private static bool IsDroppedTask(SyntaxNodeAnalysisContext context, ISymbol symbol)
+        private static bool IsDroppedTask(ISymbol symbol)
         {
             if (symbol is IMethodSymbol)
             {
-                return DerivesFromTask(context, ((IMethodSymbol)symbol).ReturnType);
+                return DerivesFromTask(((IMethodSymbol)symbol).ReturnType);
             }
 
             if (symbol is ILocalSymbol)
@@ -59,14 +57,14 @@
                 {
                     var delegateInvoke = namedType.DelegateInvokeMethod;
                     var returnType = delegateInvoke.ReturnType;
-                    return DerivesFromTask(context, returnType);
+                    return DerivesFromTask(returnType);
                 }
             }
 
             return false;
         }
 
-        private static bool DerivesFromTask(SyntaxNodeAnalysisContext context, ITypeSymbol symbol)
+        private static bool DerivesFromTask(ITypeSymbol symbol)
         {
             while (symbol != null)
             {

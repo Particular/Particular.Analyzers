@@ -29,7 +29,7 @@ namespace Particular.CodeRules.Tests
 
         protected async Task NoDiagnostic(Document document, string diagnosticId)
         {
-            var diagnostics = await GetDiagnostics(document);
+            var diagnostics = await GetDiagnostics(document).ConfigureAwait(false);
             Assert.Empty(diagnostics);
         }
 
@@ -44,7 +44,7 @@ namespace Particular.CodeRules.Tests
 
         protected async Task HasDiagnostic(Document document, TextSpan span, string diagnosticId)
         {
-            var diagnostics = await GetDiagnostics(document);
+            var diagnostics = await GetDiagnostics(document).ConfigureAwait(false);
             Assert.Single(diagnostics);
 
             var diagnostic = diagnostics[0];
@@ -57,7 +57,7 @@ namespace Particular.CodeRules.Tests
         {
             var analyzers = ImmutableArray.Create(CreateAnalyzer());
             var exceptions = new List<ExceptionDispatchInfo>();
-            var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
+            var compilation = await document.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false);
             var analyzerOptions = new CompilationWithAnalyzersOptions(
                 new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
                 (exception, analyzer, diagnostic) => exceptions.Add(ExceptionDispatchInfo.Capture(exception)),
@@ -67,10 +67,10 @@ namespace Particular.CodeRules.Tests
             var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions);
             var discarded = compilation.GetDiagnostics(CancellationToken.None);
 
-            var tree = await document.GetSyntaxTreeAsync(CancellationToken.None);
+            var tree = await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
 
             var builder = ImmutableArray.CreateBuilder<Diagnostic>();
-            foreach (var diagnostic in await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync())
+            foreach (var diagnostic in await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false))
             {
                 var location = diagnostic.Location;
                 if (location.IsInSource && location.SourceTree == tree)
