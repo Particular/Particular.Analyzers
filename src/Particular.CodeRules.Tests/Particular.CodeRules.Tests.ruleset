@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Particular Software Code Rules Tests Rule Set" Description="CodeAnalysis Rules for Particular Software Code Rules Tests" ToolsVersion="16.0">
+  <Include Path="..\particular.coderules\particular.ruleset" Action="Default" />
+  <Rules AnalyzerId="Microsoft.CodeAnalysis.FxCopAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.FxCopAnalyzers">
+    <Rule Id="CA2007" Action="None" />
+  </Rules>
+</RuleSet>
