@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <!-- <CodeAnalysisRuleSet>Consumer.ruleset</CodeAnalysisRuleSet> -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Particular.CodeRules" Version="0.3.0-fxcop-2.1" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
