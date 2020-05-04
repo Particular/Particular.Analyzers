@@ -18,9 +18,4 @@
             isEnabledByDefault: true,
             description: "A method returning a Task should either be awaited or stored in a variable so that the Task is not dropped.");
     }
-
-    internal static class DiagnosticCategories
-    {
-        public const string Code = "Code";
-    }
 }
