@@ -214,7 +214,4 @@
     <Rule Id="CA5403" Action="None" />             <!-- Do not hard-code certificate -->
     <Rule Id="CA9999" Action="None" />             <!-- Analyzer version mismatch -->
   </Rules>
-  <Rules AnalyzerId="Particular.CodeRules" RuleNamespace="Particular.CodeRules">
-    <Rule Id="PCR0001" Action="Error" />
-  </Rules>
 </RuleSet>
