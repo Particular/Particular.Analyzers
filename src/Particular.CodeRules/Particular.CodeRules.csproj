@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="1.2.2" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0" PrivateAssets="None" />
     <PackageReference Include="Particular.Packaging" Version="0.7.0" PrivateAssets="All" />
     <PackageReference Update="NETStandard.Library" PrivateAssets="All" />
   </ItemGroup>
