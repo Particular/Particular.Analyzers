@@ -27,6 +27,7 @@
     <Rule Id="CA1041" Action="None" />             <!-- Provide ObsoleteAttribute message -->
     <Rule Id="CA1043" Action="None" />             <!-- Use Integral Or String Argument For Indexers -->
     <Rule Id="CA1044" Action="None" />             <!-- Properties should not be write only -->
+    <Rule Id="CA1047" Action="None" />             <!-- Do not declare protected member in sealed type -->
     <Rule Id="CA1050" Action="None" />             <!-- Declare types in namespaces -->
     <Rule Id="CA1051" Action="None" />             <!-- Do not declare visible instance fields -->
     <Rule Id="CA1052" Action="None" />             <!-- Static holder types should be Static or NotInheritable -->
@@ -44,6 +45,7 @@
     <Rule Id="CA1067" Action="None" />             <!-- Override Object.Equals(object) when implementing IEquatable<T> -->
     <Rule Id="CA1068" Action="None" />             <!-- CancellationToken parameters must come last -->
     <Rule Id="CA1069" Action="None" />             <!-- Enums values should not be duplicated -->
+    <Rule Id="CA1070" Action="None" />             <!-- Do not declare event fields as virtual -->
     <Rule Id="CA1200" Action="None" />             <!-- Avoid using cref tags with a prefix -->
     <Rule Id="CA1303" Action="None" />             <!-- Do not pass literals as localized parameters -->
     <Rule Id="CA1304" Action="None" />             <!-- Specify CultureInfo -->
@@ -52,6 +54,7 @@
     <Rule Id="CA1308" Action="None" />             <!-- Normalize strings to uppercase -->
     <Rule Id="CA1309" Action="None" />             <!-- Use ordinal stringcomparison -->
     <Rule Id="CA1401" Action="None" />             <!-- P/Invokes should not be visible -->
+    <Rule Id="CA1417" Action="None" />             <!-- Do not use 'OutAttribute' on string parameters for P/Invokes -->
     <Rule Id="CA1501" Action="None" />             <!-- Avoid excessive inheritance -->
     <Rule Id="CA1502" Action="None" />             <!-- Avoid excessive complexity -->
     <Rule Id="CA1505" Action="None" />             <!-- Avoid unmaintainable code -->
@@ -64,6 +67,7 @@
     <Rule Id="CA1710" Action="None" />             <!-- Identifiers should have correct suffix -->
     <Rule Id="CA1711" Action="None" />             <!-- Identifiers should not have incorrect suffix -->
     <Rule Id="CA1712" Action="None" />             <!-- Do not prefix enum values with type name -->
+    <Rule Id="CA1713" Action="None" />             <!-- Events should not have 'Before' or 'After' prefix -->
     <Rule Id="CA1714" Action="None" />             <!-- Flags enums should have plural names -->
     <Rule Id="CA1715" Action="None" />             <!-- Identifiers should have correct prefix -->
     <Rule Id="CA1716" Action="None" />             <!-- Identifiers should not match keywords -->
@@ -74,6 +78,7 @@
     <Rule Id="CA1725" Action="None" />             <!-- Parameter names should match base declaration -->
     <Rule Id="CA1801" Action="None" />             <!-- Review unused parameters -->
     <Rule Id="CA1802" Action="None" />             <!-- Use literals where appropriate -->
+    <Rule Id="CA1805" Action="None" />             <!-- Do not initialize unnecessarily -->
     <Rule Id="CA1806" Action="None" />             <!-- Do not ignore method results -->
     <Rule Id="CA1810" Action="None" />             <!-- Initialize reference type static fields inline -->
     <Rule Id="CA1812" Action="None" />             <!-- Avoid uninstantiated internal classes -->
@@ -92,6 +97,14 @@
     <Rule Id="CA1827" Action="None" />             <!-- Do not use Count() or LongCount() when Any() can be used -->
     <Rule Id="CA1828" Action="None" />             <!-- Do not use CountAsync() or LongCountAsync() when AnyAsync() can be used -->
     <Rule Id="CA1829" Action="None" />             <!-- Use Length/Count property instead of Count() when available -->
+    <Rule Id="CA1830" Action="None" />             <!-- Prefer strongly-typed Append and Insert method overloads on StringBuilder -->
+    <Rule Id="CA1831" Action="None" />             <!-- Use AsSpan or AsMemory instead of Range-based indexers when appropriate -->
+    <Rule Id="CA1832" Action="None" />             <!-- Use AsSpan or AsMemory instead of Range-based indexers when appropriate -->
+    <Rule Id="CA1833" Action="None" />             <!-- Use AsSpan or AsMemory instead of Range-based indexers when appropriate -->
+    <Rule Id="CA1834" Action="None" />             <!-- Consider using 'StringBuilder.Append(char)' when applicable -->
+    <Rule Id="CA1835" Action="None" />             <!-- Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync' -->
+    <Rule Id="CA1836" Action="None" />             <!-- IsEmpty over Count -->
+    <Rule Id="CA1837" Action="None" />             <!-- Use 'Environment.ProcessId' -->   
     <Rule Id="CA2000" Action="None" />             <!-- Dispose objects before losing scope -->
     <Rule Id="CA2002" Action="None" />             <!-- Do not lock on objects with weak identity -->
     <Rule Id="CA2007" Action="Error" />            <!-- Consider calling ConfigureAwait on the awaited task -->
@@ -100,7 +113,10 @@
     <Rule Id="CA2010" Action="None" />             <!-- Always consume the value returned by methods marked with PreserveSigAttribute -->
     <Rule Id="CA2011" Action="None" />             <!-- Avoid infinite recursion -->
     <Rule Id="CA2012" Action="None" />             <!-- Use ValueTasks correctly -->
-    <Rule Id="CA2013" Action="None" />             <!-- Do not use ReferenceEquals with value types -->
+    <Rule Id="CA2013" Action="None" />             <!-- Do not use ReferenceEquals with value types -->    
+    <Rule Id="CA2014" Action="None" />             <!-- Do not use stackalloc in loops -->
+    <Rule Id="CA2015" Action="None" />             <!-- Do not define finalizers for types derived from MemoryManager -->
+    <Rule Id="CA2016" Action="None" />             <!-- Forward the 'CancellationToken' parameter to methods that take one -->
     <Rule Id="CA2100" Action="None" />             <!-- Review SQL queries for security vulnerabilities -->
     <Rule Id="CA2101" Action="None" />             <!-- Specify marshaling for P/Invoke string arguments -->
     <Rule Id="CA2119" Action="None" />             <!-- Seal methods that satisfy private interfaces -->
