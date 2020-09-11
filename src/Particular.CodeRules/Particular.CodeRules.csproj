@@ -19,12 +19,14 @@
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0" PrivateAssets="None" />
     <PackageReference Include="Particular.Packaging" Version="0.9.0" PrivateAssets="All" />
     <PackageReference Update="NETStandard.Library" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="None" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Link="$(AssemblyName).dll" Visible="false" />
     <None Update="Particular.CodeRules.props" Pack="true" PackagePath="build" />
     <None Update="Particular.ruleset" Pack="true" PackagePath="build" />
+    <None Update="stylecop.json" Pack="true" PackagePath="build" />
     <None Update="tools\*.ps1" Pack="true" PackagePath="tools\%(Filename)%(Extension)" />
   </ItemGroup>
 
