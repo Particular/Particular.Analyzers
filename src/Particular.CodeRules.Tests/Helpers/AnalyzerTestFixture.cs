@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Runtime.ExceptionServices;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-using Xunit;
-
-namespace Particular.CodeRules.Tests
+﻿namespace Particular.CodeRules.Tests
 {
+    using System.Collections.Generic;
+    using System.Collections.Immutable;
+    using System.Runtime.ExceptionServices;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.Diagnostics;
+    using Microsoft.CodeAnalysis.Text;
+    using Xunit;
+
     public class CSharpAnalyzerTestFixture<TAnalyzer> : AnalyzerTestFixture where TAnalyzer : DiagnosticAnalyzer, new()
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -23,13 +23,13 @@ namespace Particular.CodeRules.Tests
 
         protected Task NoDiagnostic(string code, string diagnosticId)
         {
-            var document = TestHelpers.GetDocument(code, LanguageName);
-            return NoDiagnostic(document, diagnosticId);
+            var document = TestHelpers.GetDocument(code, this.LanguageName);
+            return this.NoDiagnostic(document, diagnosticId);
         }
 
         protected async Task NoDiagnostic(Document document, string diagnosticId)
         {
-            var diagnostics = await GetDiagnostics(document);
+            var diagnostics = await this.GetDiagnostics(document);
             Assert.Empty(diagnostics);
         }
 
@@ -37,14 +37,14 @@ namespace Particular.CodeRules.Tests
         {
             Document document;
             TextSpan span;
-            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out document, out span), "No markup detected in test code.");
+            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, this.LanguageName, out document, out span), "No markup detected in test code.");
 
-            return HasDiagnostic(document, span, diagnosticId);
+            return this.HasDiagnostic(document, span, diagnosticId);
         }
 
         protected async Task HasDiagnostic(Document document, TextSpan span, string diagnosticId)
         {
-            var diagnostics = await GetDiagnostics(document);
+            var diagnostics = await this.GetDiagnostics(document);
             Assert.Single(diagnostics);
 
             var diagnostic = diagnostics[0];
@@ -55,7 +55,7 @@ namespace Particular.CodeRules.Tests
 
         private async Task<ImmutableArray<Diagnostic>> GetDiagnostics(Document document)
         {
-            var analyzers = ImmutableArray.Create(CreateAnalyzer());
+            var analyzers = ImmutableArray.Create(this.CreateAnalyzer());
             var exceptions = new List<ExceptionDispatchInfo>();
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
             var analyzerOptions = new CompilationWithAnalyzersOptions(

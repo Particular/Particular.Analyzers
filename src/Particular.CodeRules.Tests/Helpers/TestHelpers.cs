@@ -1,13 +1,13 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
-
-namespace Particular.CodeRules.Tests
+﻿namespace Particular.CodeRules.Tests
 {
+    using System.Collections.Immutable;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.Text;
+
     public static class TestHelpers
     {
         public static bool TryGetCodeAndSpanFromMarkup(string markupCode, out string code, out TextSpan span)

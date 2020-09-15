@@ -18,7 +18,7 @@ class C
         await Task.Delay(1);
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -36,7 +36,7 @@ class C
         return task;
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -53,7 +53,7 @@ class C
         return Task.Delay(1);
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -72,7 +72,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -91,7 +91,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
         [Fact]
@@ -108,7 +108,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -127,7 +127,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -149,7 +149,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -171,7 +171,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -195,7 +195,7 @@ class C
 
     public delegate Task TaskyDelegate();
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -219,7 +219,7 @@ class C
 
     public delegate Task TaskyDelegate();
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -239,7 +239,7 @@ class C
         return func();
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
 
@@ -261,7 +261,7 @@ class C
         return func(1,2,3,4,5);
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return this.NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
     }
 }
