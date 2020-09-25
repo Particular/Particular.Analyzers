@@ -243,6 +243,7 @@
     <Rule Id="SA1009" Action="None" />             <!-- Closing parenthesis should be spaced correctly -->
     <Rule Id="SA1012" Action="None" />             <!-- Opening braces should be spaced correctly -->
     <Rule Id="SA1013" Action="None" />             <!-- Closing braces should be spaced correctly -->
+    <Rule Id="SA1020" Action="None" />             <!-- Increment decrement symbols should be spaced correctly -->
     <Rule Id="SA1025" Action="None" />             <!-- Code should not contain multiple whitespace in a row -->
     <Rule Id="SA1027" Action="None" />             <!-- Use tabs correctly -->
     <Rule Id="SA1028" Action="None" />             <!-- Code should not contain trailing whitespace -->
@@ -263,6 +264,7 @@
     <Rule Id="SA1128" Action="None" />             <!-- Put constructor initializers on their own line -->
     <Rule Id="SA1129" Action="None" />             <!-- Do not use default value type constructor -->
     <Rule Id="SA1135" Action="None" />             <!-- Using directives should be qualified -->
+    <Rule Id="SA1137" Action="None" />             <!-- Elements should have the same indentation -->
     <Rule Id="SA1200" Action="None" />             <!-- Using directives should be placed correctly -->
     <Rule Id="SA1201" Action="None" />             <!-- Elements should appear in the correct order -->
     <Rule Id="SA1202" Action="None" />             <!-- Elements should be ordered by access -->
@@ -294,6 +296,7 @@
     <Rule Id="SA1503" Action="None" />             <!-- Braces should not be omitted -->
     <Rule Id="SA1505" Action="None" />             <!-- Opening braces should not be followed by blank line -->
     <Rule Id="SA1507" Action="None" />             <!-- Code should not contain multiple blank lines in a row -->
+    <Rule Id="SA1508" Action="None" />             <!-- Closing braces should not be preceded by blank line -->
     <Rule Id="SA1513" Action="None" />             <!-- Closing brace should be followed by blank line -->
     <Rule Id="SA1515" Action="None" />             <!-- Single-line comment should be preceded by blank line -->
     <Rule Id="SA1516" Action="None" />             <!-- Elements should be separated by blank line -->
