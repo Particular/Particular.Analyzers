@@ -4,7 +4,7 @@
     <TargetFrameworks>net452;netcoreapp3.1</TargetFrameworks>
     <NoWarn>$(NoWarn);NU1701</NoWarn>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <CodeAnalysisRuleSet>..\Particular.CodeRules\Particular.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
