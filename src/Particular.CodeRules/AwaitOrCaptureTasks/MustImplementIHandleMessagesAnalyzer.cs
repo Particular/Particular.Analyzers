@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Linq;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -97,7 +98,9 @@
 
         private static bool HasImplementationDefined(SyntaxNodeAnalysisContext context, ClassDeclarationSyntax classDeclaration, string messageIdentifier)
         {
-            bool foundHandleMethod = false;
+            bool foundHandler = false;
+            SyntaxToken firstHandler = default(SyntaxToken);
+            List<SyntaxToken> additionalHandlers = null;
 
             foreach (var member in classDeclaration.Members)
             {
@@ -105,18 +108,31 @@
                 {
                     if (IsMethodAHandleMethod(methodDeclaration, messageIdentifier))
                     {
-                        if (foundHandleMethod)
+                        if(!foundHandler)
                         {
-                            var location = methodDeclaration.Identifier.GetLocation();
-                            var diagnostic = Diagnostic.Create(DiagnosticDescriptors.TooManyIHandleMessagesImplementations, location);
-                            context.ReportDiagnostic(diagnostic);
+                            foundHandler = true;
+                            firstHandler = methodDeclaration.Identifier;
                         }
-                        foundHandleMethod = true;
+                        else
+                        {
+                            if(additionalHandlers == null)
+                            {
+                                additionalHandlers = new List<SyntaxToken>(3);
+                            }
+                            additionalHandlers.Add(methodDeclaration.Identifier);
+                        }
                     }
                 }
             }
 
-            return foundHandleMethod;
+            if(additionalHandlers != null)
+            {
+                var additionalLocations = additionalHandlers.Select(handler => handler.GetLocation());
+                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.TooManyIHandleMessagesImplementations, firstHandler.GetLocation(), additionalLocations);
+                context.ReportDiagnostic(diagnostic);
+            }
+
+            return foundHandler;
         }
 
         static bool IsMethodAHandleMethod(MethodDeclarationSyntax methodDeclaration, string messageIdentifier)

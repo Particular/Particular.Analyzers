@@ -233,7 +233,7 @@ class SomeSaga : Saga<MyData>, IAmStartedByMessages<Message1>,
 using System.Threading.Tasks;
 class C : IHandleMessages<Message>
 {
-    public Task Handle(Message message, IMessageHandlerContext context)
+    public Task [|Handle|](Message message, IMessageHandlerContext context)
     {
         return Task.CompletedTask;
     }
@@ -253,7 +253,7 @@ class C : IHandleMessages<Message>
 using System.Threading.Tasks;
 class C : IHandleMessages<Message>
 {
-    public Task HandleAsync(Message message, IMessageHandlerContext context)
+    public Task [|HandleAsync|](Message message, IMessageHandlerContext context)
     {
         return Task.CompletedTask;
     }
