@@ -1,5 +1,6 @@
 ﻿namespace Particular.CodeRules.AwaitOrCaptureTasks
 {
+    using System.Collections.Generic;
     using System.Collections.Immutable;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
@@ -7,7 +8,7 @@
     using Microsoft.CodeAnalysis.Diagnostics;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class AtLeastOneImplementationAnalyzer : DiagnosticAnalyzer
+    public class MustImplementIHandleMessagesAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>
         ///     Gets the list of supported diagnostics for the analyzer.
@@ -15,7 +16,9 @@
         /// <value>
         ///     The supported diagnostics.
         /// </value>
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.AtLeastOneImplementation);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+            DiagnosticDescriptors.MustImplementIHandleMessages,
+            DiagnosticDescriptors.TooManyIHandleMessagesImplementations);
 
         /// <summary>
         ///     Initializes the specified analyzer on the <paramref name="context" />.
@@ -44,10 +47,10 @@
                 {
                     if(BaseTypeIsHandlerSignature(baseTypeSyntax, out var messageIdentifier))
                     {
-                        if(!HasImplementationDefined(classDeclaration, messageIdentifier))
+                        if(!HasImplementationDefined(context, classDeclaration, messageIdentifier))
                         {
                             var location = baseTypeSyntax.GetLocation();
-                            var diagnostic = Diagnostic.Create(DiagnosticDescriptors.AtLeastOneImplementation, location);
+                            var diagnostic = Diagnostic.Create(DiagnosticDescriptors.MustImplementIHandleMessages, location);
                             context.ReportDiagnostic(diagnostic);
                         }
                     }
@@ -92,25 +95,35 @@
             return true;
         }
 
-        private static bool HasImplementationDefined(ClassDeclarationSyntax classDeclaration, string messageIdentifier)
+        private static bool HasImplementationDefined(SyntaxNodeAnalysisContext context, ClassDeclarationSyntax classDeclaration, string messageIdentifier)
         {
+            bool foundHandleMethod = false;
+
             foreach (var member in classDeclaration.Members)
             {
                 if(member is MethodDeclarationSyntax methodDeclaration)
                 {
                     if (IsMethodAHandleMethod(methodDeclaration, messageIdentifier))
                     {
-                        return true;
+                        if (foundHandleMethod)
+                        {
+                            var location = methodDeclaration.Identifier.GetLocation();
+                            var diagnostic = Diagnostic.Create(DiagnosticDescriptors.TooManyIHandleMessagesImplementations, location);
+                            context.ReportDiagnostic(diagnostic);
+                        }
+                        foundHandleMethod = true;
                     }
                 }
             }
 
-            return false;
+            return foundHandleMethod;
         }
 
         static bool IsMethodAHandleMethod(MethodDeclarationSyntax methodDeclaration, string messageIdentifier)
         {
-            if (methodDeclaration.Identifier.Text != "Handle")
+            var methodName = methodDeclaration.Identifier.Text;
+
+            if (methodName != "Handle" && methodName != "HandleAsync")
             {
                 return false;
             }
