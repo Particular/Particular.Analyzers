@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Particular.CodeRules.AwaitOrCaptureTasks;
+using Particular.CodeRules.MustImplementIHandleMessages;
 using Xunit;
 
 namespace Particular.CodeRules.Tests

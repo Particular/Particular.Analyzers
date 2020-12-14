@@ -1,4 +1,4 @@
-﻿namespace Particular.CodeRules.AwaitOrCaptureTasks
+﻿namespace Particular.CodeRules.MustImplementIHandleMessages
 {
     using System.Collections.Generic;
     using System.Collections.Immutable;
