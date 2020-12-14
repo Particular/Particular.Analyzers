@@ -36,21 +36,42 @@
         protected Task HasDiagnostic(string markupCode, string diagnosticId)
         {
             Document document;
-            TextSpan span;
-            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, this.LanguageName, out document, out span), "No markup detected in test code.");
+            TextSpan[] spans;
+            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, this.LanguageName, out document, out spans), "No markup detected in test code.");
 
-            return this.HasDiagnostic(document, span, diagnosticId);
+            return this.HasDiagnostic(document, spans, diagnosticId);
         }
 
-        protected async Task HasDiagnostic(Document document, TextSpan span, string diagnosticId)
+        protected async Task HasDiagnostic(Document document, TextSpan[] spans, string diagnosticId)
         {
             var diagnostics = await this.GetDiagnostics(document);
-            Assert.Single(diagnostics);
 
-            var diagnostic = diagnostics[0];
-            Assert.Equal(diagnosticId, diagnostic.Id);
-            Assert.True(diagnostic.Location.IsInSource, "Diagnostic not in test code.");
-            Assert.Equal(span, diagnostic.Location.SourceSpan);
+            if (diagnostics.Length == spans.Length)
+            {
+                for (int i = 0; i < spans.Length; i++)
+                {
+                    var diagnostic = diagnostics[i];
+                    Assert.Equal(diagnosticId, diagnostic.Id);
+                    Assert.True(diagnostic.Location.IsInSource, "Diagnostic not in test code.");
+                    Assert.Equal(spans[i], diagnostic.Location.SourceSpan);
+                }
+            }
+            else if (spans.Length > 1 && diagnostics.Length == 1)
+            {
+                var diagnostic = diagnostics[0];
+                Assert.Equal(diagnosticId, diagnostic.Id);
+                Assert.True(diagnostic.Location.IsInSource, "Diagnostic not in test code.");
+                Assert.Equal(spans[0], diagnostic.Location.SourceSpan);
+                for (int i = 1; i < spans.Length; i++)
+                {
+                    Assert.Equal(spans[i], diagnostic.AdditionalLocations[i - 1].SourceSpan);
+                }
+            }
+            else
+            {
+                Assert.True(false, "Test must result in one diagnostic per span, or one diagnostic with AdditionalLocations.");
+            }
+
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetDiagnostics(Document document)

@@ -1,5 +1,6 @@
 ﻿namespace Particular.CodeRules.Tests
 {
+    using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
@@ -10,45 +11,55 @@
 
     public static class TestHelpers
     {
-        public static bool TryGetCodeAndSpanFromMarkup(string markupCode, out string code, out TextSpan span)
+        public static bool TryGetCodeAndSpanFromMarkup(string markupCode, out string code, out TextSpan[] spans)
         {
-            code = null;
-            span = default(TextSpan);
+            var spanList = new List<TextSpan>();
 
             var builder = new StringBuilder();
+            var pos = 0;
+            var offset = 0;
 
-            var start = markupCode.IndexOf("[|");
-            if (start < 0)
+            while(pos < markupCode.Length)
             {
-                return false;
+                var start = markupCode.IndexOf("[|", pos);
+                if(start < 0)
+                {
+                    break;
+                }
+
+                builder.Append(markupCode.Substring(pos, start - pos));
+                pos = start;
+
+                var end = markupCode.IndexOf("|]", pos);
+                if (end < 0 )
+                {
+                    break;
+                }
+
+                spanList.Add(TextSpan.FromBounds(start - offset, end - 2 - offset));
+                offset += 4;
+
+                builder.Append(markupCode.Substring(start + 2, end - start - 2));
+                pos = end + 2;
             }
 
-            builder.Append(markupCode.Substring(0, start));
-
-            var end = markupCode.IndexOf("|]");
-            if (end < 0)
-            {
-                return false;
-            }
-
-            builder.Append(markupCode.Substring(start + 2, end - start - 2));
-            builder.Append(markupCode.Substring(end + 2));
+            builder.Append(markupCode.Substring(pos));
 
             code = builder.ToString();
-            span = TextSpan.FromBounds(start, end - 2);
+            spans = spanList.ToArray();
 
-            return true;
+            return spans.Length > 0;
         }
 
-        public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, out Document document, out TextSpan span)
+        public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, out Document document, out TextSpan[] spans)
         {
-            return TryGetDocumentAndSpanFromMarkup(markupCode, languageName, null, out document, out span);
+            return TryGetDocumentAndSpanFromMarkup(markupCode, languageName, null, out document, out spans);
         }
 
-        public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, ImmutableList<MetadataReference> references, out Document document, out TextSpan span)
+        public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, ImmutableList<MetadataReference> references, out Document document, out TextSpan[] spans)
         {
             string code;
-            if (!TryGetCodeAndSpanFromMarkup(markupCode, out code, out span))
+            if (!TryGetCodeAndSpanFromMarkup(markupCode, out code, out spans))
             {
                 document = null;
                 return false;
