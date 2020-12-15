@@ -51,7 +51,8 @@
                         if(!HasImplementationDefined(context, classDeclaration, messageIdentifier))
                         {
                             var location = baseTypeSyntax.GetLocation();
-                            var diagnostic = Diagnostic.Create(DiagnosticDescriptors.MustImplementIHandleMessages, location);
+                            var properties = new Dictionary<string, string> { { "MessageType", messageIdentifier } }.ToImmutableDictionary();
+                            var diagnostic = Diagnostic.Create(DiagnosticDescriptors.MustImplementIHandleMessages, location, properties);
                             context.ReportDiagnostic(diagnostic);
                         }
                     }
