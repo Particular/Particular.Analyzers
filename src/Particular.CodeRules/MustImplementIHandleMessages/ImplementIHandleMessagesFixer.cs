@@ -32,18 +32,16 @@ namespace Particular.CodeRules.MustImplementIHandleMessages
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             var interfaceNameToken = root.FindToken(diagnosticSpan.Start);
-            var baseTypeSyntax = interfaceNameToken.Parent.Parent as SimpleBaseTypeSyntax;
+            var classDeclaration = interfaceNameToken.Parent.Ancestors().OfType<ClassDeclarationSyntax>().First();
 
             // Register a code action that will invoke the fix.
             context.RegisterCodeFix(
               CodeAction.Create(title, c =>
-              ImplementIHandleMessages(context.Document, baseTypeSyntax, messageType, c), equivalenceKey: title), diagnostic);
+              ImplementIHandleMessages(context.Document, classDeclaration, messageType, c), equivalenceKey: title), diagnostic);
         }
 
-        private async Task<Document> ImplementIHandleMessages(Document document, SimpleBaseTypeSyntax baseType, string messageType, CancellationToken cancellationToken)
+        private async Task<Document> ImplementIHandleMessages(Document document, ClassDeclarationSyntax classDeclaration, string messageType, CancellationToken cancellationToken)
         {
-            var classDeclaration = baseType.Ancestors().OfType<ClassDeclarationSyntax>().First();
-
             var insertCode = @"
 public async Task Handle(" + messageType + @" message, IMessageHandlerContext context)
 {
