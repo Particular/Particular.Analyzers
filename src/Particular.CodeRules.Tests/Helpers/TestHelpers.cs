@@ -13,7 +13,7 @@
         public static bool TryGetCodeAndSpanFromMarkup(string markupCode, out string code, out TextSpan span)
         {
             code = null;
-            span = default(TextSpan);
+            span = default;
 
             var builder = new StringBuilder();
 
@@ -47,8 +47,7 @@
 
         public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, ImmutableList<MetadataReference> references, out Document document, out TextSpan span)
         {
-            string code;
-            if (!TryGetCodeAndSpanFromMarkup(markupCode, out code, out span))
+            if (!TryGetCodeAndSpanFromMarkup(markupCode, out string code, out span))
             {
                 document = null;
                 return false;
@@ -60,9 +59,13 @@
 
         public static Document GetDocument(string code, string languageName, ImmutableList<MetadataReference> references = null)
         {
+#pragma warning disable IDE0079 // Remove unnecessary suppression
+#pragma warning disable IDE0054 // False positive
             references = references ?? ImmutableList.Create<MetadataReference>(
                 MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.GetLocation()),
                 MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.GetLocation()));
+#pragma warning restore IDE0054 // False positive
+#pragma warning restore IDE0079 // Remove unnecessary suppression
 
             return new AdhocWorkspace()
                 .AddProject("TestProject", languageName)
