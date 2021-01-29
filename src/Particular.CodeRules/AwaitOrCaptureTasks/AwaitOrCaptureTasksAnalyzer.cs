@@ -28,16 +28,15 @@
             context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
         }
 
-        private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+        static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var node = context.Node as InvocationExpressionSyntax;
-            var parentNode = node?.Parent as ExpressionStatementSyntax;
 
-            if (parentNode != null)
+            if (node?.Parent is ExpressionStatementSyntax)
             {
                 var symbol = context.SemanticModel.GetSymbolInfo(node.Expression).Symbol;
 
-                if (IsDroppedTask(context, symbol))
+                if (IsDroppedTask(symbol))
                 {
                     var location = node.GetLocation();
                     var diagnostic = Diagnostic.Create(DiagnosticDescriptors.AwaitOrCaptureTasks, location);
@@ -46,29 +45,29 @@
             }
         }
 
-        private static bool IsDroppedTask(SyntaxNodeAnalysisContext context, ISymbol symbol)
+        static bool IsDroppedTask(ISymbol symbol)
         {
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol methodSymbol)
             {
-                return DerivesFromTask(context, ((IMethodSymbol)symbol).ReturnType);
+                return DerivesFromTask(methodSymbol.ReturnType);
             }
 
-            if (symbol is ILocalSymbol)
+            if (symbol is ILocalSymbol localSymbol)
             {
                 // Possibly a Func or delegate that returns a Task
-                var namedType = ((ILocalSymbol)symbol).Type as INamedTypeSymbol;
+                var namedType = localSymbol.Type as INamedTypeSymbol;
                 if (namedType?.TypeKind == TypeKind.Delegate)
                 {
                     var delegateInvoke = namedType.DelegateInvokeMethod;
                     var returnType = delegateInvoke.ReturnType;
-                    return DerivesFromTask(context, returnType);
+                    return DerivesFromTask(returnType);
                 }
             }
 
             return false;
         }
 
-        private static bool DerivesFromTask(SyntaxNodeAnalysisContext context, ITypeSymbol symbol)
+        static bool DerivesFromTask(ITypeSymbol symbol)
         {
             while (symbol != null)
             {
