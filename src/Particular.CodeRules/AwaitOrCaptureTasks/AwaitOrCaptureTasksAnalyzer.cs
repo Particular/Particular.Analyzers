@@ -32,7 +32,7 @@
         {
             var node = context.Node as InvocationExpressionSyntax;
 
-            if (node?.Parent is ExpressionStatementSyntax _)
+            if (node?.Parent is ExpressionStatementSyntax)
             {
                 var symbol = context.SemanticModel.GetSymbolInfo(node.Expression).Symbol;
 
