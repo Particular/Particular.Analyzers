@@ -18,13 +18,13 @@
     <PackageReference Update="NETStandard.Library" PrivateAssets="All" />
   </ItemGroup>
 
-   <ItemGroup>
+  <ItemGroup>
     <None Remove="AnalyzerReleases.Shipped.md" />
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
     <None Remove="AnalyzerReleases.Unshipped.md" />
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
-   
+
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Link="$(AssemblyName).dll" Visible="false" />
     <None Update="tools\*.ps1" Pack="true" PackagePath="tools\%(Filename)%(Extension)" />
