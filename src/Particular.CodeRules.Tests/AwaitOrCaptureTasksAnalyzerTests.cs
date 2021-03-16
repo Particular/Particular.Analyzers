@@ -21,8 +21,6 @@ class C
             return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
-
-
         [Fact]
         public Task CapturedTaskIsOk()
         {
@@ -39,8 +37,6 @@ class C
             return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
-
-
         [Fact]
         public Task ReturnedTaskIsOk()
         {
@@ -55,8 +51,6 @@ class C
 }";
             return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
-
-
 
         [Fact]
         public Task TaskIsDropped()
@@ -74,8 +68,6 @@ class C
 }";
             return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
-
-
 
         [Fact]
         public Task DynamicTaskIsDropped()
@@ -111,8 +103,6 @@ class C
             return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
-
-
         [Fact]
         public Task GenericTaskOfReferenceTypeIsDropped()
         {
@@ -129,8 +119,6 @@ class C
 }";
             return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
-
-
 
         [Fact]
         public Task InvokingTaskReturningFunc()
@@ -152,8 +140,6 @@ class C
             return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
-
-
         [Fact]
         public Task InvokingTaskReturningFunc_OkIfAwaited()
         {
@@ -173,8 +159,6 @@ class C
 }";
             return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
-
-
 
         [Fact]
         public Task InvokingTaskReturningDelegate()
@@ -198,8 +182,6 @@ class C
             return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
-
-
         [Fact]
         public Task InvokingTaskReturningDelegate_OkIfAwaited()
         {
@@ -222,8 +204,6 @@ class C
             return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
-
-
         [Fact]
         public Task TaskDroppedWithinFuncLambda()
         {
@@ -241,10 +221,6 @@ class C
 }";
             return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
-
-
-
-
 
         [Fact]
         public Task BigLongFuncDoesNotMatter()

@@ -9,22 +9,12 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class AwaitOrCaptureTasksAnalyzer : DiagnosticAnalyzer
     {
-        /// <summary>
-        ///     Gets the list of supported diagnostics for the analyzer.
-        /// </summary>
-        /// <value>
-        ///     The supported diagnostics.
-        /// </value>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.AwaitOrCaptureTasks);
 
-        /// <summary>
-        ///     Initializes the specified analyzer on the <paramref name="context" />.
-        /// </summary>
-        /// <param name="context">The context.</param>
         public override void Initialize(AnalysisContext context)
         {
-            context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
         }
 
