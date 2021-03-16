@@ -1,11 +1,14 @@
 ﻿namespace Particular.CodeRules.Tests
 {
     using System.Threading.Tasks;
-    using Particular.CodeRules.AwaitOrCaptureTasks;
+    using Particular.CodeRules.Tests.Helpers;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public class AwaitOrCaptureTasksAnalyzerTests : CSharpAnalyzerTestFixture<AwaitOrCaptureTasksAnalyzer>
+    public class AwaitOrCaptureTasksAnalyzerTests : AnalyzerTestFixture<AwaitOrCaptureTasksAnalyzer>
     {
+        public AwaitOrCaptureTasksAnalyzerTests(ITestOutputHelper output) : base(output) { }
+
         [Fact]
         public Task AwaitedTaskIsOk()
         {
@@ -18,7 +21,7 @@ class C
         await Task.Delay(1);
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code);
         }
 
         [Fact]
@@ -34,7 +37,7 @@ class C
         return task;
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code);
         }
 
         [Fact]
@@ -49,7 +52,7 @@ class C
         return Task.Delay(1);
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code);
         }
 
         [Fact]
@@ -66,7 +69,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
         [Fact]
@@ -83,7 +86,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
         [Fact]
@@ -100,7 +103,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
         [Fact]
@@ -117,7 +120,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
         [Fact]
@@ -137,7 +140,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
         [Fact]
@@ -157,7 +160,7 @@ class C
         return Task.CompletedTask;
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code);
         }
 
         [Fact]
@@ -179,7 +182,7 @@ class C
 
     public delegate Task TaskyDelegate();
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
         [Fact]
@@ -201,7 +204,7 @@ class C
 
     public delegate Task TaskyDelegate();
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code);
         }
 
         [Fact]
@@ -219,7 +222,7 @@ class C
         return func();
     }
 }";
-            return HasDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code, DiagnosticIds.AwaitOrCaptureTasks);
         }
 
         [Fact]
@@ -237,7 +240,9 @@ class C
         return func(1,2,3,4,5);
     }
 }";
-            return NoDiagnostic(code, DiagnosticIds.AwaitOrCaptureTasks);
+            return Assert(code);
         }
+
+        protected override bool Compile => false;
     }
 }
