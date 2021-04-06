@@ -7,7 +7,7 @@
     using Particular.CodeRules.Extensions;
 
     // see https://github.com/dotnet/roslyn/pull/36067
-    // TODO: add tests
+    // TODO: explain why this isn't tested
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class TokenParamUnusedSuppressor : DiagnosticSuppressor
     {

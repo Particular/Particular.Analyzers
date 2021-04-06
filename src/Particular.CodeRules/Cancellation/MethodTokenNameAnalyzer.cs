@@ -62,6 +62,8 @@
                 return;
             }
 
+            // TODO: split into two, one for private, one for non-private
+            // if (declaredSymbol.DeclaredAccessibility == Accessibility.Private && token.Name.EndsWith("CancellationToken", StringComparison.Ordinal))
             context.ReportDiagnostic(DiagnosticDescriptors.MethodCancellationTokenMisnamed, token);
         }
     }

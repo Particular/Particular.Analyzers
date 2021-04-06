@@ -45,6 +45,7 @@
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        // TODO: kill this after running it by Andreas
         public static readonly DiagnosticDescriptor EmptyCancellationTokenNone = new DiagnosticDescriptor(
             id: DiagnosticIds.EmptyCancellationTokenNone,
             title: "CancellationToken.None should not be used as a CancellationToken argument",

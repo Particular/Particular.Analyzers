@@ -2,6 +2,7 @@
 {
     public static class DiagnosticIds
     {
+        // TODO: change to PS (and PSS for suppression)
         public const string AwaitOrCaptureTasks = "PCR0002";
         public const string CancellableContextMethodCancellationToken = "PCR0003";
         public const string CancellationTokenNonPrivateRequired = "PCR0004";
