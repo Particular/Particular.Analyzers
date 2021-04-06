@@ -127,8 +127,8 @@
 
         public static readonly DiagnosticDescriptor TaskReturningMethodNoCancellation = new DiagnosticDescriptor(
             id: DiagnosticIds.TaskReturningMethodNoCancellation,
-            title: "A task-returning method should have a CancellationToken parameter or a parameter implementing ICancellableContext",
-            messageFormat: "Add a CancellationToken parameter or a parameter implementing ICancellableContext.",
+            title: "A task-returning method should have a CancellationToken parameter unless it has a parameter implementing ICancellableContext",
+            messageFormat: "Add a CancellationToken parameter.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
