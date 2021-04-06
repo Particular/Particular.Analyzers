@@ -87,8 +87,8 @@
 
         public static readonly DiagnosticDescriptor MethodFuncParameterTaskReturnTypeNoCancellation = new DiagnosticDescriptor(
             id: DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation,
-            title: "A Func used as a method parameter with a Task, ValueTask, or ValueTask<T> return type argument should have at least one CancellationToken parameter type argument or one parameter type argument implementing ICancellableContext",
-            messageFormat: "Add a CancellationToken parameter type argument or parameter type argument implementing ICancellableContext.",
+            title: "A Func used as a method parameter with a Task, ValueTask, or ValueTask<T> return type argument should have at least one CancellationToken parameter type argument unless it has a parameter type argument implementing ICancellableContext",
+            messageFormat: "Add a CancellationToken parameter type argument.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
