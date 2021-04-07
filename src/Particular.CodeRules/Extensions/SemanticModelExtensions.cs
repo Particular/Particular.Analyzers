@@ -28,7 +28,7 @@
         {
             var @delegate = semanticModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
             declaredSymbol = @delegate;
-            return @delegate.GetMembers().OfType<IMethodSymbol>().Single(method => method.MethodKind == MethodKind.DelegateInvoke);
+            return @delegate.DelegateInvokeMethod;
         }
     }
 }
