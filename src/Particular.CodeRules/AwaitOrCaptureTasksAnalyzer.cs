@@ -1,4 +1,4 @@
-﻿namespace Particular.CodeRules.AwaitOrCaptureTasks
+﻿namespace Particular.CodeRules
 {
     using System.Collections.Immutable;
     using Microsoft.CodeAnalysis;

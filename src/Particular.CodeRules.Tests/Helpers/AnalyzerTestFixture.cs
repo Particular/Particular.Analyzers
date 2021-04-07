@@ -1,77 +1,180 @@
-﻿namespace Particular.CodeRules.Tests
+﻿namespace Particular.CodeRules.Tests.Helpers
 {
+    using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.Runtime.ExceptionServices;
-    using System.Threading;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text;
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.Diagnostics;
     using Microsoft.CodeAnalysis.Text;
-    using Xunit;
+    using Xunit.Abstractions;
 
-    public abstract class AnalyzerTestFixture<TAnalyzer> : TestFixture where TAnalyzer : DiagnosticAnalyzer, new()
+    public class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer, new()
     {
-        protected async Task NoDiagnostic(string code, string diagnosticId)
+        public AnalyzerTestFixture(ITestOutputHelper output) => Output = output;
+
+        AnalyzerTestFixture() { }
+
+        protected static readonly List<string> PrivateModifiers = new List<string> { "", "private" };
+
+        protected static readonly List<string> NonPrivateModifiers = new List<string> { "public", "protected", "internal", "protected internal", "private protected" };
+
+        protected static readonly List<string> InterfacePrivateModifiers = new List<string>
         {
-            var document = TestHelpers.GetDocument(code, LanguageName);
-            var diagnostics = await GetDiagnostics(document);
+#if NETCOREAPP
+            "private",
+#endif
+        };
 
-            Assert.Empty(diagnostics);
-        }
-
-        protected async Task HasDiagnostic(string markupCode, string diagnosticId)
+        protected static readonly List<string> InterfaceNonPrivateModifiers = new List<string>
         {
-            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out Document document, out TextSpan span), "No markup detected in test code.");
+            "",
+            "public",
+            "internal",
+#if NETCOREAPP
+            "protected",
+            "protected internal",
+            "private protected",
+#endif
+        };
 
-            var diagnostics = await GetDiagnostics(document);
+        protected ITestOutputHelper Output { get; }
 
-            _ = Assert.Single(diagnostics);
+        protected virtual bool Compile => true;
 
-            var diagnostic = diagnostics[0];
-
-            Assert.Equal(diagnosticId, diagnostic.Id);
-            Assert.True(diagnostic.Location.IsInSource, "Diagnostic not in test code.");
-            Assert.Equal(span, diagnostic.Location.SourceSpan);
-        }
-
-        static async Task<ImmutableArray<Diagnostic>> GetDiagnostics(Document document)
+        protected async Task Assert(string markupCode, params string[] expectedDiagnosticIds)
         {
-            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new TAnalyzer());
-            var exceptions = new List<ExceptionDispatchInfo>();
-            var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
+            var externalTypes =
+@"namespace NServiceBus
+{
+    interface ICancellableContext { }
+    class CancellableContext : ICancellableContext { }
+    interface IMessage { }
+}";
 
-            var analyzerOptions = new CompilationWithAnalyzersOptions(
-                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
-                (exception, analyzer, diagnostic) => exceptions.Add(ExceptionDispatchInfo.Capture(exception)),
-                false,
-                false,
-                false);
+            markupCode =
+@"#pragma warning disable CS8019
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using NServiceBus;
+#pragma warning restore CS8019
 
-            var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions);
-            var discarded = compilation.GetDiagnostics(CancellationToken.None);
+" +
+                markupCode;
 
-            var tree = await document.GetSyntaxTreeAsync(CancellationToken.None);
+            var (code, markupSpans) = Parse(markupCode);
 
-            var builder = ImmutableArray.CreateBuilder<Diagnostic>();
-
-            foreach (var diagnostic in await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync())
+            foreach (var (line, index) in code.Replace("\r\n", "\n").Split('\n')
+                .Select((line, index) => (line, index)))
             {
-                var location = diagnostic.Location;
+                Output.WriteLine($"{index + 1,3}: {line}");
+            }
 
-                if (location.IsInSource && location.SourceTree == tree)
+            var references = ImmutableList.Create<MetadataReference>(
+                MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.Location));
+
+            var document = new AdhocWorkspace()
+                .AddProject("TestProject", LanguageNames.CSharp)
+                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .AddMetadataReferences(references)
+                .AddDocument("Externaltypes", externalTypes)
+                .Project
+                .AddDocument("TestDocument", code);
+
+            var analyzer = new TAnalyzer();
+
+            var compilationDiagnostics = new List<Diagnostic>();
+            List<Diagnostic> analyzerDiagnostics;
+
+            try
+            {
+                analyzerDiagnostics =
+                    (await document.GetDiagnostics(analyzer, Compile, compilationDiagnostics.Add))
+                    .OrderBy(diagnostic => diagnostic.Location.SourceSpan)
+                    .ThenBy(diagnostic => diagnostic.Id)
+                    .ToList();
+            }
+            finally
+            {
+                Output.WriteLine("");
+                Output.WriteLine("Compilation diagnostics:");
+                foreach (var diagnostic in compilationDiagnostics
+                    .Where(diagnostic => diagnostic.Severity != DiagnosticSeverity.Hidden)
+                    .Select(diagnostic => diagnostic.ToString())
+                    .OrderBy(_ => _))
                 {
-                    builder.Add(diagnostic);
+                    Output.WriteLine(diagnostic);
                 }
             }
 
-            // throw exceptions from analyzers to fail the test
-            foreach (var exceptionDispatchInfo in exceptions)
+            Output.WriteLine("");
+            Output.WriteLine("Analyzer diagnostics:");
+            foreach (var diagnostic in analyzerDiagnostics
+                .Select(diagnostic => diagnostic.ToString())
+                .OrderBy(_ => _))
             {
-                exceptionDispatchInfo.Throw();
+                Output.WriteLine(diagnostic);
             }
 
-            return builder.ToImmutable();
+            var expectedIdsAndSpans = expectedDiagnosticIds
+                .SelectMany(id => markupSpans.Select(span => (id, span)))
+                .OrderBy(item => item.span)
+                .ThenBy(item => item.id)
+                .ToList();
+
+            var actualIdsAndSpans = analyzerDiagnostics
+                .Select(diagnostic => (diagnostic.Id, diagnostic.Location.SourceSpan))
+                .ToList();
+
+            Xunit.Assert.Equal(expectedIdsAndSpans, actualIdsAndSpans);
+        }
+
+        static (string, List<TextSpan>) Parse(string markupCode)
+        {
+            if (markupCode == null)
+            {
+                return (null, new List<TextSpan>());
+            }
+
+            var code = new StringBuilder();
+            var markupSpans = new List<TextSpan>();
+
+            var remainingCode = markupCode;
+            var remainingCodeStart = 0;
+
+            while (remainingCode.Length > 0)
+            {
+                var beforeAndAfterOpening = remainingCode.Split(new[] { "[|" }, 2, StringSplitOptions.None);
+
+                if (beforeAndAfterOpening.Length == 1)
+                {
+                    _ = code.Append(beforeAndAfterOpening[0]);
+                    break;
+                }
+
+                var midAndAfterClosing = beforeAndAfterOpening[1].Split(new[] { "|]" }, 2, StringSplitOptions.None);
+
+                if (midAndAfterClosing.Length == 1)
+                {
+                    throw new Exception("The markup code does not contain a closing '|]'");
+                }
+
+                var markupSpan = new TextSpan(remainingCodeStart + beforeAndAfterOpening[0].Length, midAndAfterClosing[0].Length);
+
+                _ = code.Append(beforeAndAfterOpening[0]).Append(midAndAfterClosing[0]);
+                markupSpans.Add(markupSpan);
+
+                remainingCode = midAndAfterClosing[1];
+                remainingCodeStart += beforeAndAfterOpening[0].Length + markupSpan.Length;
+            }
+
+            return (code.ToString(), markupSpans);
         }
     }
 }
