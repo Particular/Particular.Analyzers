@@ -15,7 +15,6 @@
 
         public override void Initialize(AnalysisContext context)
         {
-            //TODO: do this everywhere
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(

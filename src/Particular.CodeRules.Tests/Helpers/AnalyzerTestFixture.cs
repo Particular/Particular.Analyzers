@@ -19,6 +19,29 @@
 
         AnalyzerTestFixture() { }
 
+        protected static readonly List<string> PrivateModifiers = new List<string> { "", "private" };
+
+        protected static readonly List<string> NonPrivateModifiers = new List<string> { "public", "protected", "internal", "protected internal", "private protected" };
+
+        protected static readonly List<string> InterfacePrivateModifiers = new List<string>
+        {
+#if NETCOREAPP
+            "private",
+#endif
+        };
+
+        protected static readonly List<string> InterfaceNonPrivateModifiers = new List<string>
+        {
+            "",
+            "public",
+            "internal",
+#if NETCOREAPP
+            "protected",
+            "protected internal",
+            "private protected",
+#endif
+        };
+
         protected ITestOutputHelper Output { get; }
 
         protected virtual bool Compile => true;

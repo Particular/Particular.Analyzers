@@ -18,14 +18,13 @@
 
         public EmptyTokenAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
-        public static Data SadArgs => new List<(string, string)>
+        public static readonly Data SadArgs = new List<(string, string)>
         {
             ("default", DiagnosticIds.EmptyCancellationTokenDefaultLiteral),
             ("default(CancellationToken)", DiagnosticIds.EmptyCancellationTokenDefaultOperator),
-            ("CancellationToken.None", DiagnosticIds.EmptyCancellationTokenNone),
         }.ToData();
 
-        public static Data HappyArgs => new List<string> { "cancellationToken", "new CancellationToken()", }.ToData();
+        public static readonly Data HappyArgs = new List<string> { "cancellationToken", "new CancellationToken()", "CancellationToken.None" }.ToData();
 
         [Theory]
         [MemberData(nameof(SadArgs))]

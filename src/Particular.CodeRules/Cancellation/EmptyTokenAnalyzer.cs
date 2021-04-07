@@ -12,12 +12,11 @@
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             DiagnosticDescriptors.EmptyCancellationTokenDefaultLiteral,
-            DiagnosticDescriptors.EmptyCancellationTokenDefaultOperator,
-            DiagnosticDescriptors.EmptyCancellationTokenNone);
+            DiagnosticDescriptors.EmptyCancellationTokenDefaultOperator);
 
         public override void Initialize(AnalysisContext context)
         {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.Argument);
         }
@@ -34,16 +33,9 @@
             // and these operations are cheap, so it's not worth it.
             // Note that although CSharpSyntaxNode.Kind() is a method, the implementation call stack ends up just returning a field reference.
             var defaultLiteral = (arg.Expression as LiteralExpressionSyntax)?.Kind() == SyntaxKind.DefaultLiteralExpression;
-
             var defaultOperator = arg.Expression is DefaultExpressionSyntax;
 
-            var cancellationTokenNone =
-                arg.Expression is MemberAccessExpressionSyntax memberAccess &&
-                memberAccess.Name.Identifier.ValueText == "None" &&
-                memberAccess.Expression is IdentifierNameSyntax identifierName &&
-                identifierName.Identifier.ValueText == "CancellationToken";
-
-            if (!defaultLiteral && !defaultOperator && !cancellationTokenNone)
+            if (!defaultLiteral && !defaultOperator)
             {
                 return;
             }
@@ -57,9 +49,7 @@
 
             var descriptor = defaultLiteral
                 ? DiagnosticDescriptors.EmptyCancellationTokenDefaultLiteral
-                : defaultOperator
-                    ? DiagnosticDescriptors.EmptyCancellationTokenDefaultOperator
-                    : DiagnosticDescriptors.EmptyCancellationTokenNone;
+                : DiagnosticDescriptors.EmptyCancellationTokenDefaultOperator;
 
             context.ReportDiagnostic(descriptor, arg);
         }

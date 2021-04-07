@@ -7,12 +7,13 @@
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.Diagnostics;
     using Particular.CodeRules.Extensions;
+    using System;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class TaskReturningMethodAnalyzer : DiagnosticAnalyzer
+    public class MethodTokenNamesAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.TaskReturningMethodNoCancellation);
+            DiagnosticDescriptors.MethodCancellationTokenMisnamed);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -20,6 +21,7 @@
             context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(
                 Analyze,
+                SyntaxKind.ConstructorDeclaration,
                 SyntaxKind.DelegateDeclaration,
                 SyntaxKind.MethodDeclaration);
         }
@@ -31,46 +33,44 @@
                 return;
             }
 
-            if (!(context.SemanticModel.GetMethod(member, context.CancellationToken, out var declaredSymbol) is IMethodSymbol method))
+            if (!(context.SemanticModel.GetMethod(member, context.CancellationToken, out _) is IMethodSymbol method))
             {
                 return;
             }
 
-            Analyze(context, method, declaredSymbol);
+            Analyze(context, method.Parameters);
         }
 
-        static void Analyze(SyntaxNodeAnalysisContext context, IMethodSymbol method, ISymbol declaredSymbol)
+        static void Analyze(SyntaxNodeAnalysisContext context, ImmutableArray<IParameterSymbol> parameters)
         {
             // cheapest checks first
-            if (method.IsOverride)
+            if (!parameters.Any())
             {
                 return;
             }
 
-            if (method.MethodKind == MethodKind.ExplicitInterfaceImplementation)
+            foreach (var token in parameters
+                .Where(param => param.Type.IsCancellationToken()))
+            {
+                context.CancellationToken.ThrowIfCancellationRequested();
+
+                Analyze(context, token);
+            }
+        }
+
+        static void Analyze(SyntaxNodeAnalysisContext context, IParameterSymbol token)
+        {
+            if (token.Name == "cancellationToken")
             {
                 return;
             }
 
-            if (!method.ReturnType.IsTask())
+            if (token.Name.EndsWith("CancellationToken", StringComparison.Ordinal))
             {
                 return;
             }
 
-            if (method.ContainingType?.IsCancellableContext() ?? false)
-            {
-                return;
-            }
-
-            if (method.IsTest())
-            {
-                return;
-            }
-
-            if (!method.Parameters.Any(param => param.Type.IsCancellableContext() || param.Type.IsCancellationToken()))
-            {
-                context.ReportDiagnostic(DiagnosticDescriptors.TaskReturningMethodNoCancellation, declaredSymbol);
-            }
+            context.ReportDiagnostic(DiagnosticDescriptors.MethodCancellationTokenMisnamed, token);
         }
     }
 }

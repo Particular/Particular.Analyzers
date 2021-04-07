@@ -21,6 +21,22 @@
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor CancellationTokenNonPrivateRequired = new DiagnosticDescriptor(
+            id: DiagnosticIds.CancellationTokenNonPrivateRequired,
+            title: "A parameter of type CancellationToken on a non-private delegate or method should be optional",
+            messageFormat: "Make the CancellationToken parameter optional.",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor CancellationTokenPrivateOptional = new DiagnosticDescriptor(
+            id: DiagnosticIds.CancellationTokenPrivateOptional,
+            title: "A parameter of type CancellationToken on a private delegate or method should be required",
+            messageFormat: "Make the CancellationToken parameter required.",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         public static readonly DiagnosticDescriptor DelegateCancellationTokenMisplaced = new DiagnosticDescriptor(
             id: DiagnosticIds.DelegateCancellationTokenMisplaced,
             title: "Delegate CancellationToken parameters should come last",
@@ -41,15 +57,6 @@
             id: DiagnosticIds.EmptyCancellationTokenDefaultOperator,
             title: "The default operator should not be used as an argument instead of CancellationToken.None",
             messageFormat: "Change the argument to CancellationToken.None",
-            category: "Code",
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-        // TODO: kill this after running it by Andreas
-        public static readonly DiagnosticDescriptor EmptyCancellationTokenNone = new DiagnosticDescriptor(
-            id: DiagnosticIds.EmptyCancellationTokenNone,
-            title: "CancellationToken.None should not be used as a CancellationToken argument",
-            messageFormat: "Do not use CancellationToken.None.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
@@ -120,7 +127,15 @@
 
         public static readonly DiagnosticDescriptor MethodCancellationTokenMisnamed = new DiagnosticDescriptor(
             id: DiagnosticIds.MethodCancellationTokenMisnamed,
-            title: "Single CancellationToken parameters should be named cancellationToken",
+            title: "CancellationToken parameters should be named cancellationToken or have names ending with CancellationToken",
+            messageFormat: "Rename the CancellationToken parameter to cancellationToken or to end with CancellationToken.",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor NonPrivateMethodSingleCancellationTokenMisnamed = new DiagnosticDescriptor(
+            id: DiagnosticIds.NonPrivateMethodSingleCancellationTokenMisnamed,
+            title: "Single, non-private CancellationToken parameters should be named cancellationToken",
             messageFormat: "Rename the CancellationToken parameter to cancellationToken.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
@@ -130,22 +145,6 @@
             id: DiagnosticIds.TaskReturningMethodNoCancellation,
             title: "A task-returning method should have a CancellationToken parameter unless it has a parameter implementing ICancellableContext",
             messageFormat: "Add a CancellationToken parameter.",
-            category: "Code",
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-        public static readonly DiagnosticDescriptor CancellationTokenNonPrivateRequired = new DiagnosticDescriptor(
-            id: DiagnosticIds.CancellationTokenNonPrivateRequired,
-            title: "A parameter of type CancellationToken on a non-private delegate or method should be optional",
-            messageFormat: "Make the CancellationToken parameter optional.",
-            category: "Code",
-            defaultSeverity: DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-        public static readonly DiagnosticDescriptor CancellationTokenPrivateOptional = new DiagnosticDescriptor(
-            id: DiagnosticIds.CancellationTokenPrivateOptional,
-            title: "A parameter of type CancellationToken on a private delegate or method should be required",
-            messageFormat: "Make the CancellationToken parameter required.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

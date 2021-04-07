@@ -73,13 +73,13 @@ class MyClass : CancellableContext, IMyInterface
 
         public ContextMethodParameterAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
-        public static Data SadParams => new List<string>
+        public static readonly Data SadParams = new List<string>
         {
             "CancellationToken [|foo|]",
             "object foo, CancellationToken [|bar|], CancellationToken [|baz|]",
         }.ToData();
 
-        public static Data HappyParams => new List<string>
+        public static readonly Data HappyParams = new List<string>
         {
             "",
             "object foo",

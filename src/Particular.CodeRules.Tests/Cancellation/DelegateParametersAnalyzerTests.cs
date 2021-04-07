@@ -18,14 +18,14 @@
 
         public DelegateParametersAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
-        public static Data SadParams => new List<string>
+        public static readonly Data SadParams = new List<string>
         {
             "CancellationToken [|cancellationToken|], object foo",
             "CancellationToken [|cancellationToken1|], CancellationToken [|cancellationToken2|], object foo",
             "CancellationToken [|cancellationToken1|], object foo, CancellationToken cancellationToken2",
         }.ToData();
 
-        public static Data HappyParams => new List<string>
+        public static readonly Data HappyParams = new List<string>
         {
             "",
             "CancellationToken cancellationToken",

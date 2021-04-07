@@ -7,7 +7,9 @@
     using Particular.CodeRules.Extensions;
 
     // see https://github.com/dotnet/roslyn/pull/36067
-    // TODO: explain why this isn't tested
+    // there are no tests for this class because
+    // it's not clear how to get a instance of
+    // the analyzer that reports IDE0060
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class TokenParamUnusedSuppressor : DiagnosticSuppressor
     {

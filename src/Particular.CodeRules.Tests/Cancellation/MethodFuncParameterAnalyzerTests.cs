@@ -56,7 +56,7 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
 
         public MethodFuncParameterAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
-        public static Data SadNames => new List<(string, string[])>
+        public static readonly Data SadNames = new List<(string, string[])>
         {
             ("Func<CancellableContext, CancellationToken, object>", new[] { DiagnosticIds.MethodFuncParameterMixedCancellation }),
             ("Func<ICancellableContext, CancellationToken, object>", new[] { DiagnosticIds.MethodFuncParameterMixedCancellation }),
@@ -86,7 +86,7 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
 #endif
         }.ToData();
 
-        public static Data HappyNames => new List<string>
+        public static readonly Data HappyNames = new List<string>
         {
             "object",
             "Action",

@@ -9,14 +9,14 @@
     using Particular.CodeRules.Extensions;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class MethodTokenNameAnalyzer : DiagnosticAnalyzer
+    public class NonPrivateMethodTokenNameAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.MethodCancellationTokenMisnamed);
+            DiagnosticDescriptors.NonPrivateMethodSingleCancellationTokenMisnamed);
 
         public override void Initialize(AnalysisContext context)
         {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
             context.RegisterSyntaxNodeAction(
                 Analyze,
@@ -32,17 +32,22 @@
                 return;
             }
 
-            if (!(context.SemanticModel.GetMethod(member, context.CancellationToken, out _) is IMethodSymbol method))
+            if (!(context.SemanticModel.GetMethod(member, context.CancellationToken, out var declaredSymbol) is IMethodSymbol method))
             {
                 return;
             }
 
-            Analyze(context, method);
+            Analyze(context, method, declaredSymbol);
         }
 
-        static void Analyze(SyntaxNodeAnalysisContext context, IMethodSymbol method)
+        static void Analyze(SyntaxNodeAnalysisContext context, IMethodSymbol method, ISymbol declaredSymbol)
         {
             // cheapest checks first
+            if (declaredSymbol.DeclaredAccessibility == Accessibility.Private && method.MethodKind != MethodKind.ExplicitInterfaceImplementation)
+            {
+                return;
+            }
+
             if (!method.Parameters.Any())
             {
                 return;
@@ -62,9 +67,7 @@
                 return;
             }
 
-            // TODO: split into two, one for private, one for non-private
-            // if (declaredSymbol.DeclaredAccessibility == Accessibility.Private && token.Name.EndsWith("CancellationToken", StringComparison.Ordinal))
-            context.ReportDiagnostic(DiagnosticDescriptors.MethodCancellationTokenMisnamed, token);
+            context.ReportDiagnostic(DiagnosticDescriptors.NonPrivateMethodSingleCancellationTokenMisnamed, token);
         }
     }
 }

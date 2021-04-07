@@ -2,6 +2,6 @@
 {
     public static class SuppressonIds
     {
-        public const string CancellationTokenParameterUnused = "PCRSPR0001";
+        public const string CancellationTokenParameterUnused = "PSS0001";
     }
 }

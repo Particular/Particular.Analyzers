@@ -2,24 +2,23 @@
 {
     public static class DiagnosticIds
     {
-        // TODO: change to PS (and PSS for suppression)
-        public const string AwaitOrCaptureTasks = "PCR0002";
-        public const string CancellableContextMethodCancellationToken = "PCR0003";
-        public const string CancellationTokenNonPrivateRequired = "PCR0004";
-        public const string CancellationTokenPrivateOptional = "PCR0005";
-        public const string DelegateCancellationTokenMisplaced = "PCR0006";
-        public const string EmptyCancellationTokenDefaultLiteral = "PCR0007";
-        public const string EmptyCancellationTokenDefaultOperator = "PCR0008";
-        public const string EmptyCancellationTokenNone = "PCR0009";
-        public const string MethodCancellationTokenMisnamed = "PCR0010";
-        public const string MethodFuncParameterCancellationTokenMisplaced = "PCR0011";
-        public const string MethodFuncParameterMixedCancellation = "PCR0012";
-        public const string MethodFuncParameterMultipleCancellableContexts = "PCR0013";
-        public const string MethodFuncParameterMultipleCancellationTokens = "PCR0014";
-        public const string MethodFuncParameterTaskReturnTypeNoCancellation = "PCR0015";
-        public const string MethodMixedCancellation = "PCR0016";
-        public const string MethodMultipleCancellableContexts = "PCR0017";
-        public const string MethodMultipleCancellationTokens = "PCR0018";
-        public const string TaskReturningMethodNoCancellation = "PCR0019";
+        public const string AwaitOrCaptureTasks = "PS0001";
+        public const string CancellableContextMethodCancellationToken = "PS0002";
+        public const string CancellationTokenNonPrivateRequired = "PS0003";
+        public const string CancellationTokenPrivateOptional = "PS0004";
+        public const string DelegateCancellationTokenMisplaced = "PS0005";
+        public const string EmptyCancellationTokenDefaultLiteral = "PS0006";
+        public const string EmptyCancellationTokenDefaultOperator = "PS0007";
+        public const string MethodCancellationTokenMisnamed = "PS0008";
+        public const string MethodFuncParameterCancellationTokenMisplaced = "PS0009";
+        public const string MethodFuncParameterMixedCancellation = "PS0010";
+        public const string MethodFuncParameterMultipleCancellableContexts = "PS0011";
+        public const string MethodFuncParameterMultipleCancellationTokens = "PS0012";
+        public const string MethodFuncParameterTaskReturnTypeNoCancellation = "PS0013";
+        public const string MethodMixedCancellation = "PS0014";
+        public const string MethodMultipleCancellableContexts = "PS0015";
+        public const string MethodMultipleCancellationTokens = "PS0016";
+        public const string NonPrivateMethodSingleCancellationTokenMisnamed = "PS0017";
+        public const string TaskReturningMethodNoCancellation = "PS0018";
     }
 }
