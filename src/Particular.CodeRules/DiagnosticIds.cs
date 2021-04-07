@@ -2,7 +2,7 @@
 {
     public static class DiagnosticIds
     {
-        public const string AwaitOrCaptureTasks = "PS0001";
+        public const string DroppedTask = "PS0001";
         public const string CancellableContextMethodCancellationToken = "PS0002";
         public const string CancellationTokenNonPrivateRequired = "PS0003";
         public const string CancellationTokenPrivateOptional = "PS0004";

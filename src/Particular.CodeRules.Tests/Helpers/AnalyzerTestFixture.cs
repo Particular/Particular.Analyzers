@@ -44,8 +44,6 @@
 
         protected ITestOutputHelper Output { get; }
 
-        protected virtual bool Compile => true;
-
         protected async Task Assert(string markupCode, params string[] expectedDiagnosticIds)
         {
             var externalTypes =
@@ -95,7 +93,7 @@ using NServiceBus;
             try
             {
                 analyzerDiagnostics =
-                    (await document.GetDiagnostics(analyzer, Compile, compilationDiagnostics.Add))
+                    (await document.GetDiagnostics(analyzer, compilationDiagnostics.Add))
                     .OrderBy(diagnostic => diagnostic.Location.SourceSpan)
                     .ThenBy(diagnostic => diagnostic.Id)
                     .ToList();
