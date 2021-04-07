@@ -28,13 +28,13 @@ PCR0001 |  Code    |  Warning | Replaced by CA2007
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
-PCR0002 |  Code    |  Error   | ID changed to PS0001
+PCR0002 |  Code    |  Error   | Replaced by PS0001
 
 ### New Rules
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|--------------------
-PS0001  |  Code    |  Error   | AwaitOrCaptureTasks
+PS0001  |  Code    |  Error   | DroppedTaskAnalyzer
 PS0002  |  Code    |  Warning | CancellableContextMethodCancellationToken
 PS0003  |  Code    |  Warning | CancellationTokenNonPrivateRequired
 PS0004  |  Code    |  Warning | CancellationTokenPrivateOptional

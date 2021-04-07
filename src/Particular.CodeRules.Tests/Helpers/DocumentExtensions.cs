@@ -10,14 +10,11 @@
 
     static class DocumentExtensions
     {
-        public static async Task<IEnumerable<Diagnostic>> GetDiagnostics(this Document document, DiagnosticAnalyzer analyzer, bool compile, Action<Diagnostic> onCompilationDiagnostic)
+        public static async Task<IEnumerable<Diagnostic>> GetDiagnostics(this Document document, DiagnosticAnalyzer analyzer, Action<Diagnostic> onCompilationDiagnostic)
         {
             var compilation = await document.Project.GetCompilationAsync();
 
-            if (compile)
-            {
-                compilation.Compile(onCompilationDiagnostic);
-            }
+            compilation.Compile(onCompilationDiagnostic);
 
             var exceptions = new List<ExceptionDispatchInfo>();
 

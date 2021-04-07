@@ -4,14 +4,13 @@
 
     public static class DiagnosticDescriptors
     {
-        public static readonly DiagnosticDescriptor AwaitOrCaptureTasks = new DiagnosticDescriptor(
-            id: DiagnosticIds.AwaitOrCaptureTasks,
-            title: "Await or Capture Tasks",
-            messageFormat: "Expression creates a Task that is not awaited or assigned to a variable.",
+        public static readonly DiagnosticDescriptor DroppedTask = new DiagnosticDescriptor(
+            id: DiagnosticIds.DroppedTask,
+            title: "Tasks returned from expressions should be returned, awaited, or assigned to a variable",
+            messageFormat: "Return, await, or assign the task to a variable.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Error,
-            isEnabledByDefault: true,
-            description: "A method returning a Task should either be awaited or stored in a variable so that the Task is not dropped.");
+            isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor CancellableContextMethodCancellationToken = new DiagnosticDescriptor(
             id: DiagnosticIds.CancellableContextMethodCancellationToken,
