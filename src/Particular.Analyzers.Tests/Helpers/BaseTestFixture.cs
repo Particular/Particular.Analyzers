@@ -1,4 +1,4 @@
-﻿namespace Particular.CodeRules.Tests
+﻿namespace Particular.Analyzers.Tests
 {
     public abstract class BaseTestFixture
     {
