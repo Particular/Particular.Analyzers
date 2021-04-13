@@ -1,7 +1,7 @@
-﻿namespace Particular.CodeRules.Tests
+﻿namespace Particular.Analyzers.Tests
 {
     using System.Threading.Tasks;
-    using Particular.CodeRules.AwaitOrCaptureTasks;
+    using Particular.Analyzers.AwaitOrCaptureTasks;
     using Xunit;
 
     public class AwaitOrCaptureTasksAnalyzerTests : CSharpAnalyzerTestFixture<AwaitOrCaptureTasksAnalyzer>

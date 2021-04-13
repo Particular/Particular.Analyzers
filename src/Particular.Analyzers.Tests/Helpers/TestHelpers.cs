@@ -1,4 +1,4 @@
-﻿namespace Particular.CodeRules.Tests
+﻿namespace Particular.Analyzers.Tests
 {
     using System.Collections.Immutable;
     using System.Linq;

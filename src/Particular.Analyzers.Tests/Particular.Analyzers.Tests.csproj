@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Particular.CodeRules\Particular.CodeRules.csproj" />
+    <ProjectReference Include="..\Particular.Analyzers\Particular.Analyzers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

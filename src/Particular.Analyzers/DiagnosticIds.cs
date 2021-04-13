@@ -1,4 +1,4 @@
-﻿namespace Particular.CodeRules
+﻿namespace Particular.Analyzers
 {
     using Microsoft.CodeAnalysis;
 

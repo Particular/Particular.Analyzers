@@ -1,4 +1,4 @@
-﻿namespace Particular.CodeRules.Tests
+﻿namespace Particular.Analyzers.Tests
 {
     using System;
     using System.Reflection;
