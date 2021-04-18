@@ -52,6 +52,11 @@
                 return;
             }
 
+            if (method.IsEntryPoint())
+            {
+                return;
+            }
+
             if (!method.ReturnType.IsTask())
             {
                 return;

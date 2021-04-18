@@ -3,6 +3,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
     using Xunit;
@@ -80,6 +82,15 @@ class MyClass<T> where T : CancellableContext
     {1} [|MyMethod|]({2}) => throw new Exception();
 }}";
 
+        static readonly string entryPoint =
+@"namespace MyNamespace
+{
+    class Program
+    {
+        static Task Main() => throw new Exception();
+    }
+}";
+
         static readonly List<string> notTaskTypes = new List<string> { "void", "object", "IMessage" };
 
         static readonly List<string> taskTypes = new List<string>
@@ -132,7 +143,6 @@ class MyClass<T> where T : CancellableContext
             .Concat(notTaskTypes.SelectMany(type => notTaskParams.Concat(taskParams).Select(@params => (type, @params))))
             .ToData();
 
-
         [Theory]
         [MemberData(nameof(SadData))]
         public Task SadMethods(string returnType, string @params) => Assert(GetCode(method, returnType, @params), DiagnosticIds.TaskReturningMethodNoCancellation);
@@ -167,6 +177,9 @@ class MyClass<T> where T : CancellableContext
         [Theory]
         [MemberData(nameof(TestAttributes))]
         public Task HappyTests(string attribute) => Assert(GetTestCode(attribute, taskTypes.First(), notTaskParams.First()));
+
+        [Fact]
+        public Task HappyEntryPoint() => Assert(entryPoint, new CSharpCompilationOptions(OutputKind.ConsoleApplication));
 
         static string GetCode(string template, string returnType, string @params) => string.Format(template, returnType, @params);
 

@@ -28,5 +28,8 @@
                     return false;
             }
         }
+
+        public static bool IsEntryPoint(this IMethodSymbol method) =>
+            method.ContainingType.Name == "Program" && method.Name == "Main";
     }
 }

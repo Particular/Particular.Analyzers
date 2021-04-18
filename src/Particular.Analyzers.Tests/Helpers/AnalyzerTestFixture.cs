@@ -44,7 +44,9 @@
 
         protected ITestOutputHelper Output { get; }
 
-        protected async Task Assert(string markupCode, params string[] expectedDiagnosticIds)
+        protected Task Assert(string markupCode, params string[] expectedDiagnosticIds) => Assert(markupCode, null, expectedDiagnosticIds);
+
+        protected async Task Assert(string markupCode, CompilationOptions compilationOptions = null, params string[] expectedDiagnosticIds)
         {
             var externalTypes =
 @"namespace NServiceBus
@@ -79,7 +81,7 @@ using NServiceBus;
 
             var document = new AdhocWorkspace()
                 .AddProject("TestProject", LanguageNames.CSharp)
-                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .WithCompilationOptions(compilationOptions ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddMetadataReferences(references)
                 .AddDocument("Externaltypes", externalTypes)
                 .Project
