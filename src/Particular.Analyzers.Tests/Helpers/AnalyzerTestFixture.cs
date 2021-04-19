@@ -23,28 +23,26 @@
 
         protected Task NoDiagnostic(string code, string diagnosticId)
         {
-            var document = TestHelpers.GetDocument(code, this.LanguageName);
-            return this.NoDiagnostic(document, diagnosticId);
+            var document = TestHelpers.GetDocument(code, LanguageName);
+            return NoDiagnostic(document, diagnosticId);
         }
 
         protected async Task NoDiagnostic(Document document, string diagnosticId)
         {
-            var diagnostics = await this.GetDiagnostics(document);
+            var diagnostics = await GetDiagnostics(document);
             Assert.Empty(diagnostics);
         }
 
         protected Task HasDiagnostic(string markupCode, string diagnosticId)
         {
-            Document document;
-            TextSpan span;
-            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, this.LanguageName, out document, out span), "No markup detected in test code.");
+            Assert.True(TestHelpers.TryGetDocumentAndSpanFromMarkup(markupCode, LanguageName, out Document document, out TextSpan span), "No markup detected in test code.");
 
-            return this.HasDiagnostic(document, span, diagnosticId);
+            return HasDiagnostic(document, span, diagnosticId);
         }
 
         protected async Task HasDiagnostic(Document document, TextSpan span, string diagnosticId)
         {
-            var diagnostics = await this.GetDiagnostics(document);
+            var diagnostics = await GetDiagnostics(document);
             Assert.Single(diagnostics);
 
             var diagnostic = diagnostics[0];
@@ -53,9 +51,9 @@
             Assert.Equal(span, diagnostic.Location.SourceSpan);
         }
 
-        private async Task<ImmutableArray<Diagnostic>> GetDiagnostics(Document document)
+        async Task<ImmutableArray<Diagnostic>> GetDiagnostics(Document document)
         {
-            var analyzers = ImmutableArray.Create(this.CreateAnalyzer());
+            var analyzers = ImmutableArray.Create(CreateAnalyzer());
             var exceptions = new List<ExceptionDispatchInfo>();
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
             var analyzerOptions = new CompilationWithAnalyzersOptions(

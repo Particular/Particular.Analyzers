@@ -4,9 +4,9 @@
     using System.Reflection;
     using Microsoft.CodeAnalysis;
 
-    internal static class ReflectionExtensions
+    static class ReflectionExtensions
     {
-        private static class AssemblyLightUp
+        static class AssemblyLightUp
         {
             internal static readonly Type Type = typeof(Assembly);
 
@@ -30,7 +30,7 @@
         {
             if (methodInfo == null)
             {
-                return default(T);
+                return default;
             }
 
             return (T)(object)methodInfo.CreateDelegate(typeof(T));

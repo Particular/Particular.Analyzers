@@ -13,7 +13,7 @@
         public static bool TryGetCodeAndSpanFromMarkup(string markupCode, out string code, out TextSpan span)
         {
             code = null;
-            span = default(TextSpan);
+            span = default;
 
             var builder = new StringBuilder();
 
@@ -47,8 +47,7 @@
 
         public static bool TryGetDocumentAndSpanFromMarkup(string markupCode, string languageName, ImmutableList<MetadataReference> references, out Document document, out TextSpan span)
         {
-            string code;
-            if (!TryGetCodeAndSpanFromMarkup(markupCode, out code, out span))
+            if (!TryGetCodeAndSpanFromMarkup(markupCode, out string code, out span))
             {
                 document = null;
                 return false;
@@ -60,9 +59,14 @@
 
         public static Document GetDocument(string code, string languageName, ImmutableList<MetadataReference> references = null)
         {
-            references = references ?? ImmutableList.Create<MetadataReference>(
-                MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.GetLocation()),
-                MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.GetLocation()));
+#if NETCOREAPP3_1_OR_GREATER
+            references ??=
+#else
+            references = references ??
+#endif
+                ImmutableList.Create<MetadataReference>(
+                    MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.GetLocation()),
+                    MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.GetLocation()));
 
             return new AdhocWorkspace()
                 .AddProject("TestProject", languageName)
