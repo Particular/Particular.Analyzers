@@ -21,6 +21,7 @@
                 case "NUnit.Framework.TearDownAttribute":
                 case "NUnit.Framework.TestAttribute":
                 case "NUnit.Framework.TestCaseAttribute":
+                case "NUnit.Framework.TestCaseSourceAttribute":
                 case "NUnit.Framework.TheoryAttribute":
                 case "Xunit.FactAttribute":
                     return true;
