@@ -63,11 +63,12 @@ namespace NUnit.Framework
 {{
     class OneTimeSetUpAttribute : System.Attribute {{ }}
     class OneTimeTearDownAttribute : System.Attribute {{ }}
-    class SetUpAttribute :  System.Attribute {{ }}
-    class TearDownAttribute :  System.Attribute {{ }}
-    class TestAttribute :  System.Attribute {{ }}
-    class TestCaseAttribute :  System.Attribute {{ }}
-    class TheoryAttribute :  System.Attribute {{ }}
+    class SetUpAttribute : System.Attribute {{ }}
+    class TearDownAttribute : System.Attribute {{ }}
+    class TestAttribute : System.Attribute {{ }}
+    class TestCaseAttribute : System.Attribute {{ }}
+    class TestCaseSourceAttribute : System.Attribute {{ }}
+    class TheoryAttribute : System.Attribute {{ }}
 }}
 
 namespace Xunit
@@ -131,6 +132,7 @@ class MyClass<T> where T : CancellableContext
             "[NUnit.Framework.TearDown]",
             "[NUnit.Framework.Test]",
             "[NUnit.Framework.TestCase]",
+            "[NUnit.Framework.TestCaseSource]",
             "[NUnit.Framework.Theory]",
             "[Xunit.Fact]",
             "[Xunit.Theory]"
