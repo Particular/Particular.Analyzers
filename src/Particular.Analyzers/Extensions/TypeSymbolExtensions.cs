@@ -41,6 +41,13 @@
                 type == "System.Threading.Tasks.ValueTask" ||
                 type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal));
 
+        public static bool IsConfiguredTaskAwaitable(this ITypeSymbol type) =>
+            type != null && IsConfiguredTaskAwaitable(type.ToString());
+
+        static bool IsConfiguredTaskAwaitable(string type) =>
+            type == "System.Runtime.CompilerServices.ConfiguredTaskAwaitable" ||
+            type.StartsWith("System.Runtime.CompilerServices.ConfiguredTaskAwaitable<", StringComparison.Ordinal);
+
         public static bool IsFunc(this INamedTypeSymbol type) =>
             type != null && type.TypeArguments.Length > 0 && type.ToString().StartsWith("System.Func<", StringComparison.Ordinal);
     }

@@ -42,6 +42,9 @@
             "void MyMethod() { [|myDelegateLocal()|]; }",
             "void MyMethod(MyDelegate myDelegateParameter) { [|myDelegateParameter()|]; }",
             "void MyMethod() { [|MyDelegateProperty()|]; }",
+
+            // one ConfigureAwait should be enough to test that condition
+            "void MyMethod() { [|Task.Delay(0).ConfigureAwait(false)|]; }",
         }.ToData();
 
         public static readonly Data HappyMethodData = new List<string>
@@ -90,6 +93,9 @@
             "async Task MyMethod() => await MyDelegateProperty();",
             "void MyMethod() { _ = MyDelegateProperty(); }",
             "Task MyMethod() => MyDelegateProperty();",
+
+            // one ConfigureAwait should be enough to test that condition
+            "void MyMethod() { var task = Task.Delay(0).ConfigureAwait(false); }",
         }.ToData();
 
         public DroppedTaskAnalyzerTests(ITestOutputHelper output) : base(output) { }
