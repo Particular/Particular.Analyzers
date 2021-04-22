@@ -43,7 +43,7 @@
                 return;
             }
 
-            if (!method.ReturnType.IsTask())
+            if (!method.ReturnType.IsTask() && !method.ReturnType.IsConfiguredTaskAwaitable())
             {
                 return;
             }
