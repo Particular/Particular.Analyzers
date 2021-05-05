@@ -44,7 +44,7 @@
         static void Analyze(SyntaxNodeAnalysisContext context, ImmutableArray<IParameterSymbol> parameters)
         {
             // cheapest checks first
-            if (!parameters.Any())
+            if (parameters.IsDefaultOrEmpty)
             {
                 return;
             }

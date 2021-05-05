@@ -4,7 +4,6 @@
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis;
     using System.Threading;
-    using System.Linq;
 
     static class SemanticModelExtensions
     {
