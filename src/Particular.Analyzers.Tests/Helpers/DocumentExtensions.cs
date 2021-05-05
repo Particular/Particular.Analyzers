@@ -1,42 +1,18 @@
 ﻿namespace Particular.Analyzers.Tests.Helpers
 {
-    using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.Runtime.ExceptionServices;
+    using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.Diagnostics;
 
     static class DocumentExtensions
     {
-        public static async Task<IEnumerable<Diagnostic>> GetDiagnostics(this Document document, DiagnosticAnalyzer analyzer, Action<Diagnostic> onCompilationDiagnostic)
-        {
-            var compilation = await document.Project.GetCompilationAsync();
-
-            compilation.Compile(onCompilationDiagnostic);
-
-            var exceptions = new List<ExceptionDispatchInfo>();
-
-            var analyzerOptions = new CompilationWithAnalyzersOptions(
-                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
-                (exception, _, __) => exceptions.Add(ExceptionDispatchInfo.Capture(exception)),
-                concurrentAnalysis: false,
-                logAnalyzerExecutionTime: false);
-
-            var compilationWithAnalyzers = new CompilationWithAnalyzers(
-                compilation,
-                ImmutableArray.Create(analyzer),
-                analyzerOptions);
-
-            var diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
-
-            foreach (var exception in exceptions)
-            {
-                exception.Throw();
-            }
-
-            return diagnostics;
-        }
+        public static async Task<IEnumerable<Diagnostic>> GetCompilerDiagnostics(this Document document, CancellationToken cancellationToken = default) =>
+            (await document.GetSemanticModelAsync(cancellationToken))
+                .GetDiagnostics(cancellationToken: cancellationToken)
+                .Where(diagnostic => diagnostic.Severity != DiagnosticSeverity.Hidden)
+                .OrderBy(diagnostic => diagnostic.Location.SourceSpan)
+                .ThenBy(diagnostic => diagnostic.Id);
     }
 }

@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
@@ -44,9 +45,13 @@
 
         protected ITestOutputHelper Output { get; }
 
-        protected Task Assert(string markupCode, params string[] expectedDiagnosticIds) => Assert(markupCode, null, expectedDiagnosticIds);
+        protected Task Assert(string markupCode, CompilationOptions compilationOptions = null, CancellationToken cancellationToken = default) =>
+            Assert(markupCode, Array.Empty<string>(), compilationOptions, cancellationToken);
 
-        protected async Task Assert(string markupCode, CompilationOptions compilationOptions = null, params string[] expectedDiagnosticIds)
+        protected Task Assert(string markupCode, string expectedDiagnosticId, CompilationOptions compilationOptions = null, CancellationToken cancellationToken = default) =>
+            Assert(markupCode, new[] { expectedDiagnosticId }, compilationOptions, cancellationToken);
+
+        protected async Task Assert(string markupCode, string[] expectedDiagnosticIds, CompilationOptions compilationOptions = null, CancellationToken cancellationToken = default)
         {
             var externalTypes =
 @"namespace NServiceBus
@@ -68,71 +73,74 @@ using NServiceBus;
                 markupCode;
 
             var (code, markupSpans) = Parse(markupCode);
+            WriteCode(Output, code);
 
+            var document = CreateDocument(code, externalTypes, compilationOptions);
+
+            var compilerDiagnostics = await document.GetCompilerDiagnostics(cancellationToken);
+            WriteCompilerDiagnostics(Output, compilerDiagnostics);
+
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken);
+            compilation.Compile();
+
+            var analyzerDiagnostics = (await compilation.GetAnalyzerDiagnostics(new TAnalyzer(), cancellationToken)).ToList();
+            WriteAnalyzerDiagnostics(Output, analyzerDiagnostics);
+
+            var expectedSpansAndIds = expectedDiagnosticIds
+                .SelectMany(id => markupSpans.Select(span => (span, id)))
+                .OrderBy(item => item.span)
+                .ThenBy(item => item.id)
+                .ToList();
+
+            var actualSpansAndIds = analyzerDiagnostics
+                .Select(diagnostic => (diagnostic.Location.SourceSpan, diagnostic.Id))
+                .ToList();
+
+            Xunit.Assert.Equal(expectedSpansAndIds, actualSpansAndIds);
+        }
+
+        protected static void WriteCode(ITestOutputHelper Output, string code)
+        {
             foreach (var (line, index) in code.Replace("\r\n", "\n").Split('\n')
                 .Select((line, index) => (line, index)))
             {
-                Output.WriteLine($"{index + 1,3}: {line}");
+                Output.WriteLine($"  {index + 1,3}: {line}");
             }
+        }
 
-            var references = ImmutableList.Create<MetadataReference>(
+        protected static Document CreateDocument(string code, string externalTypes, CompilationOptions compilationOptions)
+        {
+            var references = ImmutableList.Create(
                 MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.Location));
 
-            var document = new AdhocWorkspace()
+            return new AdhocWorkspace()
                 .AddProject("TestProject", LanguageNames.CSharp)
                 .WithCompilationOptions(compilationOptions ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddMetadataReferences(references)
                 .AddDocument("Externaltypes", externalTypes)
                 .Project
                 .AddDocument("TestDocument", code);
+        }
 
-            var analyzer = new TAnalyzer();
+        protected static void WriteCompilerDiagnostics(ITestOutputHelper Output, IEnumerable<Diagnostic> diagnostics)
+        {
+            Output.WriteLine("Compiler diagnostics:");
 
-            var compilationDiagnostics = new List<Diagnostic>();
-            List<Diagnostic> analyzerDiagnostics;
-
-            try
+            foreach (var diagnostic in diagnostics)
             {
-                analyzerDiagnostics =
-                    (await document.GetDiagnostics(analyzer, compilationDiagnostics.Add))
-                    .OrderBy(diagnostic => diagnostic.Location.SourceSpan)
-                    .ThenBy(diagnostic => diagnostic.Id)
-                    .ToList();
+                Output.WriteLine($"  {diagnostic}");
             }
-            finally
-            {
-                Output.WriteLine("");
-                Output.WriteLine("Compilation diagnostics:");
-                foreach (var diagnostic in compilationDiagnostics
-                    .Where(diagnostic => diagnostic.Severity != DiagnosticSeverity.Hidden)
-                    .Select(diagnostic => diagnostic.ToString())
-                    .OrderBy(_ => _))
-                {
-                    Output.WriteLine(diagnostic);
-                }
-            }
+        }
 
-            Output.WriteLine("");
+        protected static void WriteAnalyzerDiagnostics(ITestOutputHelper Output, IEnumerable<Diagnostic> diagnostics)
+        {
             Output.WriteLine("Analyzer diagnostics:");
-            foreach (var diagnostic in analyzerDiagnostics
-                .Select(diagnostic => diagnostic.ToString())
-                .OrderBy(_ => _))
+
+            foreach (var diagnostic in diagnostics)
             {
-                Output.WriteLine(diagnostic);
+                Output.WriteLine($"  {diagnostic}");
             }
-
-            var expectedIdsAndSpans = expectedDiagnosticIds
-                .SelectMany(id => markupSpans.Select(span => (id, span)))
-                .OrderBy(item => item.span)
-                .ThenBy(item => item.id)
-                .ToList();
-
-            var actualIdsAndSpans = analyzerDiagnostics
-                .Select(diagnostic => (diagnostic.Id, diagnostic.Location.SourceSpan))
-                .ToList();
-
-            Xunit.Assert.Equal(expectedIdsAndSpans, actualIdsAndSpans);
         }
 
         static (string, List<TextSpan>) Parse(string markupCode)

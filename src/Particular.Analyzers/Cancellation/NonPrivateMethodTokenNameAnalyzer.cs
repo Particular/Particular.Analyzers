@@ -48,7 +48,7 @@
                 return;
             }
 
-            if (!method.Parameters.Any())
+            if (method.Parameters.IsDefaultOrEmpty)
             {
                 return;
             }
