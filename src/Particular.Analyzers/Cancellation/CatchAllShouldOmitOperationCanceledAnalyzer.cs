@@ -70,7 +70,7 @@
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0059:Unnecessary assignment of a value", Justification = "<Pending>")]
         static bool CatchFiltersOutOperationCanceled(CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
         {
             var filterClause = catchClause.ChildNodes().OfType<CatchFilterClauseSyntax>().FirstOrDefault();
@@ -98,8 +98,11 @@
             }
 
             var isKeyword = binaryExpression.OperatorToken.IsKind(SyntaxKind.IsKeyword);
-            var leftIsException = (binaryExpression.Left as IdentifierNameSyntax)?.Identifier.ValueText == "ex";
-            var rightIsOpCanceled = (binaryExpression.Right as IdentifierNameSyntax)?.Identifier.ValueText == "OperationCanceledException";
+            var leftSymbol = context.SemanticModel.GetSymbolInfo(binaryExpression.Left, context.CancellationToken).Symbol as ILocalSymbol;
+            var rightSymbol = context.SemanticModel.GetSymbolInfo(binaryExpression.Right, context.CancellationToken).Symbol as INamedTypeSymbol;
+
+            var leftIsException = leftSymbol?.Type.ToString() == "System.Exception";
+            var rightIsOpCanceled = rightSymbol?.ToString() == "System.OperationCanceledException";
 
             return isKeyword && leftIsException && rightIsOpCanceled;
         }
