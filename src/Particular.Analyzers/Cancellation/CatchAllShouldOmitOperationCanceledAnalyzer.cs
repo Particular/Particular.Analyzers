@@ -49,7 +49,7 @@
 
                 if (catchType == "Exception" || catchType == "System.Exception")
                 {
-                    if (CatchFiltersOutOperationCanceled(catchClause))
+                    if (CatchFiltersOutOperationCanceled(catchClause, context))
                     {
                         return;
                     }
@@ -70,7 +70,8 @@
             }
         }
 
-        static bool CatchFiltersOutOperationCanceled(CatchClauseSyntax catchClause)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        static bool CatchFiltersOutOperationCanceled(CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
         {
             var filterClause = catchClause.ChildNodes().OfType<CatchFilterClauseSyntax>().FirstOrDefault();
             if (filterClause == null)
@@ -78,12 +79,29 @@
                 return false;
             }
 
-            if (filterClause.DescendantNodes().OfType<IdentifierNameSyntax>().Any(name => name.Identifier.ValueText == "OperationCanceledException"))
+            var logicalNotExpression = filterClause.ChildNodes().OfType<PrefixUnaryExpressionSyntax>().FirstOrDefault();
+            if (logicalNotExpression == null || !logicalNotExpression.IsKind(SyntaxKind.LogicalNotExpression))
             {
-                return true;
+                return false;
             }
 
-            return false;
+            var parenthesizedExpression = logicalNotExpression.ChildNodes().OfType<ParenthesizedExpressionSyntax>().FirstOrDefault();
+            if (parenthesizedExpression == null)
+            {
+                return false;
+            }
+
+            var binaryExpression = parenthesizedExpression.ChildNodes().OfType<BinaryExpressionSyntax>().FirstOrDefault();
+            if (binaryExpression == null)
+            {
+                return false;
+            }
+
+            var isKeyword = binaryExpression.OperatorToken.IsKind(SyntaxKind.IsKeyword);
+            var leftIsException = (binaryExpression.Left as IdentifierNameSyntax)?.Identifier.ValueText == "ex";
+            var rightIsOpCanceled = (binaryExpression.Right as IdentifierNameSyntax)?.Identifier.ValueText == "OperationCanceledException";
+
+            return isKeyword && leftIsException && rightIsOpCanceled;
         }
 
         static bool IsCancellationToken(ExpressionSyntax expressionSyntax, SyntaxNodeAnalysisContext context, INamedTypeSymbol cancellationTokenType)
