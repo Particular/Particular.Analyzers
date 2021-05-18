@@ -49,13 +49,9 @@
 
                 if (catchType == "Exception" || catchType == "System.Exception")
                 {
-                    var filterClause = catchClause.ChildNodes().OfType<CatchFilterClauseSyntax>().FirstOrDefault();
-                    if (filterClause != null)
+                    if (CatchFiltersOutOperationCanceled(catchClause))
                     {
-                        if (filterClause.DescendantNodes().OfType<IdentifierNameSyntax>().Any(name => name.Identifier.ValueText == "OperationCanceledException"))
-                        {
-                            return;
-                        }
+                        return;
                     }
 
                     var tryBlockCalls = tryStatement.ChildNodes().OfType<BlockSyntax>()
@@ -72,6 +68,22 @@
 
                 }
             }
+        }
+
+        static bool CatchFiltersOutOperationCanceled(CatchClauseSyntax catchClause)
+        {
+            var filterClause = catchClause.ChildNodes().OfType<CatchFilterClauseSyntax>().FirstOrDefault();
+            if (filterClause == null)
+            {
+                return false;
+            }
+
+            if (filterClause.DescendantNodes().OfType<IdentifierNameSyntax>().Any(name => name.Identifier.ValueText == "OperationCanceledException"))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         static bool IsCancellationToken(ExpressionSyntax expressionSyntax, SyntaxNodeAnalysisContext context, INamedTypeSymbol cancellationTokenType)
