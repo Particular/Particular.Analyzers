@@ -147,5 +147,13 @@
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor CatchAllShouldOmitOperationCanceled = new DiagnosticDescriptor(
+            id: DiagnosticIds.CatchAllShouldOmitOperationCanceled,
+            title: "Do not catch Exception without considering OperationCanceledException",
+            messageFormat: "When passing a CancellationToken inside a try block, do not catch the general Exception type without first catching OperationCanceledException, or use the `when (!(ex is OperationCanceledException))` filter on the catch block.",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
     }
 }
