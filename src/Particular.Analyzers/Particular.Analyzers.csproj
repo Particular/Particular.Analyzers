@@ -20,8 +20,6 @@
   <ItemGroup>
     <None Remove="AnalyzerReleases.Shipped.md" />
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
-    <None Remove="AnalyzerReleases.Unshipped.md" />
-    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
 
   <ItemGroup>
