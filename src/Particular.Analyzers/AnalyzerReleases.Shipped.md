@@ -53,7 +53,7 @@ PS0016  |  Code    |  Warning | MethodMultipleCancellationTokens
 PS0017  |  Code    |  Warning | NonPrivateMethodSingleCancellationTokenMisnamed
 PS0018  |  Code    |  Warning | TaskReturningMethodNoCancellation
 
-## Release 1.1
+## Release 1.4
 
 ### New Rules
 
