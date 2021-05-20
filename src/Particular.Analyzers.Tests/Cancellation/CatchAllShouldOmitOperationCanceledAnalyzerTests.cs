@@ -121,6 +121,29 @@ public class SomeContext
 
         [Theory]
         [MemberData(nameof(CatchBlocks))]
+        public Task PassesCancellableContext(string catchBlocks)
+        {
+            const string PassesCancellableContextTemplate =
+@"public class Foo
+{
+    public async Task Bar()
+    {
+        try
+        {
+            var context = new CancellableContext();
+            await Test(context);
+        }
+        ##CATCH_BLOCKS##
+    }
+    Task Test(CancellableContext context = null) => Task.CompletedTask;
+}
+";
+
+            return Assert(GetCode(PassesCancellableContextTemplate, catchBlocks), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+        }
+
+        [Theory]
+        [MemberData(nameof(CatchBlocks))]
         public Task NotPassingToken(string catchBlocks)
         {
             const string DoesNotPassTokenTemplate =

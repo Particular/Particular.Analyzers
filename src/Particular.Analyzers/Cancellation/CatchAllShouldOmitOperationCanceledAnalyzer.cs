@@ -58,7 +58,7 @@
 
                     foreach (var call in tryBlockCalls)
                     {
-                        if (call.ArgumentList.Arguments.Any(arg => IsCancellationToken(arg.Expression, context, cancellationTokenType)))
+                        if (call.ArgumentList.Arguments.Any(arg => InvolvesCancellation(arg.Expression, context, cancellationTokenType)))
                         {
                             context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
                             return;
@@ -153,10 +153,13 @@
             return rightSymbol?.ToString() == "System.OperationCanceledException";
         }
 
-        static bool IsCancellationToken(ExpressionSyntax expressionSyntax, SyntaxNodeAnalysisContext context, INamedTypeSymbol cancellationTokenType)
+        static bool InvolvesCancellation(ExpressionSyntax expressionSyntax, SyntaxNodeAnalysisContext context, INamedTypeSymbol cancellationTokenType)
         {
             var expressionSymbol = context.SemanticModel.GetSymbolInfo(expressionSyntax, context.CancellationToken).Symbol;
-            return SymbolEqualityComparer.Default.Equals(expressionSymbol.GetTypeSymbolOrDefault(), cancellationTokenType);
+            var typeSymbol = expressionSymbol.GetTypeSymbolOrDefault();
+
+            return SymbolEqualityComparer.Default.Equals(typeSymbol, cancellationTokenType)
+                || typeSymbol.IsCancellableContext();
         }
 
         static string GetCatchType(CatchClauseSyntax catchClause)
