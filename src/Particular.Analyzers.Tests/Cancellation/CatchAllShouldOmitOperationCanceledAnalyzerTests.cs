@@ -20,6 +20,7 @@
             "catch (OperationCanceledException) { } catch (Exception) { }",                     // OK in all cases
             "catch (OperationCanceledException) { } catch { }",                                 // OK in all cases
             "catch (Exception ex) when (!(ex is OperationCanceledException)) { }",              // OK in all cases
+            "catch (Exception ex) when (ex is not OperationCanceledException) { }",              // OK in all cases
             "catch (Exception oddName) when (!(oddName is OperationCanceledException)) { }",    // OK in all cases
             "[|catch|] (Exception ex) when (ex is OperationCanceledException) { }",             // Did it wrong, not correct
         }.ToData();
