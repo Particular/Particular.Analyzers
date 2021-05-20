@@ -70,7 +70,6 @@
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0059:Unnecessary assignment of a value", Justification = "<Pending>")]
         static bool CatchFiltersOutOperationCanceled(CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
         {
             var filterClause = catchClause.ChildNodes().OfType<CatchFilterClauseSyntax>().FirstOrDefault();
