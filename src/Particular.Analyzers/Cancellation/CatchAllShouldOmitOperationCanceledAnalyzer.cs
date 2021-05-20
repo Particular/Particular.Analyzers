@@ -76,12 +76,54 @@
                 return false;
             }
 
-            var logicalNotExpression = catchClause.Filter.FilterExpression.ChildNodes().OfType<PrefixUnaryExpressionSyntax>().FirstOrDefault();
-            if (logicalNotExpression == null || !logicalNotExpression.IsKind(SyntaxKind.LogicalNotExpression))
+            if (catchClause.Filter.FilterExpression is PrefixUnaryExpressionSyntax logicalNotExpression && logicalNotExpression.IsKind(SyntaxKind.LogicalNotExpression))
+            {
+                // C# < 9 pattern: when (!(ex is OperationCanceledException))
+                return VerifyLogicalNotPattern(logicalNotExpression, context);
+            }
+            else if (catchClause.Filter.FilterExpression is IsPatternExpressionSyntax isPatternExpression)
+            {
+                // C# 9 pattern: when (ex is not OperationCanceledException)
+                return VerifyIsPattern(isPatternExpression, context);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Given C# 9 pattern `when (ex is not OperationCanceledException)
+        /// Makes sure an "is" expression is actually `ex is not OperationCanceledException`
+        /// </summary>
+        static bool VerifyIsPattern(IsPatternExpressionSyntax isPatternExpression, SyntaxNodeAnalysisContext context)
+        {
+            // Cheaper to evaluate this before going left->right and getting symbol info
+            if (!(isPatternExpression.Pattern is UnaryPatternSyntax unaryPatternSyntax && unaryPatternSyntax.IsKind(SyntaxKind.NotPattern)))
             {
                 return false;
             }
 
+            if (!(unaryPatternSyntax.Pattern is ConstantPatternSyntax constantPattern))
+            {
+                return false;
+            }
+
+            // Now evaluate symbols
+            var leftSymbol = context.SemanticModel.GetSymbolInfo(isPatternExpression.Expression, context.CancellationToken).Symbol as ILocalSymbol;
+            if (leftSymbol?.Type.ToString() != "System.Exception")
+            {
+                return false;
+            }
+
+            var rightSymbol = context.SemanticModel.GetSymbolInfo(constantPattern.Expression, context.CancellationToken).Symbol as INamedTypeSymbol;
+            return rightSymbol?.ToString() == "System.OperationCanceledException";
+        }
+
+        /// <summary>
+        /// Given a filter `when (!(ex is OperationCanceledException)`
+        /// Makes sure an expression `!(something)` is actually `!(ex is OperationCanceledException)`
+        /// </summary>
+        static bool VerifyLogicalNotPattern(PrefixUnaryExpressionSyntax logicalNotExpression, SyntaxNodeAnalysisContext context)
+        {
             var parenthesizedExpression = logicalNotExpression.ChildNodes().OfType<ParenthesizedExpressionSyntax>().FirstOrDefault();
             if (parenthesizedExpression == null)
             {

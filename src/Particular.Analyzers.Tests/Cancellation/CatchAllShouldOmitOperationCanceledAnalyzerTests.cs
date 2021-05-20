@@ -20,8 +20,12 @@
             "catch (OperationCanceledException) { } catch (Exception) { }",                     // OK in all cases
             "catch (OperationCanceledException) { } catch { }",                                 // OK in all cases
             "catch (Exception ex) when (!(ex is OperationCanceledException)) { }",              // OK in all cases
+            "catch (Exception ex) when (ex is not OperationCanceledException) { }",             // OK in all cases (C# 9)
             "catch (Exception oddName) when (!(oddName is OperationCanceledException)) { }",    // OK in all cases
+            "catch (Exception oddName) when (oddName is not OperationCanceledException) { }",   // OK in all cases (C# 9)
             "[|catch|] (Exception ex) when (ex is OperationCanceledException) { }",             // Did it wrong, not correct
+            "[|catch|] (Exception ex) when (!(ex is InvalidOperationException)) { }",           // Wrong exception type
+            "[|catch|] (Exception ex) when (ex is not InvalidOperationException) { }",          // Wrong exception type (C# 9)
         }.ToData();
 
         [Theory]
