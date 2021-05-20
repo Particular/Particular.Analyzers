@@ -38,11 +38,11 @@
                 return;
             }
 
-            foreach (var catchClause in tryStatement.ChildNodes().OfType<CatchClauseSyntax>())
+            foreach (var catchClause in tryStatement.Catches)
             {
                 var catchType = GetCatchType(catchClause);
 
-                if (catchType == "OperationCanceledException")
+                if (catchType == "OperationCanceledException" || catchType == "System.OperationCanceledException")
                 {
                     return;
                 }
@@ -54,8 +54,7 @@
                         return;
                     }
 
-                    var tryBlockCalls = tryStatement.ChildNodes().OfType<BlockSyntax>()
-                        .SelectMany(block => block.DescendantNodes().OfType<InvocationExpressionSyntax>());
+                    var tryBlockCalls = tryStatement.Block.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
                     foreach (var call in tryBlockCalls)
                     {
@@ -72,13 +71,12 @@
 
         static bool CatchFiltersOutOperationCanceled(CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
         {
-            var filterClause = catchClause.ChildNodes().OfType<CatchFilterClauseSyntax>().FirstOrDefault();
-            if (filterClause == null)
+            if (catchClause.Filter == null)
             {
                 return false;
             }
 
-            var logicalNotExpression = filterClause.ChildNodes().OfType<PrefixUnaryExpressionSyntax>().FirstOrDefault();
+            var logicalNotExpression = catchClause.Filter.FilterExpression.ChildNodes().OfType<PrefixUnaryExpressionSyntax>().FirstOrDefault();
             if (logicalNotExpression == null || !logicalNotExpression.IsKind(SyntaxKind.LogicalNotExpression))
             {
                 return false;
@@ -96,14 +94,21 @@
                 return false;
             }
 
-            var isKeyword = binaryExpression.OperatorToken.IsKind(SyntaxKind.IsKeyword);
+            if (!binaryExpression.OperatorToken.IsKind(SyntaxKind.IsKeyword))
+            {
+                return false;
+            }
+
             var leftSymbol = context.SemanticModel.GetSymbolInfo(binaryExpression.Left, context.CancellationToken).Symbol as ILocalSymbol;
+
+            if (leftSymbol?.Type.ToString() != "System.Exception")
+            {
+                return false;
+            }
+
             var rightSymbol = context.SemanticModel.GetSymbolInfo(binaryExpression.Right, context.CancellationToken).Symbol as INamedTypeSymbol;
 
-            var leftIsException = leftSymbol?.Type.ToString() == "System.Exception";
-            var rightIsOpCanceled = rightSymbol?.ToString() == "System.OperationCanceledException";
-
-            return isKeyword && leftIsException && rightIsOpCanceled;
+            return rightSymbol?.ToString() == "System.OperationCanceledException";
         }
 
         static bool IsCancellationToken(ExpressionSyntax expressionSyntax, SyntaxNodeAnalysisContext context, INamedTypeSymbol cancellationTokenType)
@@ -125,9 +130,7 @@
                 return "Exception";
             }
 
-            var identifier = catchDeclaration.ChildNodes().OfType<NameSyntax>().FirstOrDefault();
-
-            return identifier?.ToString();
+            return catchDeclaration.Type.ToString();
         }
     }
 }
