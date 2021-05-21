@@ -26,6 +26,8 @@
             "[|catch|] (Exception ex) when (ex is OperationCanceledException) { }",             // Did it wrong, not correct
             "[|catch|] (Exception ex) when (!(ex is InvalidOperationException)) { }",           // Wrong exception type
             "[|catch|] (Exception ex) when (ex is not InvalidOperationException) { }",          // Wrong exception type (C# 9)
+            "[|catch|] (Exception ex) when (!(exOther is OperationCanceledException)) { }",     // Wrong symbol
+            "[|catch|] (Exception ex) when (exOther is not OperationCanceledException) { }",    // Wrong symbol (C# 9)
         }.ToData();
 
         [Theory]
@@ -37,6 +39,8 @@
 {
     public async Task Bar(CancellationToken cancellationToken)
     {
+        var exOther = new Exception();
+
         try
         {
             await Test(cancellationToken);
@@ -58,6 +62,8 @@
 {
     public async Task Bar(SomeContext context)
     {
+        var exOther = new Exception();
+
         try
         {
             await Test(context.Token);
@@ -83,6 +89,8 @@ public class SomeContext
 {
     public async Task Bar()
     {
+        var exOther = new Exception();
+
         try
         {
             await Test(TokenGenerator());
@@ -105,6 +113,8 @@ public class SomeContext
 {
     public async Task Bar()
     {
+        var exOther = new Exception();
+
         try
         {
             Func<CancellationToken> func = () => CancellationToken.None;
@@ -128,6 +138,8 @@ public class SomeContext
 {
     public async Task Bar()
     {
+        var exOther = new Exception();
+
         try
         {
             var context = new CancellableContext();
@@ -151,6 +163,8 @@ public class SomeContext
 {
     public async Task Bar(CancellationToken context)
     {
+        var exOther = new Exception();
+
         try
         {
             await Test(42, true, 3.1415926);
@@ -163,7 +177,6 @@ public class SomeContext
             var noDiagnosticCatchBlocks = catchBlocks.Replace("[|", "").Replace("|]", "");
             return Assert(GetCode(DoesNotPassTokenTemplate, noDiagnosticCatchBlocks), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
         }
-
 
         static string GetCode(string template, string catchBlocks) => template.Replace("##CATCH_BLOCKS##", catchBlocks);
     }
