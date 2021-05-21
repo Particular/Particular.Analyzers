@@ -52,3 +52,11 @@ PS0015  |  Code    |  Warning | MethodMultipleCancellableContexts
 PS0016  |  Code    |  Warning | MethodMultipleCancellationTokens
 PS0017  |  Code    |  Warning | NonPrivateMethodSingleCancellationTokenMisnamed
 PS0018  |  Code    |  Warning | TaskReturningMethodNoCancellation
+
+## Release 1.4
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+PS0019  | Code     | Warning  | CatchAllShouldOmitOperationCanceled
