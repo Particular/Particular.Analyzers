@@ -18,20 +18,10 @@
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-            context.RegisterCompilationStartAction(startContext =>
-            {
-                if (!(startContext.Compilation.GetTypeByMetadataName("System.Threading.CancellationToken") is INamedTypeSymbol cancellationTokenType))
-                {
-                    return;
-                }
-
-                startContext.RegisterSyntaxNodeAction(
-                    analyzeContext => Analyze(analyzeContext, cancellationTokenType),
-                    SyntaxKind.TryStatement);
-            });
+            context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.TryStatement);
         }
 
-        static void Analyze(SyntaxNodeAnalysisContext context, INamedTypeSymbol cancellationTokenType)
+        static void Analyze(SyntaxNodeAnalysisContext context)
         {
             if (!(context.Node is TryStatementSyntax tryStatement))
             {
@@ -47,26 +37,50 @@
                     return;
                 }
 
-                if (catchType == "Exception" || catchType == "System.Exception")
+                if (catchType != "Exception" && catchType != "System.Exception")
                 {
-                    if (CatchFiltersOutOperationCanceled(catchClause, context))
+                    continue;
+                }
+
+                if (CatchFiltersOutOperationCanceled(catchClause, context))
+                {
+                    return;
+                }
+
+                // Because we are examining all descendants, this may result in false positives.
+                // For example, a nested try block may contain cancellable invocations and
+                // a related catch block may swallow OperationCanceledException.
+                // Or, an anonymous delegate may contain cancellable invocations but
+                // may not actually be executed in the try block.
+                // However, these are edge cases and would be complicated to analyze.
+                // In these cases, either the fix can be redundantly applied, or the analyzer can be suppressed.
+                var tryBlockCalls = tryStatement.Block.DescendantNodes().OfType<InvocationExpressionSyntax>();
+
+                foreach (var call in tryBlockCalls)
+                {
+                    if (call.ArgumentList.Arguments
+                        .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
+                        .Any(arg => arg.IsCancellationToken() || arg.IsCancellableContext()))
                     {
+                        context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
                         return;
                     }
-
-                    var tryBlockCalls = tryStatement.Block.DescendantNodes().OfType<InvocationExpressionSyntax>();
-
-                    foreach (var call in tryBlockCalls)
-                    {
-                        if (call.ArgumentList.Arguments.Any(arg => InvolvesCancellation(arg.Expression, context, cancellationTokenType)))
-                        {
-                            context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
-                            return;
-                        }
-                    }
-
                 }
             }
+        }
+
+        static string GetCatchType(CatchClauseSyntax catchClause)
+        {
+            // This means:
+            //   catch
+            //   {
+            //   }
+            if (catchClause.Declaration == null)
+            {
+                return "Exception";
+            }
+
+            return catchClause.Declaration.Type.ToString();
         }
 
         static bool CatchFiltersOutOperationCanceled(CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
@@ -76,62 +90,38 @@
                 return false;
             }
 
-            if (catchClause.Filter.FilterExpression is PrefixUnaryExpressionSyntax logicalNotExpression && logicalNotExpression.IsKind(SyntaxKind.LogicalNotExpression))
+            if (catchClause.Filter.FilterExpression is PrefixUnaryExpressionSyntax prefixUnaryExpression)
             {
                 // C# < 9 pattern: when (!(ex is OperationCanceledException))
-                return VerifyLogicalNotPattern(logicalNotExpression, context);
+                return Verify(prefixUnaryExpression, context);
             }
-            else if (catchClause.Filter.FilterExpression is IsPatternExpressionSyntax isPatternExpression)
+
+            if (catchClause.Filter.FilterExpression is IsPatternExpressionSyntax isPatternExpression)
             {
                 // C# 9 pattern: when (ex is not OperationCanceledException)
-                return VerifyIsPattern(isPatternExpression, context);
+                return Verify(isPatternExpression, context);
             }
 
             return false;
         }
 
         /// <summary>
-        /// Given C# 9 pattern `when (ex is not OperationCanceledException)
-        /// Makes sure an "is" expression is actually `ex is not OperationCanceledException`
+        /// Ensures `{prefix}({expression})` is `!(ex is OperationCanceledException)`
         /// </summary>
-        static bool VerifyIsPattern(IsPatternExpressionSyntax isPatternExpression, SyntaxNodeAnalysisContext context)
+        static bool Verify(PrefixUnaryExpressionSyntax logicalNotExpression, SyntaxNodeAnalysisContext context)
         {
-            // Cheaper to evaluate this before going left->right and getting symbol info
-            if (!(isPatternExpression.Pattern is UnaryPatternSyntax unaryPatternSyntax && unaryPatternSyntax.IsKind(SyntaxKind.NotPattern)))
+            // cheapest checks first
+            if (!logicalNotExpression.IsKind(SyntaxKind.LogicalNotExpression))
             {
                 return false;
             }
 
-            if (!(unaryPatternSyntax.Pattern is ConstantPatternSyntax constantPattern))
+            if (!(logicalNotExpression.ChildNodes().FirstOrDefault() is ParenthesizedExpressionSyntax parenthesizedExpression))
             {
                 return false;
             }
 
-            // Now evaluate symbols
-            var leftSymbol = context.SemanticModel.GetSymbolInfo(isPatternExpression.Expression, context.CancellationToken).Symbol as ILocalSymbol;
-            if (leftSymbol?.Type.ToString() != "System.Exception")
-            {
-                return false;
-            }
-
-            var rightSymbol = context.SemanticModel.GetSymbolInfo(constantPattern.Expression, context.CancellationToken).Symbol as INamedTypeSymbol;
-            return rightSymbol?.ToString() == "System.OperationCanceledException";
-        }
-
-        /// <summary>
-        /// Given a filter `when (!(ex is OperationCanceledException)`
-        /// Makes sure an expression `!(something)` is actually `!(ex is OperationCanceledException)`
-        /// </summary>
-        static bool VerifyLogicalNotPattern(PrefixUnaryExpressionSyntax logicalNotExpression, SyntaxNodeAnalysisContext context)
-        {
-            var parenthesizedExpression = logicalNotExpression.ChildNodes().OfType<ParenthesizedExpressionSyntax>().FirstOrDefault();
-            if (parenthesizedExpression == null)
-            {
-                return false;
-            }
-
-            var binaryExpression = parenthesizedExpression.ChildNodes().OfType<BinaryExpressionSyntax>().FirstOrDefault();
-            if (binaryExpression == null)
+            if (!(parenthesizedExpression.ChildNodes().FirstOrDefault() is BinaryExpressionSyntax binaryExpression))
             {
                 return false;
             }
@@ -141,6 +131,7 @@
                 return false;
             }
 
+            // Now evaluate symbols
             var leftSymbol = context.SemanticModel.GetSymbolInfo(binaryExpression.Left, context.CancellationToken).Symbol as ILocalSymbol;
 
             if (leftSymbol?.Type.ToString() != "System.Exception")
@@ -153,29 +144,33 @@
             return rightSymbol?.ToString() == "System.OperationCanceledException";
         }
 
-        static bool InvolvesCancellation(ExpressionSyntax expressionSyntax, SyntaxNodeAnalysisContext context, INamedTypeSymbol cancellationTokenType)
+        /// <summary>
+        /// Ensures `{symbol} is {pattern}` is `ex is not OperationCanceledException`
+        /// </summary>
+        static bool Verify(IsPatternExpressionSyntax isPatternExpression, SyntaxNodeAnalysisContext context)
         {
-            var expressionSymbol = context.SemanticModel.GetSymbolInfo(expressionSyntax, context.CancellationToken).Symbol;
-            var typeSymbol = expressionSymbol.GetTypeSymbolOrDefault();
-
-            return SymbolEqualityComparer.Default.Equals(typeSymbol, cancellationTokenType)
-                || typeSymbol.IsCancellableContext();
-        }
-
-        static string GetCatchType(CatchClauseSyntax catchClause)
-        {
-            var catchDeclaration = catchClause.ChildNodes().OfType<CatchDeclarationSyntax>().FirstOrDefault();
-
-            // This means:
-            //   catch
-            //   {
-            //   }
-            if (catchDeclaration == null)
+            // Cheaper to evaluate this before going left->right and getting symbol info
+            if (!(isPatternExpression.Pattern is UnaryPatternSyntax notPattern && notPattern.IsKind(SyntaxKind.NotPattern)))
             {
-                return "Exception";
+                return false;
             }
 
-            return catchDeclaration.Type.ToString();
+            if (!(notPattern.Pattern is ConstantPatternSyntax constantPattern))
+            {
+                return false;
+            }
+
+            // Now evaluate symbols
+            var leftSymbol = context.SemanticModel.GetSymbolInfo(isPatternExpression.Expression, context.CancellationToken).Symbol as ILocalSymbol;
+
+            if (leftSymbol?.Type.ToString() != "System.Exception")
+            {
+                return false;
+            }
+
+            var rightSymbol = context.SemanticModel.GetSymbolInfo(constantPattern.Expression, context.CancellationToken).Symbol as INamedTypeSymbol;
+
+            return rightSymbol?.ToString() == "System.OperationCanceledException";
         }
     }
 }
