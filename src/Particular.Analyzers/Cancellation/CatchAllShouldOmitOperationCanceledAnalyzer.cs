@@ -93,13 +93,13 @@
             if (catchClause.Filter.FilterExpression is PrefixUnaryExpressionSyntax prefixUnaryExpression)
             {
                 // C# < 9 pattern: when (!(ex is OperationCanceledException))
-                return Verify(prefixUnaryExpression, context);
+                return Verify(prefixUnaryExpression, catchClause, context);
             }
 
             if (catchClause.Filter.FilterExpression is IsPatternExpressionSyntax isPatternExpression)
             {
                 // C# 9 pattern: when (ex is not OperationCanceledException)
-                return Verify(isPatternExpression, context);
+                return Verify(isPatternExpression, catchClause, context);
             }
 
             return false;
@@ -108,7 +108,7 @@
         /// <summary>
         /// Ensures `{prefix}({expression})` is `!(ex is OperationCanceledException)`
         /// </summary>
-        static bool Verify(PrefixUnaryExpressionSyntax logicalNotExpression, SyntaxNodeAnalysisContext context)
+        static bool Verify(PrefixUnaryExpressionSyntax logicalNotExpression, CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
         {
             // cheapest checks first
             if (!logicalNotExpression.IsKind(SyntaxKind.LogicalNotExpression))
@@ -134,7 +134,7 @@
             // Now evaluate symbols
             var leftSymbol = context.SemanticModel.GetSymbolInfo(binaryExpression.Left, context.CancellationToken).Symbol as ILocalSymbol;
 
-            if (leftSymbol?.Type.ToString() != "System.Exception")
+            if (leftSymbol?.Name != catchClause.Declaration.Identifier.Text)
             {
                 return false;
             }
@@ -147,7 +147,7 @@
         /// <summary>
         /// Ensures `{symbol} is {pattern}` is `ex is not OperationCanceledException`
         /// </summary>
-        static bool Verify(IsPatternExpressionSyntax isPatternExpression, SyntaxNodeAnalysisContext context)
+        static bool Verify(IsPatternExpressionSyntax isPatternExpression, CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
         {
             // Cheaper to evaluate this before going left->right and getting symbol info
             if (!(isPatternExpression.Pattern is UnaryPatternSyntax notPattern && notPattern.IsKind(SyntaxKind.NotPattern)))
@@ -163,7 +163,7 @@
             // Now evaluate symbols
             var leftSymbol = context.SemanticModel.GetSymbolInfo(isPatternExpression.Expression, context.CancellationToken).Symbol as ILocalSymbol;
 
-            if (leftSymbol?.Type.ToString() != "System.Exception")
+            if (leftSymbol?.Name != catchClause.Declaration.Identifier.Text)
             {
                 return false;
             }
