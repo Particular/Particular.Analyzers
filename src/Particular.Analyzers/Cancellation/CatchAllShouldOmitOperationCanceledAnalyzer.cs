@@ -59,6 +59,9 @@
                 foreach (var call in tryBlockCalls)
                 {
                     if (call.ArgumentList.Arguments
+                        .Where(arg => !(arg.Expression is LiteralExpressionSyntax))
+                        .Where(arg => !(arg.Expression is DefaultExpressionSyntax))
+                        .Where(arg => !IsCancellationTokenNone(arg))
                         .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
                         .Any(arg => arg.IsCancellationToken() || arg.IsCancellableContext()))
                     {
@@ -103,6 +106,26 @@
             }
 
             return false;
+        }
+
+        static bool IsCancellationTokenNone(ArgumentSyntax arg)
+        {
+            if (!(arg.Expression is MemberAccessExpressionSyntax memberAccess))
+            {
+                return false;
+            }
+
+            if (!memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            {
+                return false;
+            }
+
+            if (!(memberAccess.Expression is SimpleNameSyntax @ref))
+            {
+                return false;
+            }
+
+            return @ref.Identifier.ValueText == "CancellationToken" && memberAccess.Name.Identifier.ValueText == "None";
         }
 
         /// <summary>

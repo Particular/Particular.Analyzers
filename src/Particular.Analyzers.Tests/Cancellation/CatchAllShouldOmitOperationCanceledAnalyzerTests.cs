@@ -156,26 +156,34 @@ public class SomeContext
 
         [Theory]
         [MemberData(nameof(CatchBlocks))]
-        public Task NotPassingToken(string catchBlocks)
+        public Task PassesNoTokenOrEmptyToken(string catchBlocks)
         {
-            const string DoesNotPassTokenTemplate =
-@"public class Foo
+            const string PassesNoTokenOrEmptyTokenTemplate =
+@"class Foo
 {
-    public async Task Bar(CancellationToken context)
+    async Task Bar(CancellationToken context)
     {
         var exOther = new Exception();
 
         try
         {
             await Test(42, true, 3.1415926);
+            await Test(42, true, 3.1415926, default);
+            await Test(42, true, 3.1415926, default(CancellationToken));
+            await Test(42, true, 3.1415926, CancellationToken.None);
+
+            await Test();
+            await Test(default);
+            await Test(default(ICancellableContext));
         }
         ##CATCH_BLOCKS##
     }
-    public Task Test(int i, bool b, double d, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    Task Test(int i, bool b, double d, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    Task Test(ICancellableContext cancellableContext = default) => Task.CompletedTask;
 }";
 
             var noDiagnosticCatchBlocks = catchBlocks.Replace("[|", "").Replace("|]", "");
-            return Assert(GetCode(DoesNotPassTokenTemplate, noDiagnosticCatchBlocks), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+            return Assert(GetCode(PassesNoTokenOrEmptyTokenTemplate, noDiagnosticCatchBlocks), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
         }
 
         static string GetCode(string template, string catchBlocks) => template.Replace("##CATCH_BLOCKS##", catchBlocks);
