@@ -12,7 +12,8 @@
     public class CatchAllShouldOmitOperationCanceledAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled);
+            DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled,
+            DiagnosticDescriptors.CatchOperationCanceledShouldFilterForToken);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -34,42 +35,53 @@
 
                 if (catchType == "OperationCanceledException" || catchType == "System.OperationCanceledException")
                 {
-                    return;
-                }
-
-                if (catchType != "Exception" && catchType != "System.Exception")
-                {
-                    continue;
-                }
-
-                if (CatchFiltersOutOperationCanceled(catchClause, context))
-                {
-                    return;
-                }
-
-                // Because we are examining all descendants, this may result in false positives.
-                // For example, a nested try block may contain cancellable invocations and
-                // a related catch block may swallow OperationCanceledException.
-                // Or, an anonymous delegate may contain cancellable invocations but
-                // may not actually be executed in the try block.
-                // However, these are edge cases and would be complicated to analyze.
-                // In these cases, either the fix can be redundantly applied, or the analyzer can be suppressed.
-                var tryBlockCalls = tryStatement.Block.DescendantNodes().OfType<InvocationExpressionSyntax>();
-
-                foreach (var call in tryBlockCalls)
-                {
-                    if (call.ArgumentList.Arguments
-                        .Where(arg => !(arg.Expression is LiteralExpressionSyntax))
-                        .Where(arg => !(arg.Expression is DefaultExpressionSyntax))
-                        .Where(arg => !IsCancellationTokenNone(arg))
-                        .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
-                        .Any(arg => arg.IsCancellationToken() || arg.IsCancellableContext()))
+                    if (!CatchForOperationCanceledFiltersCorrectly(context, catchClause))
                     {
-                        context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
-                        return;
+                        if (TryStatementPassesCancellationToken(context, tryStatement))
+                        {
+                            context.ReportDiagnostic(DiagnosticDescriptors.CatchOperationCanceledShouldFilterForToken, catchClause.CatchKeyword);
+                        }
                     }
+                    return;
+                }
+                else if (catchType == "Exception" || catchType == "System.Exception")
+                {
+                    if (!CatchFiltersOutOperationCanceled(catchClause, context))
+                    {
+                        if (TryStatementPassesCancellationToken(context, tryStatement))
+                        {
+                            context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
+                        }
+                    }
+                    return;
                 }
             }
+        }
+
+        static bool CatchForOperationCanceledFiltersCorrectly(SyntaxNodeAnalysisContext context, CatchClauseSyntax catchClause)
+        {
+            if (catchClause.Filter == null)
+            {
+                return false;
+            }
+
+            if (!(catchClause.Filter.FilterExpression is MemberAccessExpressionSyntax memberAccess))
+            {
+                return false;
+            }
+
+            if (!memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            {
+                return false;
+            }
+
+            if (memberAccess.Name.Identifier.ValueText != "IsCancellationRequested")
+            {
+                return false;
+            }
+
+            var expressionSymbol = context.SemanticModel.GetSymbolInfo(memberAccess.Expression, context.CancellationToken);
+            return expressionSymbol.Symbol.GetTypeSymbolOrDefault().IsCancellationToken();
         }
 
         static string GetCatchType(CatchClauseSyntax catchClause)
@@ -103,6 +115,33 @@
             {
                 // C# 9 pattern: when (ex is not OperationCanceledException)
                 return Verify(isPatternExpression, catchClause, context);
+            }
+
+            return false;
+        }
+
+        static bool TryStatementPassesCancellationToken(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
+        {
+            // Because we are examining all descendants, this may result in false positives.
+            // For example, a nested try block may contain cancellable invocations and
+            // a related catch block may swallow OperationCanceledException.
+            // Or, an anonymous delegate may contain cancellable invocations but
+            // may not actually be executed in the try block.
+            // However, these are edge cases and would be complicated to analyze.
+            // In these cases, either the fix can be redundantly applied, or the analyzer can be suppressed.
+            var tryBlockCalls = tryStatement.Block.DescendantNodes().OfType<InvocationExpressionSyntax>();
+
+            foreach (var call in tryBlockCalls)
+            {
+                if (call.ArgumentList.Arguments
+                    .Where(arg => !(arg.Expression is LiteralExpressionSyntax))
+                    .Where(arg => !(arg.Expression is DefaultExpressionSyntax))
+                    .Where(arg => !IsCancellationTokenNone(arg))
+                    .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
+                    .Any(arg => arg.IsCancellationToken() || arg.IsCancellableContext()))
+                {
+                    return true;
+                }
             }
 
             return false;

@@ -21,5 +21,6 @@
         public const string NonPrivateMethodSingleCancellationTokenMisnamed = "PS0017";
         public const string TaskReturningMethodNoCancellation = "PS0018";
         public const string CatchAllShouldOmitOperationCanceled = "PS0019";
+        public const string CatchOperationCanceledShouldFilterForToken = "PS0020";
     }
 }

@@ -155,5 +155,13 @@
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor CatchOperationCanceledShouldFilterForToken = new DiagnosticDescriptor(
+            id: DiagnosticIds.CatchOperationCanceledShouldFilterForToken,
+            title: "When catching OperationCanceledException, use 'when (cancellationToken.IsCancellationRequested)' to filter by the token causing cancellation",
+            messageFormat: "When catching OperationCanceledException, use 'when (cancellationToken.IsCancellationRequested)' to filter by the CancellationToken that is causing cancellation and treat other randomly thrown OperationCanceledExceptions as regular exceptions.",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
     }
 }

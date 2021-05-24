@@ -17,8 +17,8 @@
             "[|catch|] { }",                                                                    // Triggers diagnostic when passing CancellationToken in try
             "catch (InvalidOperationException) { } [|catch|] (Exception) { }",                  // Triggers diagnostic when passing CancellationToken in try
             "catch (InvalidOperationException) { } [|catch|] { }",                              // Triggers diagnostic when passing CancellationToken in try
-            "catch (OperationCanceledException) { } catch (Exception) { }",                     // OK in all cases
-            "catch (OperationCanceledException) { } catch { }",                                 // OK in all cases
+            //"catch (OperationCanceledException) { } catch (Exception) { }",                   // Covered by CatchAllShouldOmitOperationCanceledAnalyzerTests
+            //"catch (OperationCanceledException) { } catch { }",                               // Covered by CatchAllShouldOmitOperationCanceledAnalyzerTests
             "catch (Exception ex) when (!(ex is OperationCanceledException)) { }",              // OK in all cases
             "catch (Exception ex) when (ex is not OperationCanceledException) { }",             // OK in all cases (C# 9)
             "catch (Exception oddName) when (!(oddName is OperationCanceledException)) { }",    // OK in all cases
