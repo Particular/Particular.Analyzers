@@ -47,29 +47,49 @@
                     return;
                 }
 
-                // Because we are examining all descendants, this may result in false positives.
-                // For example, a nested try block may contain cancellable invocations and
-                // a related catch block may swallow OperationCanceledException.
-                // Or, an anonymous delegate may contain cancellable invocations but
-                // may not actually be executed in the try block.
-                // However, these are edge cases and would be complicated to analyze.
-                // In these cases, either the fix can be redundantly applied, or the analyzer can be suppressed.
-                var tryBlockCalls = tryStatement.Block.DescendantNodes().OfType<InvocationExpressionSyntax>();
-
-                foreach (var call in tryBlockCalls)
+                if (TryStatementCanGenerateOperationCanceled(context, tryStatement))
                 {
-                    if (call.ArgumentList.Arguments
-                        .Where(arg => !(arg.Expression is LiteralExpressionSyntax))
-                        .Where(arg => !(arg.Expression is DefaultExpressionSyntax))
-                        .Where(arg => !IsCancellationTokenNone(arg))
-                        .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
-                        .Any(arg => arg.IsCancellationToken() || arg.IsCancellableContext()))
-                    {
-                        context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
-                        return;
-                    }
+                    context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
                 }
             }
+        }
+
+        static bool TryStatementCanGenerateOperationCanceled(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
+        {
+            // Because we are examining all descendants, this may result in false positives.
+            // For example, a nested try block may contain cancellable invocations and
+            // a related catch block may swallow OperationCanceledException.
+            // Or, an anonymous delegate may contain cancellable invocations but
+            // may not actually be executed in the try block.
+            // However, these are edge cases and would be complicated to analyze.
+            // In these cases, either the fix can be redundantly applied, or the analyzer can be suppressed.
+            var tryBlockCalls = tryStatement.Block.DescendantNodes().OfType<InvocationExpressionSyntax>();
+
+            foreach (var call in tryBlockCalls)
+            {
+                if (call.Expression is MemberAccessExpressionSyntax memberAccess && memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    if (memberAccess.Name.Identifier.ValueText == "ThrowIfCancellationRequested")
+                    {
+                        if (context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken).Type.IsCancellationToken())
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                if (call.ArgumentList.Arguments
+                    .Where(arg => !(arg.Expression is LiteralExpressionSyntax))
+                    .Where(arg => !(arg.Expression is DefaultExpressionSyntax))
+                    .Where(arg => !IsCancellationTokenNone(arg))
+                    .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
+                    .Any(arg => arg.IsCancellationToken() || arg.IsCancellableContext()))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         static string GetCatchType(CatchClauseSyntax catchClause)
