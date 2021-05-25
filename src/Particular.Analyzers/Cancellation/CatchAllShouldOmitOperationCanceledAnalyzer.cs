@@ -28,33 +28,88 @@
                 return;
             }
 
-            foreach (var catchClause in tryStatement.Catches)
+            var catches = tryStatement.Catches
+                .Select(catchClause => (catchClause, catchType: GetCatchType(catchClause)))
+                .Where(tuple => tuple.catchType == "Exception" || tuple.catchType == "OperationCanceledException")
+                .ToImmutableArray();
+
+            if (!catches.Any())
             {
-                var catchType = GetCatchType(catchClause);
+                // No catch blocks of interest
+                return;
+            }
 
-                if (catchType == "OperationCanceledException" || catchType == "System.OperationCanceledException")
+            var tokenExpression = GetActiveCancellationTokenExpression(context, tryStatement);
+            if (tokenExpression == null)
+            {
+                return;
+            }
+
+            foreach (var (catchClause, catchType) in catches)
+            {
+                if (catchType == "OperationCanceledException")
                 {
+                    if (!CatchIncludesCancellationTokenExpression(catchClause, tokenExpression))
+                    {
+                        context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
+                    }
                     return;
                 }
 
-                if (catchType != "Exception" && catchType != "System.Exception")
+                if (catchType == "Exception")
                 {
-                    continue;
-                }
+                    if (CatchIncludesCancellationTokenExpression(catchClause, tokenExpression))
+                    {
+                        if (CatchIncludesSameException(catchClause))
+                        {
+                            return;
+                        }
+                    }
 
-                if (CatchFiltersOutOperationCanceled(catchClause, context))
-                {
-                    return;
-                }
-
-                if (TryStatementCanGenerateOperationCanceled(context, tryStatement))
-                {
                     context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
+                    return;
                 }
             }
         }
 
-        static bool TryStatementCanGenerateOperationCanceled(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
+        static bool CatchIncludesCancellationTokenExpression(CatchClauseSyntax catchClause, ExpressionSyntax tokenExpression)
+        {
+            if (catchClause.Filter == null)
+            {
+                return false;
+            }
+
+            var expressionType = tokenExpression.GetType();
+            var expressionString = tokenExpression.ToString();
+            var tokens = catchClause.Filter.DescendantNodes()
+                .Where(node => node.GetType().IsAssignableFrom(expressionType))
+                .Where(node => node.ToString() == expressionString);
+
+            return tokens.Any();
+        }
+
+        static bool CatchIncludesSameException(CatchClauseSyntax catchClause)
+        {
+            var identifier = catchClause.Declaration?.Identifier.Text;
+            if (identifier == null)
+            {
+                // just `catch (Exception)` or even `catch { }` - no variable name
+                return false;
+            }
+
+            if (catchClause.Filter == null)
+            {
+                return false;
+            }
+
+            var filterIdentifiers = catchClause.Filter.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(nameSyntax => nameSyntax.Identifier.ValueText == identifier);
+
+            return filterIdentifiers.Any();
+        }
+
+        static ExpressionSyntax GetActiveCancellationTokenExpression(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
         {
             // Because we are examining all descendants, this may result in false positives.
             // For example, a nested try block may contain cancellable invocations and
@@ -71,61 +126,53 @@
                 {
                     if (memberAccess.Name.Identifier.ValueText == "ThrowIfCancellationRequested")
                     {
-                        if (context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken).Type.IsCancellationToken())
+                        //var symbolInfo = context.SemanticModel.GetSymbolInfo(memberAccess.Expression, context.CancellationToken);
+
+
+                        var typeInfo = context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken);
+                        //var type2 = symbolInfo.Symbol.GetTypeSymbolOrDefault();
+                        if (typeInfo.Type.IsCancellationToken())
                         {
-                            return true;
+                            return memberAccess.Expression;
                         }
                     }
                 }
 
-                if (call.ArgumentList.Arguments
+                var tokenArguments = call.ArgumentList.Arguments
                     .Where(arg => !(arg.Expression is LiteralExpressionSyntax))
                     .Where(arg => !(arg.Expression is DefaultExpressionSyntax))
                     .Where(arg => !IsCancellationTokenNone(arg))
-                    .Select(arg => context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type)
-                    .Any(arg => arg.IsCancellationToken() || arg.IsCancellableContext()))
+                    .Select(arg => (arg.Expression, context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type))
+                    .Where(arg => arg.Type.IsCancellationToken() || arg.Type.IsCancellableContext());
+
+                if (tokenArguments.Any())
                 {
-                    return true;
+                    return tokenArguments.First().Expression;
                 }
             }
 
-            return false;
+            return null;
         }
 
         static string GetCatchType(CatchClauseSyntax catchClause)
         {
-            // This means:
+            // if catchClause.Declaration is null, that means:
             //   catch
             //   {
             //   }
-            if (catchClause.Declaration == null)
+
+            switch (catchClause.Declaration?.Type.ToString())
             {
-                return "Exception";
+                case null:
+                case "Exception":
+                case "System.Exception":
+                    return "Exception";
+                case "OperationCanceledException":
+                case "System.OperationCanceledException":
+                    return "OperationCanceledException";
+                default:
+                    return null;
             }
-
-            return catchClause.Declaration.Type.ToString();
-        }
-
-        static bool CatchFiltersOutOperationCanceled(CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
-        {
-            if (catchClause.Filter == null)
-            {
-                return false;
-            }
-
-            if (catchClause.Filter.FilterExpression is PrefixUnaryExpressionSyntax prefixUnaryExpression)
-            {
-                // C# < 9 pattern: when (!(ex is OperationCanceledException))
-                return Verify(prefixUnaryExpression, catchClause, context);
-            }
-
-            if (catchClause.Filter.FilterExpression is IsPatternExpressionSyntax isPatternExpression)
-            {
-                // C# 9 pattern: when (ex is not OperationCanceledException)
-                return Verify(isPatternExpression, catchClause, context);
-            }
-
-            return false;
         }
 
         static bool IsCancellationTokenNone(ArgumentSyntax arg)
@@ -146,74 +193,6 @@
             }
 
             return @ref.Identifier.ValueText == "CancellationToken" && memberAccess.Name.Identifier.ValueText == "None";
-        }
-
-        /// <summary>
-        /// Ensures `{prefix}({expression})` is `!(ex is OperationCanceledException)`
-        /// </summary>
-        static bool Verify(PrefixUnaryExpressionSyntax logicalNotExpression, CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
-        {
-            // cheapest checks first
-            if (!logicalNotExpression.IsKind(SyntaxKind.LogicalNotExpression))
-            {
-                return false;
-            }
-
-            if (!(logicalNotExpression.ChildNodes().FirstOrDefault() is ParenthesizedExpressionSyntax parenthesizedExpression))
-            {
-                return false;
-            }
-
-            if (!(parenthesizedExpression.ChildNodes().FirstOrDefault() is BinaryExpressionSyntax binaryExpression))
-            {
-                return false;
-            }
-
-            if (!binaryExpression.OperatorToken.IsKind(SyntaxKind.IsKeyword))
-            {
-                return false;
-            }
-
-            // Now evaluate symbols
-            var leftSymbol = context.SemanticModel.GetSymbolInfo(binaryExpression.Left, context.CancellationToken).Symbol as ILocalSymbol;
-
-            if (leftSymbol?.Name != catchClause.Declaration.Identifier.Text)
-            {
-                return false;
-            }
-
-            var rightSymbol = context.SemanticModel.GetSymbolInfo(binaryExpression.Right, context.CancellationToken).Symbol as INamedTypeSymbol;
-
-            return rightSymbol?.ToString() == "System.OperationCanceledException";
-        }
-
-        /// <summary>
-        /// Ensures `{symbol} is {pattern}` is `ex is not OperationCanceledException`
-        /// </summary>
-        static bool Verify(IsPatternExpressionSyntax isPatternExpression, CatchClauseSyntax catchClause, SyntaxNodeAnalysisContext context)
-        {
-            // Cheaper to evaluate this before going left->right and getting symbol info
-            if (!(isPatternExpression.Pattern is UnaryPatternSyntax notPattern && notPattern.IsKind(SyntaxKind.NotPattern)))
-            {
-                return false;
-            }
-
-            if (!(notPattern.Pattern is ConstantPatternSyntax constantPattern))
-            {
-                return false;
-            }
-
-            // Now evaluate symbols
-            var leftSymbol = context.SemanticModel.GetSymbolInfo(isPatternExpression.Expression, context.CancellationToken).Symbol as ILocalSymbol;
-
-            if (leftSymbol?.Name != catchClause.Declaration.Identifier.Text)
-            {
-                return false;
-            }
-
-            var rightSymbol = context.SemanticModel.GetSymbolInfo(constantPattern.Expression, context.CancellationToken).Symbol as INamedTypeSymbol;
-
-            return rightSymbol?.ToString() == "System.OperationCanceledException";
         }
     }
 }
