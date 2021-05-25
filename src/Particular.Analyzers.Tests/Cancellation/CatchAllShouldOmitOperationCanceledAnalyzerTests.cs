@@ -131,6 +131,29 @@ public class SomeContext
 
         [Theory]
         [MemberData(nameof(CatchBlocks))]
+        public Task ThrowIfCancellationRequested(string catchBlocks)
+        {
+            const string PassesSimpleTokenTemplate =
+@"public class Foo
+{
+    public async Task Bar(CancellationToken cancellationToken)
+    {
+        var exOther = new Exception();
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+        ##CATCH_BLOCKS##
+    }
+    public Task Test(CancellationToken cancellationToken) => Task.CompletedTask;
+}";
+
+            return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+        }
+
+        [Theory]
+        [MemberData(nameof(CatchBlocks))]
         public Task PassesCancellableContext(string catchBlocks)
         {
             const string PassesCancellableContextTemplate =
