@@ -8,14 +8,14 @@
     using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
-    public class CatchAllShouldOmitOperationCanceledAnalyzerTests : AnalyzerTestFixture<CatchAllShouldOmitOperationCanceledAnalyzer>
+    public class CancellationTryCatchAnalyzerTests : AnalyzerTestFixture<CancellationTryCatchAnalyzer>
     {
-        public CatchAllShouldOmitOperationCanceledAnalyzerTests(ITestOutputHelper output) : base(output) { }
+        public CancellationTryCatchAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
         public static readonly Data AllCatchBlocks;
         public static readonly Data CatchBlocksWithoutIdentifiers;
 
-        static CatchAllShouldOmitOperationCanceledAnalyzerTests()
+        static CancellationTryCatchAnalyzerTests()
         {
             var catchBlocksWithIdentifiers = new[]
             {
@@ -77,7 +77,7 @@
     public Task Test(CancellationToken cancellationToken) => Task.CompletedTask;
 }";
 
-            return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+            return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), DiagnosticIds.ImproperTryCatchHandling);
         }
 
         [Theory]
@@ -104,7 +104,7 @@ public class SomeContext
     public CancellationToken Token => CancellationToken.None;
 }";
 
-            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, "context.Token"), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, "context.Token"), DiagnosticIds.ImproperTryCatchHandling);
         }
 
         [Theory]
@@ -128,7 +128,7 @@ public class SomeContext
     private CancellationToken TokenGenerator() => CancellationToken.None;
 }";
 
-            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), DiagnosticIds.ImproperTryCatchHandling);
         }
 
         [Theory]
@@ -153,7 +153,7 @@ public class SomeContext
     private CancellationToken TokenGenerator() => CancellationToken.None;
 }";
 
-            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), DiagnosticIds.ImproperTryCatchHandling);
         }
 
         [Theory]
@@ -176,7 +176,7 @@ public class SomeContext
     public Task Test(CancellationToken cancellationToken) => Task.CompletedTask;
 }";
 
-            return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+            return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), DiagnosticIds.ImproperTryCatchHandling);
         }
 
         [Theory]
@@ -204,7 +204,7 @@ public class SomeContext
 class SomeContext : ICancellableContext { public CancellationToken CancellationToken { get; set; } }
 ";
 
-            return Assert(GetCode(PassesCancellableContextTemplate, catchBlocks, "context.CancellationToken"), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+            return Assert(GetCode(PassesCancellableContextTemplate, catchBlocks, "context.CancellationToken"), DiagnosticIds.ImproperTryCatchHandling);
         }
 
         [Theory]
@@ -236,7 +236,7 @@ class SomeContext : ICancellableContext { public CancellationToken CancellationT
 }";
 
             var noDiagnosticCatchBlocks = catchBlocks.Replace("[|", "").Replace("|]", "");
-            return Assert(GetCode(PassesNoTokenOrEmptyTokenTemplate, noDiagnosticCatchBlocks, null), DiagnosticIds.CatchAllShouldOmitOperationCanceled);
+            return Assert(GetCode(PassesNoTokenOrEmptyTokenTemplate, noDiagnosticCatchBlocks, null), DiagnosticIds.ImproperTryCatchHandling);
         }
 
         static string GetCode(string template, string catchBlocks, string tokenMarkup) => template.Replace("##CATCH_BLOCKS##", catchBlocks.Replace("##TOKEN##", tokenMarkup));

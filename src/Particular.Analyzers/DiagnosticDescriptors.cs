@@ -148,10 +148,10 @@
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor CatchAllShouldOmitOperationCanceled = new DiagnosticDescriptor(
-            id: DiagnosticIds.CatchAllShouldOmitOperationCanceled,
-            title: "Do not catch Exception without considering OperationCanceledException",
-            messageFormat: "When passing a CancellationToken or ICancellableContext inside a try block, do not catch the general Exception type without first catching OperationCanceledException, or use the `when (!(ex is OperationCanceledException))` (C# 8 or earlier) or `when (ex is not OperationCanceledException)` filter (C# 9 or later) on the catch block.",
+        public static readonly DiagnosticDescriptor ImproperTryCatchHandling = new DiagnosticDescriptor(
+            id: DiagnosticIds.ImproperTryCatchHandling,
+            title: "When catching Exception or OperationCanceledException, cancellation needs to be properly accounted for",
+            messageFormat: "When catching Exception or OperationCanceledException, cancellation needs to be properly accounted for. See https://go.particular.net/exception-handling-with-cancellation",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

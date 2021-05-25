@@ -9,10 +9,10 @@
     using Particular.Analyzers.Extensions;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CatchAllShouldOmitOperationCanceledAnalyzer : DiagnosticAnalyzer
+    public class CancellationTryCatchAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled);
+            DiagnosticDescriptors.ImproperTryCatchHandling);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -51,7 +51,7 @@
                 {
                     if (!CatchIncludesCancellationTokenExpression(catchClause, tokenExpression))
                     {
-                        context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
+                        context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchHandling, catchClause.CatchKeyword);
                     }
                     return;
                 }
@@ -66,7 +66,7 @@
                         }
                     }
 
-                    context.ReportDiagnostic(DiagnosticDescriptors.CatchAllShouldOmitOperationCanceled, catchClause.CatchKeyword);
+                    context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchHandling, catchClause.CatchKeyword);
                     return;
                 }
             }
