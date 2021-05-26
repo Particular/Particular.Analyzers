@@ -191,8 +191,8 @@
 
                 if (tokenArguments.Any())
                 {
-                    var arg = tokenArguments.First();
-                    return (arg.Expression, arg.isContext);
+                    var (expression, _, _, isContext) = tokenArguments.First();
+                    return (expression, isContext);
                 }
             }
 
