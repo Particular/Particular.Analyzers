@@ -26,6 +26,10 @@
                 "catch (Exception ex) when (ex is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch (Exception) { }",
                 "catch (Exception ex) when (ex is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch { }",
                 "catch (Exception ex) when (!(ex is OperationCanceledException) && ##TOKEN##.IsCancellationRequested) { }",
+                // Incorrect filter on OCE
+                "[|catch|] (OperationCanceledException) when (##TOKEN##.CanBeCanceled) { } catch (Exception) { }",
+                "[|catch|] (OperationCanceledException) when (##TOKEN##.CanBeCanceled) { } catch { }",
+                "[|catch|] (OperationCanceledException) when (##TOKEN##.CanBeCanceled) { }",
                 // Wrong exception checked
                 "[|catch|] (Exception ex) when (exOther is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch (Exception) { }",
                 "[|catch|] (Exception ex) when (exOther is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch { }",
@@ -35,7 +39,8 @@
 
             var catchBlocksWithoutIdentifiers = new[]
             {
-                // Does not check exception or cancellation token
+                // Does not check exception type or cancellation token
+                "[|catch|] (OperationCanceledException) when (exOther != null) { } catch (Exception) { }",
                 "[|catch|] (OperationCanceledException) { } catch (Exception) { }",
                 "[|catch|] (OperationCanceledException) { } catch { }",
                 "[|catch|] (OperationCanceledException) { }",

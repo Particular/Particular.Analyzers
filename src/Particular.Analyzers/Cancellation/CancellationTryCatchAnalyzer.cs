@@ -39,7 +39,7 @@
                 return;
             }
 
-            var tokenExpression = GetActiveCancellationTokenExpression(context, tryStatement);
+            var (tokenExpression, tokenIsContext) = GetActiveCancellationTokenExpression(context, tryStatement);
             if (tokenExpression == null)
             {
                 return;
@@ -49,7 +49,7 @@
             {
                 if (catchType == "OperationCanceledException")
                 {
-                    if (!CatchIncludesCancellationTokenExpression(catchClause, tokenExpression))
+                    if (!CatchFiltersByIsCancellationRequested(catchClause, tokenExpression, tokenIsContext))
                     {
                         context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchHandling, catchClause.CatchKeyword);
                     }
@@ -69,6 +69,42 @@
                     context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchHandling, catchClause.CatchKeyword);
                     return;
                 }
+            }
+        }
+
+
+
+        static bool CatchFiltersByIsCancellationRequested(CatchClauseSyntax catchClause, ExpressionSyntax tokenExpression, bool tokenIsContext)
+        {
+            if (catchClause.Filter == null)
+            {
+                return false;
+            }
+
+            if (!(catchClause.Filter.FilterExpression is MemberAccessExpressionSyntax memberAccess) || !memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            {
+                return false;
+            }
+
+            if (memberAccess.Name.Identifier.ValueText != "IsCancellationRequested")
+            {
+                return false;
+            }
+
+            if (tokenIsContext)
+            {
+                if (!(memberAccess.Expression is MemberAccessExpressionSyntax contextTokenExpression) || !contextTokenExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    return false;
+                }
+
+                return contextTokenExpression.Name.Identifier.ValueText == "CancellationToken"
+                    && contextTokenExpression.Expression.ToString() == tokenExpression.ToString();
+            }
+            else
+            {
+                return memberAccess.Expression.IsKind(tokenExpression.Kind())
+                    && memberAccess.Expression.ToString() == tokenExpression.ToString();
             }
         }
 
@@ -109,7 +145,7 @@
             return filterIdentifiers.Any();
         }
 
-        static ExpressionSyntax GetActiveCancellationTokenExpression(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
+        static (ExpressionSyntax Expression, bool IsContext) GetActiveCancellationTokenExpression(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
         {
             // Because we are examining all descendants, this may result in false positives.
             // For example, a nested try block may contain cancellable invocations and
@@ -133,7 +169,7 @@
                         //var type2 = symbolInfo.Symbol.GetTypeSymbolOrDefault();
                         if (typeInfo.Type.IsCancellationToken())
                         {
-                            return memberAccess.Expression;
+                            return (memberAccess.Expression, false);
                         }
                     }
                 }
@@ -142,16 +178,24 @@
                     .Where(arg => !(arg.Expression is LiteralExpressionSyntax))
                     .Where(arg => !(arg.Expression is DefaultExpressionSyntax))
                     .Where(arg => !IsCancellationTokenNone(arg))
-                    .Select(arg => (arg.Expression, context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type))
-                    .Where(arg => arg.Type.IsCancellationToken() || arg.Type.IsCancellableContext());
+                    .Select(arg =>
+                    {
+                        var type = context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type;
+                        var isToken = type.IsCancellationToken();
+                        var isContext = !isToken && type.IsCancellableContext();
+
+                        return (arg.Expression, type, isToken, isContext);
+                    })
+                    .Where(arg => arg.isToken || arg.isContext);
 
                 if (tokenArguments.Any())
                 {
-                    return tokenArguments.First().Expression;
+                    var arg = tokenArguments.First();
+                    return (arg.Expression, arg.isContext);
                 }
             }
 
-            return null;
+            return default;
         }
 
         static string GetCatchType(CatchClauseSyntax catchClause)
