@@ -148,8 +148,16 @@
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor ImproperTryCatchHandling = new DiagnosticDescriptor(
-            id: DiagnosticIds.ImproperTryCatchHandling,
+        public static readonly DiagnosticDescriptor ImproperTryCatchSystemException = new DiagnosticDescriptor(
+            id: DiagnosticIds.ImproperTryCatchSystemException,
+            title: "When catching Exception or OperationCanceledException, cancellation needs to be properly accounted for",
+            messageFormat: "When catching Exception or OperationCanceledException, cancellation needs to be properly accounted for. See https://go.particular.net/exception-handling-with-cancellation",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ImproperTryCatchOperationCanceled = new DiagnosticDescriptor(
+            id: DiagnosticIds.ImproperTryCatchOperationCanceled,
             title: "When catching Exception or OperationCanceledException, cancellation needs to be properly accounted for",
             messageFormat: "When catching Exception or OperationCanceledException, cancellation needs to be properly accounted for. See https://go.particular.net/exception-handling-with-cancellation",
             category: "Code",

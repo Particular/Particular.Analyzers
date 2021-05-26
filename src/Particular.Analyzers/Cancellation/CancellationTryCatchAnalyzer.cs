@@ -12,7 +12,8 @@
     public class CancellationTryCatchAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.ImproperTryCatchHandling);
+            DiagnosticDescriptors.ImproperTryCatchSystemException,
+            DiagnosticDescriptors.ImproperTryCatchOperationCanceled);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -51,7 +52,7 @@
                 {
                     if (!CatchFiltersByIsCancellationRequested(catchClause, tokenExpression, tokenIsContext))
                     {
-                        context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchHandling, catchClause.CatchKeyword);
+                        context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchOperationCanceled, catchClause.CatchKeyword);
                     }
                     return;
                 }
@@ -66,7 +67,7 @@
                         }
                     }
 
-                    context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchHandling, catchClause.CatchKeyword);
+                    context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchSystemException, catchClause.CatchKeyword);
                     return;
                 }
             }

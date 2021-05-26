@@ -17,45 +17,48 @@
 
         static CancellationTryCatchAnalyzerTests()
         {
-            var catchBlocksWithIdentifiers = new[]
+            var oce = DiagnosticIds.ImproperTryCatchOperationCanceled;
+            var ex = DiagnosticIds.ImproperTryCatchSystemException;
+
+            var catchBlocksWithIdentifiers = new (string Diagnostic, string Code)[]
             {
                 // OK in all cases
-                "catch (OperationCanceledException) when (##TOKEN##.IsCancellationRequested) { } catch (Exception) { }",
-                "catch (OperationCanceledException) when (##TOKEN##.IsCancellationRequested) { } catch { }",
-                "catch (OperationCanceledException) when (##TOKEN##.IsCancellationRequested) { }",
-                "catch (Exception ex) when (ex is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch (Exception) { }",
-                "catch (Exception ex) when (ex is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch { }",
-                "catch (Exception ex) when (!(ex is OperationCanceledException) && ##TOKEN##.IsCancellationRequested) { }",
+                (oce, "catch (OperationCanceledException) when (##TOKEN##.IsCancellationRequested) { } catch (Exception) { }"),
+                (oce, "catch (OperationCanceledException) when (##TOKEN##.IsCancellationRequested) { } catch { }"),
+                (oce, "catch (OperationCanceledException) when (##TOKEN##.IsCancellationRequested) { }"),
+                (ex, "catch (Exception ex) when (ex is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch (Exception) { }"),
+                (ex, "catch (Exception ex) when (ex is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch { }"),
+                (ex, "catch (Exception ex) when (!(ex is OperationCanceledException) && ##TOKEN##.IsCancellationRequested) { }"),
                 // Incorrect filter on OCE
-                "[|catch|] (OperationCanceledException) when (##TOKEN##.CanBeCanceled) { } catch (Exception) { }",
-                "[|catch|] (OperationCanceledException) when (##TOKEN##.CanBeCanceled) { } catch { }",
-                "[|catch|] (OperationCanceledException) when (##TOKEN##.CanBeCanceled) { }",
+                (oce, "[|catch|] (OperationCanceledException) when (##TOKEN##.CanBeCanceled) { } catch (Exception) { }"),
+                (oce, "[|catch|] (OperationCanceledException) when (##TOKEN##.CanBeCanceled) { } catch { }"),
+                (oce, "[|catch|] (OperationCanceledException) when (##TOKEN##.CanBeCanceled) { }"),
                 // Wrong exception checked
-                "[|catch|] (Exception ex) when (exOther is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch (Exception) { }",
-                "[|catch|] (Exception ex) when (exOther is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch { }",
-                "[|catch|] (Exception ex) when (!(exOther is OperationCanceledException) && ##TOKEN##.IsCancellationRequested) { }",
-                "[|catch|] when (!(exOther is OperationCanceledException) && ##TOKEN##.IsCancellationRequested) { }",
+                (ex, "[|catch|] (Exception ex) when (exOther is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch (Exception) { }"),
+                (ex, "[|catch|] (Exception ex) when (exOther is OperationCanceledException && ##TOKEN##.IsCancellationRequested) { } catch { }"),
+                (ex, "[|catch|] (Exception ex) when (!(exOther is OperationCanceledException) && ##TOKEN##.IsCancellationRequested) { }"),
+                (ex, "[|catch|] when (!(exOther is OperationCanceledException) && ##TOKEN##.IsCancellationRequested) { }"),
             };
 
-            var catchBlocksWithoutIdentifiers = new[]
+            var catchBlocksWithoutIdentifiers = new (string Diagnostic, string Code)[]
             {
                 // Does not check exception type or cancellation token
-                "[|catch|] (OperationCanceledException) when (exOther != null) { } catch (Exception) { }",
-                "[|catch|] (OperationCanceledException) { } catch (Exception) { }",
-                "[|catch|] (OperationCanceledException) { } catch { }",
-                "[|catch|] (OperationCanceledException) { }",
-                "[|catch|] (Exception) { }",
-                "[|catch|] { }",
+                (oce, "[|catch|] (OperationCanceledException) when (exOther != null) { } catch (Exception) { }"),
+                (oce, "[|catch|] (OperationCanceledException) { } catch (Exception) { }"),
+                (oce, "[|catch|] (OperationCanceledException) { } catch { }"),
+                (oce, "[|catch|] (OperationCanceledException) { }"),
+                (ex, "[|catch|] (Exception) { }"),
+                (ex, "[|catch|] { }"),
                 // Ignore other types of exceptions
-                "catch (InvalidOperationException) { }",
-                "catch (InvalidOperationException) { } [|catch|] { }",
+                (ex, "catch (InvalidOperationException) { }"),
+                (ex, "catch (InvalidOperationException) { } [|catch|] { }"),
                 // Filter does not include cancellation token
-                "[|catch|] (OperationCanceledException) { } catch (Exception) { }",
-                "[|catch|] (OperationCanceledException) { } catch { }",
-                "[|catch|] (OperationCanceledException) { }",
-                "[|catch|] (Exception ex) when (ex is OperationCanceledException) { } catch (Exception) { }",
-                "[|catch|] (Exception ex) when (ex is OperationCanceledException) { } catch { }",
-                "[|catch|] (Exception ex) when (!(ex is OperationCanceledException)) { }",
+                (oce, "[|catch|] (OperationCanceledException) { } catch (Exception) { }"),
+                (oce, "[|catch|] (OperationCanceledException) { } catch { }"),
+                (oce, "[|catch|] (OperationCanceledException) { }"),
+                (ex, "[|catch|] (Exception ex) when (ex is OperationCanceledException) { } catch (Exception) { }"),
+                (ex, "[|catch|] (Exception ex) when (ex is OperationCanceledException) { } catch { }"),
+                (ex, "[|catch|] (Exception ex) when (!(ex is OperationCanceledException)) { }"),
             };
 
             AllCatchBlocks = catchBlocksWithIdentifiers.Concat(catchBlocksWithoutIdentifiers).ToData();
@@ -64,7 +67,7 @@
 
         [Theory]
         [MemberData(nameof(AllCatchBlocks))]
-        public Task PassingSimpleToken(string catchBlocks)
+        public Task PassingSimpleToken(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesSimpleTokenTemplate =
 @"public class Foo
@@ -82,12 +85,12 @@
     public Task Test(CancellationToken cancellationToken) => Task.CompletedTask;
 }";
 
-            return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), DiagnosticIds.ImproperTryCatchHandling);
+            return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), expectedDiagnostic);
         }
 
         [Theory]
         [MemberData(nameof(AllCatchBlocks))]
-        public Task PassingTokenProperty(string catchBlocks)
+        public Task PassingTokenProperty(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesTokenPropertyTemplate =
 @"public class Foo
@@ -109,12 +112,12 @@ public class SomeContext
     public CancellationToken Token => CancellationToken.None;
 }";
 
-            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, "context.Token"), DiagnosticIds.ImproperTryCatchHandling);
+            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, "context.Token"), expectedDiagnostic);
         }
 
         [Theory]
         [MemberData(nameof(CatchBlocksWithoutIdentifiers))]
-        public Task MethodThatGeneratesToken(string catchBlocks)
+        public Task MethodThatGeneratesToken(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesTokenPropertyTemplate =
 @"public class Foo
@@ -133,12 +136,12 @@ public class SomeContext
     private CancellationToken TokenGenerator() => CancellationToken.None;
 }";
 
-            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), DiagnosticIds.ImproperTryCatchHandling);
+            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), expectedDiagnostic);
         }
 
         [Theory]
         [MemberData(nameof(CatchBlocksWithoutIdentifiers))]
-        public Task FuncThatGeneratesToken(string catchBlocks)
+        public Task FuncThatGeneratesToken(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesTokenPropertyTemplate =
 @"public class Foo
@@ -158,12 +161,12 @@ public class SomeContext
     private CancellationToken TokenGenerator() => CancellationToken.None;
 }";
 
-            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), DiagnosticIds.ImproperTryCatchHandling);
+            return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), expectedDiagnostic);
         }
 
         [Theory]
         [MemberData(nameof(AllCatchBlocks))]
-        public Task ThrowIfCancellationRequested(string catchBlocks)
+        public Task ThrowIfCancellationRequested(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesSimpleTokenTemplate =
 @"public class Foo
@@ -181,12 +184,12 @@ public class SomeContext
     public Task Test(CancellationToken cancellationToken) => Task.CompletedTask;
 }";
 
-            return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), DiagnosticIds.ImproperTryCatchHandling);
+            return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), expectedDiagnostic);
         }
 
         [Theory]
         [MemberData(nameof(AllCatchBlocks))]
-        public Task PassesCancellableContext(string catchBlocks)
+        public Task PassesCancellableContext(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesCancellableContextTemplate =
 @"public class Foo
@@ -209,12 +212,12 @@ public class SomeContext
 class SomeContext : ICancellableContext { public CancellationToken CancellationToken { get; set; } }
 ";
 
-            return Assert(GetCode(PassesCancellableContextTemplate, catchBlocks, "context.CancellationToken"), DiagnosticIds.ImproperTryCatchHandling);
+            return Assert(GetCode(PassesCancellableContextTemplate, catchBlocks, "context.CancellationToken"), expectedDiagnostic);
         }
 
         [Theory]
         [MemberData(nameof(CatchBlocksWithoutIdentifiers))]
-        public Task PassesNoTokenOrEmptyToken(string catchBlocks)
+        public Task PassesNoTokenOrEmptyToken(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesNoTokenOrEmptyTokenTemplate =
 @"class Foo
@@ -241,7 +244,7 @@ class SomeContext : ICancellableContext { public CancellationToken CancellationT
 }";
 
             var noDiagnosticCatchBlocks = catchBlocks.Replace("[|", "").Replace("|]", "");
-            return Assert(GetCode(PassesNoTokenOrEmptyTokenTemplate, noDiagnosticCatchBlocks, null), DiagnosticIds.ImproperTryCatchHandling);
+            return Assert(GetCode(PassesNoTokenOrEmptyTokenTemplate, noDiagnosticCatchBlocks, null), expectedDiagnostic);
         }
 
         static string GetCode(string template, string catchBlocks, string tokenMarkup) => template.Replace("##CATCH_BLOCKS##", catchBlocks.Replace("##TOKEN##", tokenMarkup));
