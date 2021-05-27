@@ -1,5 +1,6 @@
 ﻿namespace Particular.Analyzers.Cancellation
 {
+    using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
     using Microsoft.CodeAnalysis;
@@ -13,7 +14,8 @@
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             DiagnosticDescriptors.ImproperTryCatchSystemException,
-            DiagnosticDescriptors.ImproperTryCatchOperationCanceled);
+            DiagnosticDescriptors.ImproperTryCatchOperationCanceled,
+            DiagnosticDescriptors.MultipleCancellationTokensInATry);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -40,8 +42,8 @@
                 return;
             }
 
-            var (tokenExpression, tokenIsContext) = GetActiveCancellationTokenExpression(context, tryStatement);
-            if (tokenExpression == null)
+            var tokenExpressionString = GetActiveCancellationTokenExpressionString(context, tryStatement);
+            if (tokenExpressionString == null)
             {
                 return;
             }
@@ -50,7 +52,7 @@
             {
                 if (catchType == "OperationCanceledException")
                 {
-                    if (!CatchFiltersByIsCancellationRequested(catchClause, tokenExpression, tokenIsContext))
+                    if (!CatchFiltersByIsCancellationRequested(catchClause, tokenExpressionString))
                     {
                         context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchOperationCanceled, catchClause.CatchKeyword);
                     }
@@ -59,7 +61,7 @@
 
                 if (catchType == "Exception")
                 {
-                    if (CatchIncludesCancellationTokenExpression(catchClause, tokenExpression))
+                    if (CatchIncludesCancellationTokenExpression(catchClause, tokenExpressionString))
                     {
                         if (CatchIncludesSameException(catchClause))
                         {
@@ -75,7 +77,7 @@
 
 
 
-        static bool CatchFiltersByIsCancellationRequested(CatchClauseSyntax catchClause, ExpressionSyntax tokenExpression, bool tokenIsContext)
+        static bool CatchFiltersByIsCancellationRequested(CatchClauseSyntax catchClause, string tokenExpressionString)
         {
             if (catchClause.Filter == null)
             {
@@ -92,35 +94,18 @@
                 return false;
             }
 
-            if (tokenIsContext)
-            {
-                if (!(memberAccess.Expression is MemberAccessExpressionSyntax contextTokenExpression) || !contextTokenExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-                {
-                    return false;
-                }
-
-                return contextTokenExpression.Name.Identifier.ValueText == "CancellationToken"
-                    && contextTokenExpression.Expression.ToString() == tokenExpression.ToString();
-            }
-            else
-            {
-                return memberAccess.Expression.IsKind(tokenExpression.Kind())
-                    && memberAccess.Expression.ToString() == tokenExpression.ToString();
-            }
+            return memberAccess.Expression.ToString() == tokenExpressionString;
         }
 
-        static bool CatchIncludesCancellationTokenExpression(CatchClauseSyntax catchClause, ExpressionSyntax tokenExpression)
+        static bool CatchIncludesCancellationTokenExpression(CatchClauseSyntax catchClause, string tokenExpressionString)
         {
             if (catchClause.Filter == null)
             {
                 return false;
             }
 
-            var expressionType = tokenExpression.GetType();
-            var expressionString = tokenExpression.ToString();
             var tokens = catchClause.Filter.DescendantNodes()
-                .Where(node => node.GetType().IsAssignableFrom(expressionType))
-                .Where(node => node.ToString() == expressionString);
+                .Where(node => node.ToString() == tokenExpressionString);
 
             return tokens.Any();
         }
@@ -146,7 +131,7 @@
             return filterIdentifiers.Any();
         }
 
-        static (ExpressionSyntax Expression, bool IsContext) GetActiveCancellationTokenExpression(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
+        static string GetActiveCancellationTokenExpressionString(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
         {
             // Because we are examining all descendants, this may result in false positives.
             // For example, a nested try block may contain cancellable invocations and
@@ -157,20 +142,29 @@
             // In these cases, either the fix can be redundantly applied, or the analyzer can be suppressed.
             var tryBlockCalls = tryStatement.Block.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
-            foreach (var call in tryBlockCalls)
+            var distinctTokenArguments = GetTokenArguments(context, tryBlockCalls)
+                .Distinct()
+                .ToImmutableArray();
+
+            if (distinctTokenArguments.Length > 1)
+            {
+                context.ReportDiagnostic(DiagnosticDescriptors.MultipleCancellationTokensInATry, tryStatement.TryKeyword);
+            }
+
+            return distinctTokenArguments.FirstOrDefault();
+        }
+
+        static IEnumerable<string> GetTokenArguments(SyntaxNodeAnalysisContext context, IEnumerable<InvocationExpressionSyntax> calls)
+        {
+            foreach (var call in calls)
             {
                 if (call.Expression is MemberAccessExpressionSyntax memberAccess && memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {
                     if (memberAccess.Name.Identifier.ValueText == "ThrowIfCancellationRequested")
                     {
-                        //var symbolInfo = context.SemanticModel.GetSymbolInfo(memberAccess.Expression, context.CancellationToken);
-
-
-                        var typeInfo = context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken);
-                        //var type2 = symbolInfo.Symbol.GetTypeSymbolOrDefault();
-                        if (typeInfo.Type.IsCancellationToken())
+                        if (context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken).Type.IsCancellationToken())
                         {
-                            return (memberAccess.Expression, false);
+                            yield return memberAccess.Expression.ToString();
                         }
                     }
                 }
@@ -182,21 +176,25 @@
                     .Select(arg =>
                     {
                         var type = context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type;
-                        var isToken = type.IsCancellationToken();
-                        var isContext = !isToken && type.IsCancellableContext();
+                        if (type.IsCancellationToken())
+                        {
+                            return arg.Expression.ToString();
+                        }
 
-                        return (arg.Expression, type, isToken, isContext);
+                        if (type.IsCancellableContext())
+                        {
+                            return arg.Expression.ToString() + ".CancellationToken";
+                        }
+
+                        return null;
                     })
-                    .Where(arg => arg.isToken || arg.isContext);
+                    .Where(expr => expr != null);
 
-                if (tokenArguments.Any())
+                foreach (var expressionString in tokenArguments)
                 {
-                    var (expression, _, _, isContext) = tokenArguments.First();
-                    return (expression, isContext);
+                    yield return expressionString;
                 }
             }
-
-            return default;
         }
 
         static string GetCatchType(CatchClauseSyntax catchClause)

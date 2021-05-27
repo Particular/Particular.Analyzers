@@ -249,7 +249,7 @@ class SomeContext : ICancellableContext { public CancellationToken CancellationT
             const string PassesNoTokenOrEmptyTokenTemplate =
 @"class Foo
 {
-    async Task Bar(CancellationToken context)
+    async Task Bar(CancellationToken token)
     {
         var exOther = new Exception();
 
@@ -272,6 +272,79 @@ class SomeContext : ICancellableContext { public CancellationToken CancellationT
 
             var noDiagnosticCatchBlocks = catchBlocks.Replace("[|", "").Replace("|]", "");
             return Assert(GetCode(PassesNoTokenOrEmptyTokenTemplate, noDiagnosticCatchBlocks, null), expectedDiagnostic);
+        }
+
+        [Fact]
+        public Task NoWarnWhenSingleTokenUsedMultipleTimesInTry()
+        {
+            const string UsesSameTokenMultipleTimes =
+@"class Foo
+{
+    async Task Bar(CancellationToken token)
+    {
+        var exOther = new Exception();
+
+        try
+        {
+            Test1(1);
+            Test1(2, token);
+            Test2(true);
+            Test2(false, token);
+            Test1(3);
+            Test1(4, token);
+            Test2(true);
+            Test2(false, token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
+        catch (Exception)
+        {
+        }
+    }
+    Task Test1(int i, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    Task Test2(bool b, CancellationToken cancellationToken = default) => Task.CompletedTask;
+}";
+
+            return Assert(UsesSameTokenMultipleTimes);
+        }
+
+        [Theory]
+        [InlineData("newToken")]
+        [InlineData("tokenSource.Token")]
+        [InlineData("context.Token")]
+        public Task WarnWhenMultipleTokenUsedInTry(string tokenExpression)
+        {
+            const string UsesMultipleTokenTemplate =
+@"class Foo
+{
+    async Task Bar(CancellationToken token)
+    {
+        var exOther = new Exception();
+        var newToken = new CancellationToken();
+        var tokenSource = new CancellationTokenSource();
+        var context = new SomeContext();
+
+        [|try|]
+        {
+            // This token is first, so PS0020 will want this one in the catch filter
+            Test(1, token);
+
+            // This one causes PS0021
+            Test(2, ##TOKEN##);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
+        catch (Exception)
+        {
+        }
+    }
+    Task Test(int i, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    class SomeContext { public CancellationToken Token { get; set; } }
+}";
+
+            return Assert(UsesMultipleTokenTemplate.Replace("##TOKEN##", tokenExpression), DiagnosticIds.MultipleCancellationTokensInATry);
         }
 
         static string GetCode(string template, string catchBlocks, string tokenMarkup) => template.Replace("##CATCH_BLOCKS##", catchBlocks.Replace("##TOKEN##", tokenMarkup));
