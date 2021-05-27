@@ -216,6 +216,33 @@ class SomeContext : ICancellableContext { public CancellationToken CancellationT
         }
 
         [Theory]
+        [MemberData(nameof(AllCatchBlocks))]
+        public Task PassesTokenFromTokenSource(string expectedDiagnostic, string catchBlocks)
+        {
+            const string PassesCancellableContextTemplate =
+@"public class Foo
+{
+    public async Task Bar()
+    {
+        var exOther = new Exception();
+        var tokenSource = new CancellationTokenSource();
+
+        try
+        {
+            await Test(tokenSource.Token);
+        }
+#pragma warning disable CS0168 // Variable 'ex' declared but never used
+        ##CATCH_BLOCKS##
+#pragma warning restore CS0168
+    }
+    Task Test(CancellationToken cancellationToken = default) => Task.CompletedTask;
+}
+";
+
+            return Assert(GetCode(PassesCancellableContextTemplate, catchBlocks, "tokenSource.Token"), expectedDiagnostic);
+        }
+
+        [Theory]
         [MemberData(nameof(CatchBlocksWithoutIdentifiers))]
         public Task PassesNoTokenOrEmptyToken(string expectedDiagnostic, string catchBlocks)
         {
