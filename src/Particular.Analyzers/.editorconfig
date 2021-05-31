@@ -1,0 +1,4 @@
+[*.cs]
+
+# Justification: The package is not for public consumption
+dotnet_diagnostic.RS2008.severity = none  # Enable analyzer release tracking
