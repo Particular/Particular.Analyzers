@@ -12,6 +12,9 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CancellationTryCatchAnalyzer : DiagnosticAnalyzer
     {
+        static readonly string ExceptionType = "System.Exception";
+        static readonly string OperationCanceledExceptionType = "System.OperationCanceledException";
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             DiagnosticDescriptors.ImproperTryCatchSystemException,
             DiagnosticDescriptors.ImproperTryCatchOperationCanceled,
@@ -33,7 +36,7 @@
 
             var catches = tryStatement.Catches
                 .Select(catchClause => (catchClause, catchType: GetCatchType(catchClause)))
-                .Where(tuple => tuple.catchType == "Exception" || tuple.catchType == "OperationCanceledException")
+                .Where(tuple => tuple.catchType == ExceptionType || tuple.catchType == OperationCanceledExceptionType)
                 .ToImmutableArray();
 
             if (!catches.Any())
@@ -42,28 +45,28 @@
                 return;
             }
 
-            var tokenExpressionString = GetActiveCancellationTokenExpressionString(context, tryStatement);
-            if (tokenExpressionString == null)
+            if (!(GetFirstCancellationTokenExpressionOrDefault(context, tryStatement) is string cancellationTokenExpression))
             {
                 return;
             }
 
             foreach (var (catchClause, catchType) in catches)
             {
-                if (catchType == "OperationCanceledException")
+                if (catchType == OperationCanceledExceptionType)
                 {
-                    if (!CatchFiltersByIsCancellationRequested(catchClause, tokenExpressionString))
+                    if (!HasFilterWhichGetsIsCancellationRequestedFromExpression(catchClause, cancellationTokenExpression))
                     {
                         context.ReportDiagnostic(DiagnosticDescriptors.ImproperTryCatchOperationCanceled, catchClause.CatchKeyword);
                     }
+
                     return;
                 }
 
-                if (catchType == "Exception")
+                if (catchType == ExceptionType)
                 {
-                    if (CatchIncludesCancellationTokenExpression(catchClause, tokenExpressionString))
+                    if (HasFilterIncludingExpression(catchClause, cancellationTokenExpression))
                     {
-                        if (CatchIncludesSameException(catchClause))
+                        if (HasFilterIncludingCaughtException(catchClause))
                         {
                             return;
                         }
@@ -75,9 +78,7 @@
             }
         }
 
-
-
-        static bool CatchFiltersByIsCancellationRequested(CatchClauseSyntax catchClause, string tokenExpressionString)
+        static bool HasFilterWhichGetsIsCancellationRequestedFromExpression(CatchClauseSyntax catchClause, string expression)
         {
             if (catchClause.Filter == null)
             {
@@ -94,10 +95,10 @@
                 return false;
             }
 
-            return memberAccess.Expression.ToString() == tokenExpressionString;
+            return memberAccess.Expression.ToString() == expression;
         }
 
-        static bool CatchIncludesCancellationTokenExpression(CatchClauseSyntax catchClause, string tokenExpressionString)
+        static bool HasFilterIncludingExpression(CatchClauseSyntax catchClause, string expression)
         {
             if (catchClause.Filter == null)
             {
@@ -105,12 +106,12 @@
             }
 
             var tokens = catchClause.Filter.DescendantNodes()
-                .Where(node => node.ToString() == tokenExpressionString);
+                .Where(node => node.ToString() == expression);
 
             return tokens.Any();
         }
 
-        static bool CatchIncludesSameException(CatchClauseSyntax catchClause)
+        static bool HasFilterIncludingCaughtException(CatchClauseSyntax catchClause)
         {
             var identifier = catchClause.Declaration?.Identifier.Text;
             if (identifier == null)
@@ -131,7 +132,7 @@
             return filterIdentifiers.Any();
         }
 
-        static string GetActiveCancellationTokenExpressionString(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
+        static string GetFirstCancellationTokenExpressionOrDefault(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
         {
             // Because we are examining all descendants, this may result in false positives.
             // For example, a nested try block may contain cancellable invocations and
@@ -142,19 +143,19 @@
             // In these cases, either the fix can be redundantly applied, or the analyzer can be suppressed.
             var tryBlockCalls = tryStatement.Block.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
-            var distinctTokenArguments = GetTokenArguments(context, tryBlockCalls)
+            var distinctTokenExpressions = GetCancellationTokenExpressions(tryBlockCalls, context)
                 .Distinct()
                 .ToImmutableArray();
 
-            if (distinctTokenArguments.Length > 1)
+            if (distinctTokenExpressions.Length > 1)
             {
                 context.ReportDiagnostic(DiagnosticDescriptors.MultipleCancellationTokensInATry, tryStatement.TryKeyword);
             }
 
-            return distinctTokenArguments.FirstOrDefault();
+            return distinctTokenExpressions.FirstOrDefault();
         }
 
-        static IEnumerable<string> GetTokenArguments(SyntaxNodeAnalysisContext context, IEnumerable<InvocationExpressionSyntax> calls)
+        static IEnumerable<string> GetCancellationTokenExpressions(IEnumerable<InvocationExpressionSyntax> calls, SyntaxNodeAnalysisContext context)
         {
             foreach (var call in calls)
             {
@@ -165,17 +166,19 @@
                         if (context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken).Type.IsCancellationToken())
                         {
                             yield return memberAccess.Expression.ToString();
+                            continue;
                         }
                     }
                 }
 
-                var tokenArguments = call.ArgumentList.Arguments
+                var argExpressions = call.ArgumentList.Arguments
                     .Where(arg => !(arg.Expression is LiteralExpressionSyntax))
                     .Where(arg => !(arg.Expression is DefaultExpressionSyntax))
                     .Where(arg => !IsCancellationTokenNone(arg))
                     .Select(arg =>
                     {
                         var type = context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken).Type;
+
                         if (type.IsCancellationToken())
                         {
                             return arg.Expression.ToString();
@@ -190,31 +193,31 @@
                     })
                     .Where(expr => expr != null);
 
-                foreach (var expressionString in tokenArguments)
+                foreach (var expr in argExpressions)
                 {
-                    yield return expressionString;
+                    yield return expr;
                 }
             }
         }
 
         static string GetCatchType(CatchClauseSyntax catchClause)
         {
+            var catchType = catchClause.Declaration?.Type.ToString();
+
             // if catchClause.Declaration is null, that means:
             //   catch
             //   {
             //   }
-
-            switch (catchClause.Declaration?.Type.ToString())
+            // assume "Exception" and "OperationCanceledException" refer to the System types
+            switch (catchType)
             {
                 case null:
                 case "Exception":
-                case "System.Exception":
-                    return "Exception";
+                    return ExceptionType;
                 case "OperationCanceledException":
-                case "System.OperationCanceledException":
-                    return "OperationCanceledException";
+                    return OperationCanceledExceptionType;
                 default:
-                    return null;
+                    return catchType;
             }
         }
 
