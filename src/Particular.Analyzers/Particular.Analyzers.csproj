@@ -18,11 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="AnalyzerReleases.Shipped.md" />
-    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Link="$(AssemblyName).dll" Visible="false" />
   </ItemGroup>
 

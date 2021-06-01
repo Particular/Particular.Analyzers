@@ -148,10 +148,26 @@
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor CatchAllShouldOmitOperationCanceled = new DiagnosticDescriptor(
-            id: DiagnosticIds.CatchAllShouldOmitOperationCanceled,
-            title: "Do not catch Exception without considering OperationCanceledException",
-            messageFormat: "When passing a CancellationToken or ICancellableContext inside a try block, do not catch the general Exception type without first catching OperationCanceledException, or use the `when (!(ex is OperationCanceledException))` (C# 8 or earlier) or `when (ex is not OperationCanceledException)` filter (C# 9 or later) on the catch block.",
+        public static readonly DiagnosticDescriptor ImproperTryCatchSystemException = new DiagnosticDescriptor(
+            id: DiagnosticIds.ImproperTryCatchSystemException,
+            title: "When catching System.Exception, cancellation needs to be properly accounted for",
+            messageFormat: "When a try block involves possible cancellation, catching Exception should be preceded by catching OperationCanceledException, or filtered by exception type and cancellationToken.IsCancellationRequested. See https://go.particular.net/exception-handling-with-cancellation",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ImproperTryCatchOperationCanceled = new DiagnosticDescriptor(
+            id: DiagnosticIds.ImproperTryCatchOperationCanceled,
+            title: "When catching OperationCanceledException, cancellation needs to be properly accounted for",
+            messageFormat: "Catching OperationCanceledException should be filtered by cancellationToken.IsCancellationRequested. See https://go.particular.net/exception-handling-with-cancellation",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MultipleCancellationTokensInATry = new DiagnosticDescriptor(
+            id: DiagnosticIds.MultipleCancellationTokensInATry,
+            title: "Highlight when a try block passes multiple cancellation tokens",
+            messageFormat: "This try block passes more than one CancellationToken (or ICancellableContext) to other methods, which can be confusing. Suppress this message with a #pragma, add a comment explaining the use of the two tokens, and ensure any CancellationToken used in a catch block is the correct one.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

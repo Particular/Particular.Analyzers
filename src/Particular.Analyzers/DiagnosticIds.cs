@@ -20,6 +20,8 @@
         public const string MethodMultipleCancellationTokens = "PS0016";
         public const string NonPrivateMethodSingleCancellationTokenMisnamed = "PS0017";
         public const string TaskReturningMethodNoCancellation = "PS0018";
-        public const string CatchAllShouldOmitOperationCanceled = "PS0019";
+        public const string ImproperTryCatchSystemException = "PS0019";
+        public const string ImproperTryCatchOperationCanceled = "PS0020";
+        public const string MultipleCancellationTokensInATry = "PS0021";
     }
 }
