@@ -167,7 +167,7 @@
         public static readonly DiagnosticDescriptor MultipleCancellationTokensInATry = new DiagnosticDescriptor(
             id: DiagnosticIds.MultipleCancellationTokensInATry,
             title: "Highlight when a try block passes multiple cancellation tokens",
-            messageFormat: "This try block passes more than one CancellationToken (or ICancellableContext) to other methods which can be confusing. Suppress this warning with an attribute providing an explanation of what is going on, and be sure that the CancellationToken used in the catch block is the correct one.",
+            messageFormat: "This try block passes more than one CancellationToken (or ICancellableContext) to other methods, which can be confusing. Suppress this message with a #pragma, add a comment explaining the use of the two tokens, and ensure any CancellationToken used in a catch block is the correct one.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
