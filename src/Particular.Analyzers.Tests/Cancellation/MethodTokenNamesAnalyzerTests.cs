@@ -1,6 +1,7 @@
 ﻿namespace Particular.Analyzers.Tests.Cancellation
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
@@ -66,15 +67,21 @@ class MyClass : IMyInterface
 
         public MethodTokenNamesAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
-        public static readonly Data SadParams = new List<string>
+        public static readonly Data SadPublicAndPrivateParams = new List<string>
+        {
+            "CancellationToken [|foo|], CancellationToken [|bar|]",
+            "object foo, CancellationToken [|bar|], CancellationToken [|baz|]",
+        }.ToData();
+
+        public static readonly Data SadPrivateOnlyParams = new List<string>
         {
             "CancellationToken [|token|]",
             "object foo, CancellationToken [|token|]",
             "CancellationToken [|foo|]",
             "object foo, CancellationToken [|bar|]",
-            "CancellationToken [|foo|], CancellationToken [|bar|]",
-            "object foo, CancellationToken [|bar|], CancellationToken [|baz|]",
         }.ToData();
+
+        public static readonly Data SadParams = SadPublicAndPrivateParams.Concat(SadPrivateOnlyParams);
 
         public static readonly Data HappyParams = new List<string>
         {
@@ -103,7 +110,7 @@ class MyClass : IMyInterface
         public Task HappyConstructors(string @params) => Assert(GetCode(constructor, @params));
 
         [Theory]
-        [MemberData(nameof(SadParams))]
+        [MemberData(nameof(SadPublicAndPrivateParams))]
         public Task SadOverrides(string @params) => Assert(GetCode(@override, @params), DiagnosticIds.MethodCancellationTokenMisnamed);
 
         [Theory]
@@ -111,7 +118,7 @@ class MyClass : IMyInterface
         public Task HappyOverrides(string @params) => Assert(GetCode(@override, @params));
 
         [Theory]
-        [MemberData(nameof(SadParams))]
+        [MemberData(nameof(SadPublicAndPrivateParams))]
         public Task SadExplicits(string @params) => Assert(GetCode(@explicit, @params), DiagnosticIds.MethodCancellationTokenMisnamed);
 
         [Theory]
@@ -127,7 +134,7 @@ class MyClass : IMyInterface
         public Task HappyDelegates(string @params) => Assert(GetCode(@delegate, @params));
 
         [Theory]
-        [MemberData(nameof(SadParams))]
+        [MemberData(nameof(SadPublicAndPrivateParams))]
         public Task SadInterfaceMethods(string @params) => Assert(GetCode(interfaceMethods, @params), DiagnosticIds.MethodCancellationTokenMisnamed);
 
         [Theory]
@@ -136,7 +143,7 @@ class MyClass : IMyInterface
 
 #if NETCOREAPP
         [Theory]
-        [MemberData(nameof(SadParams))]
+        [MemberData(nameof(SadPublicAndPrivateParams))]
         public Task SadInterfaceDefaultMethods(string @params) => Assert(GetCode(interfaceDefaultMethods, @params), DiagnosticIds.MethodCancellationTokenMisnamed);
 
         [Theory]
