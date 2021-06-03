@@ -33,24 +33,31 @@
                 return;
             }
 
-            if (!(context.SemanticModel.GetMethod(member, context.CancellationToken, out _) is IMethodSymbol method))
+            if (!(context.SemanticModel.GetMethod(member, context.CancellationToken, out var declaredSymbol) is IMethodSymbol method))
             {
                 return;
             }
 
-            Analyze(context, method.Parameters);
+            Analyze(context, method, declaredSymbol);
         }
 
-        static void Analyze(SyntaxNodeAnalysisContext context, ImmutableArray<IParameterSymbol> parameters)
+        static void Analyze(SyntaxNodeAnalysisContext context, IMethodSymbol method, ISymbol declaredSymbol)
         {
             // cheapest checks first
-            if (parameters.IsDefaultOrEmpty)
+            if (method.Parameters.IsDefaultOrEmpty)
             {
                 return;
             }
 
-            foreach (var token in parameters
-                .Where(param => param.Type.IsCancellationToken()))
+            var tokens = method.Parameters.Where(param => param.Type.IsCancellationToken()).ToList();
+
+            if (tokens.Count == 1 && (declaredSymbol.DeclaredAccessibility != Accessibility.Private || method.MethodKind == MethodKind.ExplicitInterfaceImplementation))
+            {
+                // covered by NonPrivateMethodTokenNameAnalyzer
+                return;
+            }
+
+            foreach (var token in tokens)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
 

@@ -45,6 +45,7 @@
             // cheapest checks first
             if (declaredSymbol.DeclaredAccessibility == Accessibility.Private && method.MethodKind != MethodKind.ExplicitInterfaceImplementation)
             {
+                // covered by MethodTokenNamesAnalyzer
                 return;
             }
 
@@ -57,6 +58,7 @@
 
             if (tokens.Count != 1)
             {
+                // covered by MethodTokenNamesAnalyzer
                 return;
             }
 
