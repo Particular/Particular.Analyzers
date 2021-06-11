@@ -171,5 +171,13 @@
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor DateTimeAssignedToDateTimeOffset = new DiagnosticDescriptor(
+            id: DiagnosticIds.DateTimeAssignedToDateTimeOffset,
+            title: "Prevent a DateTime from being implicitly assigned to a DateTimeOffset",
+            messageFormat: "Do not implicitly assign a DateTime value to a DateTimeOffset variable.",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
     }
 }
