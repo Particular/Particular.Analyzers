@@ -179,5 +179,13 @@
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor UseUtcNow = new DiagnosticDescriptor(
+            id: DiagnosticIds.UseUtcNow,
+            title: "Use DateTime.UtcNow or DateTimeOffset.UtcNow",
+            messageFormat: "Use {0}.UtcNow instead of {0}.Now.",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

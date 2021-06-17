@@ -24,5 +24,6 @@
         public const string ImproperTryCatchOperationCanceled = "PS0020";
         public const string MultipleCancellationTokensInATry = "PS0021";
         public const string DateTimeAssignedToDateTimeOffset = "PS0022";
+        public const string UseUtcNow = "PS0023";
     }
 }
