@@ -175,7 +175,7 @@
         public static readonly DiagnosticDescriptor DateTimeAssignedToDateTimeOffset = new DiagnosticDescriptor(
             id: DiagnosticIds.DateTimeAssignedToDateTimeOffset,
             title: "Prevent a DateTime from being implicitly assigned to a DateTimeOffset",
-            messageFormat: "Do not implicitly assign a DateTime value to a DateTimeOffset variable.",
+            messageFormat: "Do not implicitly assign a DateTime value to a DateTimeOffset variable",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
@@ -183,7 +183,7 @@
         public static readonly DiagnosticDescriptor UseUtcNow = new DiagnosticDescriptor(
             id: DiagnosticIds.UseUtcNow,
             title: "Use DateTime.UtcNow or DateTimeOffset.UtcNow",
-            messageFormat: "Use {0}.UtcNow instead of {0}.Now.",
+            messageFormat: "Use {0}.UtcNow instead of {0}.Now",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);

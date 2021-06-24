@@ -115,6 +115,43 @@ public class Foo
         }
 
         [Fact]
+        public Task MethodReturnValueAsync()
+        {
+            const string code = @"
+#pragma warning disable CS1998
+public class Foo
+{
+    public async Task<DateTimeOffset> Method1()
+    {
+        return [|DateTime.Now|];
+    }
+    public async Task<DateTimeOffset> Method2()
+    {
+        var now = DateTime.Now;
+        return [|now + TimeSpan.FromMinutes(10)|];
+    }
+    public async Task<DateTimeOffset> MultipleReturns(bool utc)
+    {
+        if (utc)
+        {
+            return [|DateTime.UtcNow|];
+        }
+        else
+        {
+            return [|DateTime.Now|];
+        }
+    }
+
+    // This doesn't compile anyway
+    //public Task<DateTimeOffset> NoAsyncKeyword()
+    //{
+    //    //return Task.FromResult(DateTime.UtcNow);
+    //}
+}";
+            return Assert(code, "PS0022");
+        }
+
+        [Fact]
         public Task MethodParameter()
         {
             const string code = @"

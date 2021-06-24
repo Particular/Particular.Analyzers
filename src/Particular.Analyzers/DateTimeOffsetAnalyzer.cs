@@ -106,7 +106,8 @@
                 return;
             }
 
-            if (method.ReturnType.ToString() != "DateTimeOffset")
+            var returnType = method.ReturnType.ToString();
+            if (returnType != "DateTimeOffset" && returnType != "Task<DateTimeOffset>")
             {
                 return;
             }
