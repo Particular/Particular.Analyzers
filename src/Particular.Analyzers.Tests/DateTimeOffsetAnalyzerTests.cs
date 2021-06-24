@@ -30,6 +30,11 @@ public class Foo
         [|dto = DateTime.Now|];
         [|dtoArray[0] = DateTime.Now|];
         DateTimeOffset [|dto2 = DateTime.Now|];
+        DateTimeOffset [|dto3 = GetDateTime()|];
+    }
+    public DateTime GetDateTime()
+    {
+        return DateTime.Now;
     }
 }"
 ;
@@ -76,6 +81,110 @@ public class HasIndexer
     }
 }"
 ;
+            return Assert(code, "PS0022");
+        }
+
+        [Fact]
+        public Task MethodReturnValue()
+        {
+            const string code = @"
+public class Foo
+{
+    public DateTimeOffset Method1()
+    {
+        return [|DateTime.Now|];
+    }
+    public DateTimeOffset Method2()
+    {
+        var now = DateTime.Now;
+        return [|now + TimeSpan.FromMinutes(10)|];
+    }
+    public DateTimeOffset MultipleReturns(bool utc)
+    {
+        if (utc)
+        {
+            return [|DateTime.UtcNow|];
+        }
+        else
+        {
+            return [|DateTime.Now|];
+        }
+    }
+}";
+            return Assert(code, "PS0022");
+        }
+
+        [Fact]
+        public Task MethodParameter()
+        {
+            const string code = @"
+public class Foo
+{
+    public void Bar()
+    {
+        // Bad: Passes a DateTime into a DateTimeOffset
+        Method(1, [|DateTime.Now|], 42);
+        Method(2, [|DateTime.UtcNow|], 42);
+        Method(3, [|new DateTime(2000, 1, 1)|], 42);
+        var now = DateTime.UtcNow;
+        Method(4, [|now + TimeSpan.FromMinutes(10)|], 42);
+
+        // OK - Correctly passes DateTimeOffset
+        Method(1, DateTimeOffset.Now, 42);
+        Method(2, DateTimeOffset.UtcNow, 42);
+        Method(3, new DateTimeOffset(), 42);
+        var now2 = DateTimeOffset.UtcNow;
+        Method(4, now2 + TimeSpan.FromMinutes(10), 42);
+
+        // OK - Passing DateTime to method that *takes* DateTime
+        Method2(1, DateTime.Now, 42);
+        Method2(2, DateTime.UtcNow, 42);
+        Method2(3, new DateTime(), 42);
+        Method2(4, now + TimeSpan.FromMinutes(10), 42);
+    }
+    public void Method(int a, DateTimeOffset dto, int b) {}
+    public void Method2(int a, DateTime dt, int b) {}
+}";
+            return Assert(code, "PS0022");
+        }
+
+        [Fact]
+        public Task DelegateInvocation()
+        {
+            const string code = @"
+public class Foo
+{
+    Action<DateTimeOffset> fieldAction = dto => {};
+
+    Action<DateTimeOffset> propertyAction
+    {
+        get { return dto => {}; }
+    }
+
+    public void Bar(Func<DateTimeOffset, bool> func)
+    {
+        func([|DateTime.Now|]);
+        func([|DateTime.UtcNow|]);
+        func(DateTimeOffset.Now);
+        func(DateTimeOffset.UtcNow);
+
+        var action = new Action<DateTimeOffset>(dto => { });
+        action([|DateTime.Now|]);
+        action([|DateTime.UtcNow|]);
+        action(DateTimeOffset.Now);
+        action(DateTimeOffset.UtcNow);
+
+        fieldAction([|DateTime.Now|]);
+        fieldAction([|DateTime.UtcNow|]);
+        fieldAction(DateTimeOffset.Now);
+        fieldAction(DateTimeOffset.UtcNow);
+
+        propertyAction([|DateTime.Now|]);
+        propertyAction([|DateTime.UtcNow|]);
+        propertyAction(DateTimeOffset.Now);
+        propertyAction(DateTimeOffset.UtcNow);
+    }
+}";
             return Assert(code, "PS0022");
         }
     }

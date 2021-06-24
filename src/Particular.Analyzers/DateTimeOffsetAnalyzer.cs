@@ -18,25 +18,19 @@
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(Analyze,
-                SyntaxKind.SimpleAssignmentExpression,
-                SyntaxKind.VariableDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeVariableDeclaration, SyntaxKind.VariableDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeAssignment, SyntaxKind.SimpleAssignmentExpression);
+            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
         }
 
-        static void Analyze(SyntaxNodeAnalysisContext context)
+        static void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
-            if (context.Node is AssignmentExpressionSyntax assignment)
+            if (!(context.Node is VariableDeclarationSyntax declareVariable))
             {
-                AnalyzeAssignment(context, assignment);
+                return;
             }
-            else if (context.Node is VariableDeclarationSyntax declareVariable)
-            {
-                AnalyzeVariableDeclaration(context, declareVariable);
-            }
-        }
 
-        static void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context, VariableDeclarationSyntax declareVariable)
-        {
             var type = context.SemanticModel.GetTypeInfo(declareVariable.Type, context.CancellationToken).Type;
             if (type.ToString() != "System.DateTimeOffset")
             {
@@ -64,8 +58,13 @@
             context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, declarator);
         }
 
-        static void AnalyzeAssignment(SyntaxNodeAnalysisContext context, AssignmentExpressionSyntax assignment)
+        static void AnalyzeAssignment(SyntaxNodeAnalysisContext context)
         {
+            if (!(context.Node is AssignmentExpressionSyntax assignment))
+            {
+                return;
+            }
+
             var leftType = context.SemanticModel.GetTypeInfo(assignment.Left, context.CancellationToken).Type;
             if (leftType is INamedTypeSymbol leftNamedType && leftNamedType.IsTupleType && leftNamedType.TypeArguments.Any(t => t.ToString() == "System.DateTimeOffset"))
             {
@@ -97,6 +96,67 @@
                 }
 
                 context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, assignment);
+            }
+        }
+
+        static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
+        {
+            if (!(context.Node is MethodDeclarationSyntax method))
+            {
+                return;
+            }
+
+            if (method.ReturnType.ToString() != "DateTimeOffset")
+            {
+                return;
+            }
+
+            var returnStatements = method.DescendantNodes().OfType<ReturnStatementSyntax>().ToImmutableArray();
+
+            foreach (var returnStatement in returnStatements)
+            {
+                var typeInfo = context.SemanticModel.GetTypeInfo(returnStatement.Expression, context.CancellationToken);
+                if (typeInfo.Type?.ToString() == "System.DateTime")
+                {
+                    context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, returnStatement.Expression);
+                }
+            }
+        }
+
+        static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+        {
+            if (!(context.Node is InvocationExpressionSyntax invocation))
+            {
+                return;
+            }
+
+            var arguments = invocation.ArgumentList.Arguments;
+            IMethodSymbol methodSymbol = null;
+            for (var i = 0; i < arguments.Count; i++)
+            {
+                var argument = arguments[i];
+                var typeInfo = context.SemanticModel.GetTypeInfo(argument.Expression, context.CancellationToken);
+
+                if (typeInfo.Type?.ToString() != "System.DateTime")
+                {
+                    continue;
+                }
+
+                if (methodSymbol == null)
+                {
+                    var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken);
+                    methodSymbol = symbolInfo.Symbol?.GetMethodFromSymbol();
+                    if (methodSymbol == null)
+                    {
+                        continue;
+                    }
+                }
+
+                var parameter = methodSymbol.Parameters[i];
+                if (parameter.Type.ToString() == "System.DateTimeOffset")
+                {
+                    context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, argument.Expression);
+                }
             }
         }
     }
