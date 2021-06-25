@@ -1,3 +1,4 @@
 exclusions:
 - LICENSE.md
 - src/NServiceBus.snk
+- GitVersion.yml
