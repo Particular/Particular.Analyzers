@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Description>Analyzers for use in Particular Software C# projects.</Description>
+    <Description>Analyzers for use in Particular Software C# projects. Requires the latest versions of the .NET SDK and IDEs to function correctly.</Description>
     <DevelopmentDependency>true</DevelopmentDependency>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <IncludeBuildOutput>false</IncludeBuildOutput>
