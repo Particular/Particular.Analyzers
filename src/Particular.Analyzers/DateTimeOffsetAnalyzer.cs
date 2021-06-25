@@ -153,6 +153,12 @@
                     }
                 }
 
+                if (i >= methodSymbol.Parameters.Length)
+                {
+                    // We're probably in a Method(params object[] args) like string.Format. Just don't bother.
+                    return;
+                }
+
                 var parameter = methodSymbol.Parameters[i];
                 if (parameter.Type.ToString() == "System.DateTimeOffset")
                 {

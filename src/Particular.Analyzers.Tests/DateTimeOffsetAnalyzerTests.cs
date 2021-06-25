@@ -224,5 +224,20 @@ public class Foo
 }";
             return Assert(code, "PS0022");
         }
+
+        [Fact]
+        public Task DontScrewUpOnParamsArrays()
+        {
+            const string code = @"
+public class Foo
+{
+    public void Bar()
+    {
+        Method(DateTimeOffset.UtcNow, DateTimeOffset.Now, DateTime.UtcNow, DateTime.Now);
+    }
+    void Method(params object[] args) {}
+}";
+            return Assert(code, "PS0022");
+        }
     }
 }
