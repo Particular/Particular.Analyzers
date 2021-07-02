@@ -5,6 +5,7 @@
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Diagnostics;
+    using Particular.Analyzers.Extensions;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class UtcNowAnalyzer : DiagnosticAnalyzer
@@ -16,8 +17,7 @@
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-            context.RegisterSyntaxNodeAction(Analyze,
-                SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.SimpleMemberAccessExpression);
         }
 
         static void Analyze(SyntaxNodeAnalysisContext context)
@@ -41,8 +41,7 @@
 
             if (value == "DateTime" || value == "DateTimeOffset")
             {
-                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.UseUtcNow, context.Node.GetLocation(), value);
-                context.ReportDiagnostic(diagnostic);
+                context.ReportDiagnostic(DiagnosticDescriptors.UseUtcNow, memberAccess, value);
             }
         }
     }

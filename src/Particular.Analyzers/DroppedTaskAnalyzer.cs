@@ -38,7 +38,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context, ISymbol expression, InvocationExpressionSyntax invocation)
         {
-            if (!(expression.GetMethodFromSymbol() is IMethodSymbol method))
+            if (!(expression.GetMethodOrDefault() is IMethodSymbol method))
             {
                 return;
             }

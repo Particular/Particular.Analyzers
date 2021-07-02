@@ -26,31 +26,31 @@
 
         static void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is VariableDeclarationSyntax declareVariable))
+            if (!(context.Node is VariableDeclarationSyntax declaration))
             {
                 return;
             }
 
-            var type = context.SemanticModel.GetTypeInfo(declareVariable.Type, context.CancellationToken).Type;
+            var type = context.SemanticModel.GetTypeInfo(declaration.Type, context.CancellationToken).Type;
             if (type.ToString() != "System.DateTimeOffset")
             {
                 return;
             }
 
-            var declarator = declareVariable.Variables.First();
+            var declarator = declaration.Variables.FirstOrDefault();
             if (declarator == null)
             {
                 return;
             }
 
-            var initExpression = declarator.Initializer?.Value;
-            if (initExpression == null)
+            var initializer = declarator.Initializer?.Value;
+            if (initializer == null)
             {
                 return;
             }
 
-            var expressionType = context.SemanticModel.GetTypeInfo(initExpression, context.CancellationToken).Type;
-            if (expressionType.ToString() != "System.DateTime")
+            var initializerType = context.SemanticModel.GetTypeInfo(initializer, context.CancellationToken).Type;
+            if (initializerType.ToString() != "System.DateTime")
             {
                 return;
             }
@@ -65,31 +65,45 @@
                 return;
             }
 
-            var leftType = context.SemanticModel.GetTypeInfo(assignment.Left, context.CancellationToken).Type;
-            if (leftType is INamedTypeSymbol leftNamedType && leftNamedType.IsTupleType && leftNamedType.TypeArguments.Any(t => t.ToString() == "System.DateTimeOffset"))
+            if (!(context.SemanticModel.GetTypeInfo(assignment.Left, context.CancellationToken).Type is INamedTypeSymbol leftType))
             {
-                var rightType = context.SemanticModel.GetTypeInfo(assignment.Right, context.CancellationToken).Type;
-                if (rightType is INamedTypeSymbol rightNamedType && rightNamedType.Arity == leftNamedType.Arity)
+                return;
+            }
+
+            if (leftType.IsTupleType && leftType.TypeArguments.Any(t => t.ToString() == "System.DateTimeOffset"))
+            {
+                if (!(context.SemanticModel.GetTypeInfo(assignment.Right, context.CancellationToken).Type is INamedTypeSymbol rightType))
                 {
-                    for (var i = 0; i < leftNamedType.TypeArguments.Length; i++)
+                    return;
+                }
+
+                if (rightType.Arity != leftType.Arity)
+                {
+                    return;
+                }
+
+                for (var i = 0; i < leftType.TypeArguments.Length; i++)
+                {
+                    if (leftType.TypeArguments[i].ToString() != "System.DateTimeOffset")
                     {
-                        var tupleLeftType = leftNamedType.TypeArguments[i];
-                        if (tupleLeftType.ToString() == "System.DateTimeOffset")
-                        {
-                            var tupleRightType = rightNamedType.TypeArguments[i];
-                            if (tupleRightType.ToString() == "System.DateTime")
-                            {
-                                context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, assignment);
-                                // Don't want multiple diagnostics on the same location
-                                return;
-                            }
-                        }
+                        continue;
                     }
+
+                    if (rightType.TypeArguments[i].ToString() != "System.DateTime")
+                    {
+                        continue;
+                    }
+
+                    context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, assignment);
+
+                    // Don't want multiple diagnostics on the same location
+                    return;
                 }
             }
             else if (leftType.ToString() == "System.DateTimeOffset")
             {
                 var rightType = context.SemanticModel.GetTypeInfo(assignment.Right, context.CancellationToken).Type;
+
                 if (rightType.ToString() != "System.DateTime")
                 {
                     return;
@@ -107,6 +121,7 @@
             }
 
             var returnType = method.ReturnType.ToString();
+
             if (returnType != "DateTimeOffset" && returnType != "Task<DateTimeOffset>")
             {
                 return;
@@ -117,6 +132,7 @@
             foreach (var returnStatement in returnStatements)
             {
                 var typeInfo = context.SemanticModel.GetTypeInfo(returnStatement.Expression, context.CancellationToken);
+
                 if (typeInfo.Type?.ToString() == "System.DateTime")
                 {
                     context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, returnStatement.Expression);
@@ -131,38 +147,39 @@
                 return;
             }
 
-            var arguments = invocation.ArgumentList.Arguments;
-            IMethodSymbol methodSymbol = null;
-            for (var i = 0; i < arguments.Count; i++)
+            if (!invocation.ArgumentList.Arguments.Any())
             {
-                var argument = arguments[i];
-                var typeInfo = context.SemanticModel.GetTypeInfo(argument.Expression, context.CancellationToken);
+                return;
+            }
+
+            if (!(context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken).Symbol?.GetMethodOrDefault() is IMethodSymbol method))
+            {
+                return;
+            }
+
+            var args = invocation.ArgumentList.Arguments;
+
+            for (var i = 0; i < args.Count; i++)
+            {
+                var arg = args[i];
+                var typeInfo = context.SemanticModel.GetTypeInfo(arg.Expression, context.CancellationToken);
 
                 if (typeInfo.Type?.ToString() != "System.DateTime")
                 {
                     continue;
                 }
 
-                if (methodSymbol == null)
-                {
-                    var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken);
-                    methodSymbol = symbolInfo.Symbol?.GetMethodFromSymbol();
-                    if (methodSymbol == null)
-                    {
-                        continue;
-                    }
-                }
-
-                if (i >= methodSymbol.Parameters.Length)
+                if (i >= method.Parameters.Length)
                 {
                     // We're probably in a Method(params object[] args) like string.Format. Just don't bother.
                     return;
                 }
 
-                var parameter = methodSymbol.Parameters[i];
-                if (parameter.Type.ToString() == "System.DateTimeOffset")
+                var param = method.Parameters[i];
+
+                if (param.Type.ToString() == "System.DateTimeOffset")
                 {
-                    context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, argument.Expression);
+                    context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, arg);
                 }
             }
         }
