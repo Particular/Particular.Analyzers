@@ -182,7 +182,7 @@
 
         public static readonly DiagnosticDescriptor UseUtcNow = new DiagnosticDescriptor(
             id: DiagnosticIds.UseUtcNow,
-            title: "Use DateTime.UtcNow or DateTimeOffset.UtcNow",
+            title: "Use DateTime.UtcNow or DateTimeOffset.UtcNow unless the value is being used for displaying the current date-time in a user's local time zone.",
             messageFormat: "Use {0}.UtcNow instead of {0}.Now",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Error,
