@@ -37,25 +37,22 @@
                 return;
             }
 
-            var declarator = declaration.Variables.FirstOrDefault();
-            if (declarator == null)
+            foreach (var declarator in declaration.Variables)
             {
-                return;
-            }
+                var initializer = declarator.Initializer?.Value;
+                if (initializer == null)
+                {
+                    continue;
+                }
 
-            var initializer = declarator.Initializer?.Value;
-            if (initializer == null)
-            {
-                return;
-            }
+                var initializerType = context.SemanticModel.GetTypeInfo(initializer, context.CancellationToken).Type;
+                if (initializerType.ToString() != "System.DateTime")
+                {
+                    continue;
+                }
 
-            var initializerType = context.SemanticModel.GetTypeInfo(initializer, context.CancellationToken).Type;
-            if (initializerType.ToString() != "System.DateTime")
-            {
-                return;
+                context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, declarator);
             }
-
-            context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, declarator);
         }
 
         static void AnalyzeAssignment(SyntaxNodeAnalysisContext context)

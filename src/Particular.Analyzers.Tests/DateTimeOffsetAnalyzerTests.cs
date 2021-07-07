@@ -25,12 +25,16 @@ public class Foo
         dto = DateTimeOffset.UtcNow;
         dto = new DateTimeOffset(DateTime.Now);
         dto = new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        DateTimeOffset a, b;
+        DateTimeOffset multiple1 = DateTimeOffset.UtcNow, multiple2 = DateTimeOffset.Now;
 
         // Assignments of DateTimeOffset = DateTime
         [|dto = DateTime.Now|];
         [|dtoArray[0] = DateTime.Now|];
         DateTimeOffset [|dto2 = DateTime.Now|];
         DateTimeOffset [|dto3 = GetDateTime()|];
+        DateTimeOffset multiple3, [|multiple4 = DateTime.Now|];
+        DateTimeOffset [|multiple5 = DateTime.Now|], [|multiple6 = DateTime.Now|];
     }
     public DateTime GetDateTime()
     {
