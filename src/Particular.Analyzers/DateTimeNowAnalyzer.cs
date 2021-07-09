@@ -8,10 +8,10 @@
     using Particular.Analyzers.Extensions;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class UtcNowAnalyzer : DiagnosticAnalyzer
+    public class DateTimeNowAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.UseUtcNow);
+            DiagnosticDescriptors.NowUsedInsteadOfUtcNow);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -41,7 +41,7 @@
 
             if (value == "DateTime" || value == "DateTimeOffset")
             {
-                context.ReportDiagnostic(DiagnosticDescriptors.UseUtcNow, memberAccess, value);
+                context.ReportDiagnostic(DiagnosticDescriptors.NowUsedInsteadOfUtcNow, memberAccess, value);
             }
         }
     }

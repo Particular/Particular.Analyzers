@@ -6,9 +6,9 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class UtcNowAnalyzerTests : AnalyzerTestFixture<UtcNowAnalyzer>
+    public class DateTimeNowAnalyzerTests : AnalyzerTestFixture<DateTimeNowAnalyzer>
     {
-        public UtcNowAnalyzerTests(ITestOutputHelper output) : base(output) { }
+        public DateTimeNowAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public Task SimpleTest()

@@ -172,17 +172,17 @@
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor DateTimeAssignedToDateTimeOffset = new DiagnosticDescriptor(
-            id: DiagnosticIds.DateTimeAssignedToDateTimeOffset,
-            title: "Prevent a DateTime from being implicitly assigned to a DateTimeOffset",
-            messageFormat: "Do not implicitly assign a DateTime value to a DateTimeOffset variable",
+        public static readonly DiagnosticDescriptor ImplicitCastFromDateTimeToDateTimeOffset = new DiagnosticDescriptor(
+            id: DiagnosticIds.ImplicitCastFromDateTimeToDateTimeOffset,
+            title: "A DateTime should not be implicitly cast to a DateTimeOffset",
+            messageFormat: "Do not implicitly cast a DateTime to a DateTimeOffset",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor UseUtcNow = new DiagnosticDescriptor(
-            id: DiagnosticIds.UseUtcNow,
-            title: "Use DateTime.UtcNow or DateTimeOffset.UtcNow unless the value is being used for displaying the current date-time in a user's local time zone",
+        public static readonly DiagnosticDescriptor NowUsedInsteadOfUtcNow = new DiagnosticDescriptor(
+            id: DiagnosticIds.NowUsedInsteadOfUtcNow,
+            title: "DateTime.UtcNow or DateTimeOffset.UtcNow should be used instead of DateTime.Now and DateTimeOffset.Now, unless the value is being used for displaying the current date-time in a user's local time zone",
             messageFormat: "Use {0}.UtcNow instead of {0}.Now",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Error,

@@ -6,9 +6,10 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class DateTimeOffsetAnalyzerTests : AnalyzerTestFixture<DateTimeOffsetAnalyzer>
+    public class DateTimeImplicitCastAnalyzerTests
+        : AnalyzerTestFixture<DateTimeImplicitCastAnalyzer>
     {
-        public DateTimeOffsetAnalyzerTests(ITestOutputHelper output) : base(output) { }
+        public DateTimeImplicitCastAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public Task SimpleTest()

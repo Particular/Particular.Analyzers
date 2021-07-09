@@ -9,10 +9,10 @@
     using Particular.Analyzers.Extensions;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class DateTimeOffsetAnalyzer : DiagnosticAnalyzer
+    public class DateTimeImplicitCastAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset);
+            DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -51,7 +51,7 @@
                     continue;
                 }
 
-                context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, declarator);
+                context.ReportDiagnostic(DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset, declarator);
             }
         }
 
@@ -91,7 +91,7 @@
                         continue;
                     }
 
-                    context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, assignment);
+                    context.ReportDiagnostic(DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset, assignment);
 
                     // Don't want multiple diagnostics on the same location
                     return;
@@ -106,7 +106,7 @@
                     return;
                 }
 
-                context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, assignment);
+                context.ReportDiagnostic(DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset, assignment);
             }
         }
 
@@ -132,7 +132,7 @@
 
                 if (typeInfo.Type?.ToString() == "System.DateTime")
                 {
-                    context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, returnStatement.Expression);
+                    context.ReportDiagnostic(DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset, returnStatement.Expression);
                 }
             }
         }
@@ -176,7 +176,7 @@
 
                 if (param.Type.ToString() == "System.DateTimeOffset")
                 {
-                    context.ReportDiagnostic(DiagnosticDescriptors.DateTimeAssignedToDateTimeOffset, arg);
+                    context.ReportDiagnostic(DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset, arg);
                 }
             }
         }
