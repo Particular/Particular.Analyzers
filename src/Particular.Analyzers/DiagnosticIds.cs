@@ -23,5 +23,7 @@
         public const string ImproperTryCatchSystemException = "PS0019";
         public const string ImproperTryCatchOperationCanceled = "PS0020";
         public const string MultipleCancellationTokensInATry = "PS0021";
+        public const string ImplicitCastFromDateTimeToDateTimeOffset = "PS0022";
+        public const string NowUsedInsteadOfUtcNow = "PS0023";
     }
 }

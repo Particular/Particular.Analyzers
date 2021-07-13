@@ -5,21 +5,21 @@
 
     static class SyntaxNodeAnalysisContextExtension
     {
-        public static void ReportDiagnostic(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor, ISymbol symbol)
+        public static void ReportDiagnostic(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor, ISymbol symbol, params object[] messageArgs)
         {
             foreach (var location in symbol.Locations)
             {
-                context.ReportDiagnostic(descriptor, location);
+                context.ReportDiagnostic(descriptor, location, messageArgs);
             }
         }
 
-        public static void ReportDiagnostic(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor, SyntaxNode node) =>
-            context.ReportDiagnostic(descriptor, node.GetLocation());
+        public static void ReportDiagnostic(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor, SyntaxNode node, params object[] messageArgs) =>
+            context.ReportDiagnostic(descriptor, node.GetLocation(), messageArgs);
 
-        public static void ReportDiagnostic(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor, SyntaxToken token) =>
-            context.ReportDiagnostic(descriptor, token.GetLocation());
+        public static void ReportDiagnostic(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor, SyntaxToken token, params object[] messageArgs) =>
+            context.ReportDiagnostic(descriptor, token.GetLocation(), messageArgs);
 
-        public static void ReportDiagnostic(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor, Location location) =>
-            context.ReportDiagnostic(Diagnostic.Create(descriptor, location));
+        public static void ReportDiagnostic(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor, Location location, params object[] messageArgs) =>
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, location, messageArgs));
     }
 }
