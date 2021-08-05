@@ -12,7 +12,7 @@
     public class TypeNameAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.CancellableContextMethodCancellationToken);
+            DiagnosticDescriptors.NonInterfaceTypePrefixedWithI);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -51,7 +51,7 @@
                 return;
             }
 
-            context.ReportDiagnostic(DiagnosticDescriptors.NonInterfaceTypePrefixedWithI, type, name);
+            context.ReportDiagnostic(DiagnosticDescriptors.NonInterfaceTypePrefixedWithI, type.Identifier, name);
         }
     }
 }
