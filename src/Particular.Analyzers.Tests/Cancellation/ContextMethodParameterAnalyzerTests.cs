@@ -8,7 +8,7 @@
     using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
-    public class TypeNameAnalyzerTests : AnalyzerTestFixture<ContextMethodParameterAnalyzer>
+    public class ContextMethodParameterAnalyzerTests : AnalyzerTestFixture<ContextMethodParameterAnalyzer>
     {
         // also tests transitive inheritance of CancellableContext
         static readonly string @class =
@@ -71,7 +71,7 @@ class MyClass : CancellableContext, IMyInterface
     static void MyMethod({0}) {{ }}
 }}";
 
-        public TypeNameAnalyzerTests(ITestOutputHelper output) : base(output) { }
+        public ContextMethodParameterAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
         public static readonly Data SadParams = new List<string>
         {
