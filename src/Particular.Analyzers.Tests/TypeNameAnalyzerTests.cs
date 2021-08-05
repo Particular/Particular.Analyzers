@@ -12,6 +12,8 @@
     {
         static readonly string @type = "{0} [|{1}|] {{ }}";
 
+        static readonly string @delegate = "delegate void [|{0}|]();";
+
         public TypeNameAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
         static readonly List<string> interfaceKeywords = new List<string>
@@ -40,21 +42,35 @@
             "I"
         };
 
-        public static Data SadData =>
+        public static Data SadTypesData =>
             nonInterfaceKeywords.SelectMany(keyword => interfaceNames.Select(name => (keyword, name))).ToData();
 
-        public static Data HappyData =>
+        public static Data HappyTypesData =>
             interfaceKeywords.SelectMany(keyword => interfaceNames.Select(name => (keyword, name)))
             .Concat(nonInterfaceKeywords.SelectMany(keyword => nonInterfaceNames.Select(name => (keyword, name)))).ToData();
 
-        [Theory]
-        [MemberData(nameof(SadData))]
-        public Task SadTypes(string keyword, string name) => Assert(GetCode(@type, keyword, name), DiagnosticIds.NonInterfaceTypePrefixedWithI);
+        public static Data SadDelegateData => interfaceNames.ToData();
+
+        public static Data HappyDelegateData => nonInterfaceNames.ToData();
 
         [Theory]
-        [MemberData(nameof(HappyData))]
-        public Task HappyTypes(string keyword, string name) => Assert(GetCode(@type, keyword, name));
+        [MemberData(nameof(SadTypesData))]
+        public Task SadTypes(string keyword, string name) => Assert(GetTypeCode(@type, keyword, name), DiagnosticIds.NonInterfaceTypePrefixedWithI);
 
-        static string GetCode(string template, string keyword, string name) => string.Format(template, keyword, name);
+        [Theory]
+        [MemberData(nameof(HappyTypesData))]
+        public Task HappyTypes(string keyword, string name) => Assert(GetTypeCode(@type, keyword, name));
+
+        [Theory]
+        [MemberData(nameof(SadDelegateData))]
+        public Task SadDelegates(string name) => Assert(GetDelegateCode(@delegate, name), DiagnosticIds.NonInterfaceTypePrefixedWithI);
+
+        [Theory]
+        [MemberData(nameof(HappyDelegateData))]
+        public Task HappyDelegates(string name) => Assert(GetDelegateCode(@delegate, name));
+
+        static string GetTypeCode(string template, string keyword, string name) => string.Format(template, keyword, name);
+
+        static string GetDelegateCode(string template, string name) => string.Format(template, name);
     }
 }

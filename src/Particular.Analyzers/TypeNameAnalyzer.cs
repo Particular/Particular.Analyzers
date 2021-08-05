@@ -23,18 +23,25 @@
                 SyntaxKind.ClassDeclaration,
                 SyntaxKind.RecordDeclaration,
                 SyntaxKind.StructDeclaration,
-                SyntaxKind.EnumDeclaration
-                //TODO SyntaxKind.DelegateDeclaration
+                SyntaxKind.EnumDeclaration,
+                SyntaxKind.DelegateDeclaration
                 );
         }
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is BaseTypeDeclarationSyntax type))
+            if (!(context.Node is MemberDeclarationSyntax type))
             {
                 return;
             }
-            var name = type.Identifier.Text;
+            var identifier = GetIdentifierOrDefault(type);
+
+            if (identifier == default)
+            {
+                return;
+            }
+
+            var name = identifier.Text;
 
             if (name.Length == 1)
             {
@@ -51,7 +58,20 @@
                 return;
             }
 
-            context.ReportDiagnostic(DiagnosticDescriptors.NonInterfaceTypePrefixedWithI, type.Identifier, name);
+            context.ReportDiagnostic(DiagnosticDescriptors.NonInterfaceTypePrefixedWithI, identifier, name);
+        }
+
+        static SyntaxToken GetIdentifierOrDefault(MemberDeclarationSyntax member)
+        {
+            switch (member)
+            {
+                case BaseTypeDeclarationSyntax type:
+                    return type.Identifier;
+                case DelegateDeclarationSyntax @delegate:
+                    return @delegate.Identifier;
+                default:
+                    return default;
+            }
         }
     }
 }
