@@ -18,7 +18,7 @@
 
         static readonly List<string> interfaceKeywords = new List<string>
         {
-           "interface"
+           "interface",
         };
 
         static readonly List<string> nonInterfaceKeywords = new List<string>
@@ -26,20 +26,20 @@
             "class",
             "enum",
             "struct",
-            "record"
+            "record",
         };
 
         static readonly List<string> interfaceNames = new List<string>
         {
             "ISomething",
-            "II"
+            "II",
         };
 
         static readonly List<string> nonInterfaceNames = new List<string>
         {
             "Something",
             "International",
-            "I"
+            "I",
         };
 
         public static Data SadTypesData =>
@@ -49,9 +49,9 @@
             interfaceKeywords.SelectMany(keyword => interfaceNames.Select(name => (keyword, name)))
             .Concat(nonInterfaceKeywords.SelectMany(keyword => nonInterfaceNames.Select(name => (keyword, name)))).ToData();
 
-        public static Data SadDelegateData => interfaceNames.ToData();
+        public static Data SadDelegatesData => interfaceNames.ToData();
 
-        public static Data HappyDelegateData => nonInterfaceNames.ToData();
+        public static Data HappyDelegatesData => nonInterfaceNames.ToData();
 
         [Theory]
         [MemberData(nameof(SadTypesData))]
@@ -62,11 +62,11 @@
         public Task HappyTypes(string keyword, string name) => Assert(GetTypeCode(@type, keyword, name));
 
         [Theory]
-        [MemberData(nameof(SadDelegateData))]
+        [MemberData(nameof(SadDelegatesData))]
         public Task SadDelegates(string name) => Assert(GetDelegateCode(@delegate, name), DiagnosticIds.NonInterfaceTypePrefixedWithI);
 
         [Theory]
-        [MemberData(nameof(HappyDelegateData))]
+        [MemberData(nameof(HappyDelegatesData))]
         public Task HappyDelegates(string name) => Assert(GetDelegateCode(@delegate, name));
 
         static string GetTypeCode(string template, string keyword, string name) => string.Format(template, keyword, name);

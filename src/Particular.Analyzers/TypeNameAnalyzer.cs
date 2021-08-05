@@ -1,6 +1,5 @@
 ﻿namespace Particular.Analyzers
 {
-    using System;
     using System.Collections.Immutable;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
@@ -24,8 +23,7 @@
                 SyntaxKind.RecordDeclaration,
                 SyntaxKind.StructDeclaration,
                 SyntaxKind.EnumDeclaration,
-                SyntaxKind.DelegateDeclaration
-                );
+                SyntaxKind.DelegateDeclaration);
         }
 
         static void Analyze(SyntaxNodeAnalysisContext context)
@@ -34,21 +32,20 @@
             {
                 return;
             }
-            var identifier = GetIdentifierOrDefault(type);
 
-            if (identifier == default)
+            if (!TryGetIdentifier(type, out var identifier))
             {
                 return;
             }
 
             var name = identifier.Text;
 
-            if (name.Length == 1)
+            if (name.Length < 2)
             {
                 return;
             }
 
-            if (!name.StartsWith("I", StringComparison.Ordinal))
+            if (name[0] != 'I')
             {
                 return;
             }
@@ -61,16 +58,20 @@
             context.ReportDiagnostic(DiagnosticDescriptors.NonInterfaceTypePrefixedWithI, identifier, name);
         }
 
-        static SyntaxToken GetIdentifierOrDefault(MemberDeclarationSyntax member)
+        static bool TryGetIdentifier(MemberDeclarationSyntax member, out SyntaxToken identifier)
         {
+            identifier = default;
+
             switch (member)
             {
                 case BaseTypeDeclarationSyntax type:
-                    return type.Identifier;
+                    identifier = type.Identifier;
+                    return true;
                 case DelegateDeclarationSyntax @delegate:
-                    return @delegate.Identifier;
+                    identifier = @delegate.Identifier;
+                    return true;
                 default:
-                    return default;
+                    return false;
             }
         }
     }
