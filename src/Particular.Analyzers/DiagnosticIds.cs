@@ -25,5 +25,6 @@
         public const string MultipleCancellationTokensInATry = "PS0021";
         public const string ImplicitCastFromDateTimeToDateTimeOffset = "PS0022";
         public const string NowUsedInsteadOfUtcNow = "PS0023";
+        public const string NonInterfaceTypePrefixedWithI = "PS0024";
     }
 }

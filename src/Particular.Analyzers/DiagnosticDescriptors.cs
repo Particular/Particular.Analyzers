@@ -187,5 +187,13 @@
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor NonInterfaceTypePrefixedWithI = new DiagnosticDescriptor(
+            id: DiagnosticIds.NonInterfaceTypePrefixedWithI,
+            title: "A non-interface type should not be prefixed with I",
+            messageFormat: "Remove the I prefix from {0}",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
     }
 }
