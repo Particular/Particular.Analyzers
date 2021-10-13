@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: 
+    branches:
       - master
       - release-*
   pull_request:
@@ -28,7 +28,7 @@ jobs:
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v1.8.2
       with:
-        dotnet-version: 5.0.x          
+        dotnet-version: 5.0.x
     - name: Setup .NET Core 3.1 runtime
       uses: actions/setup-dotnet@v1.8.2
       with:
@@ -40,7 +40,7 @@ jobs:
       uses: actions/upload-artifact@v2.2.4
       with:
         name: NuGet packages
-        path: nugets/     
-        retention-days: 7      
+        path: nugets/
+        retention-days: 7
     - name: Run tests
       uses: Particular/run-tests-action@v1.0.0

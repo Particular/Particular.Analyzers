@@ -40,7 +40,5 @@ jobs:
           name: nugets
           path: nugets/*
           retention-days: 1
-      - name: push
-        env:
-          API_KEY: ${{ secrets.MYGET_PUBLISH_API_KEY }}
-        run: dotnet nuget push nugets/**/*.nupkg --source https://www.myget.org/F/particular/api/v2/package --api-key ${{ env.API_KEY }}
+      - name: Push to MyGet
+        run: dotnet nuget push nugets/**/*.nupkg --api-key ${{ secrets.MYGET_PUBLISH_API_KEY }} --source "https://www.myget.org/F/particular/api/v3/index.json"
