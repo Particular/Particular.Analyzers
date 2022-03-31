@@ -21,4 +21,10 @@
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Link="$(AssemblyName).dll" Visible="false" />
   </ItemGroup>
 
+  <Target Name="UseMajorMinorPatchForAssemblyVersion" AfterTargets="MinVer">
+    <PropertyGroup>
+      <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).0</AssemblyVersion>
+    </PropertyGroup>
+  </Target>
+
 </Project>
