@@ -14,11 +14,17 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.10.0" PrivateAssets="All" />
-    <PackageReference Include="Particular.Packaging" Version="1.4.0" PrivateAssets="All" />
+    <PackageReference Include="Particular.Packaging" Version="2.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Link="$(AssemblyName).dll" Visible="false" />
   </ItemGroup>
+
+  <Target Name="UseMajorMinorPatchForAssemblyVersion" AfterTargets="MinVer">
+    <PropertyGroup>
+      <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).0</AssemblyVersion>
+    </PropertyGroup>
+  </Target>
 
 </Project>
