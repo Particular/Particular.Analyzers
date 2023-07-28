@@ -1,3 +1,3 @@
 # Particular.Analyzers
 
-This project's CI is in GitHub Actions. Pull requests are built and tested. Builds on master and release branches are automatically pushed to MyGet.
+This project's CI is in GitHub Actions. Pull requests are built and tested. Tagged versions are automatically pushed to [feedz.io](https://feedz.io/org/particular-software/repository/packages/packages/Particular.Analyzers).
