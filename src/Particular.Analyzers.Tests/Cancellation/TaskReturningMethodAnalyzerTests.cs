@@ -98,7 +98,7 @@ class MyClass<T> where T : CancellableContext
         {
             "Task",
             "Task<string>",
-#if NETCOREAPP
+#if NET
             "ValueTask",
             "ValueTask<string>",
 #endif

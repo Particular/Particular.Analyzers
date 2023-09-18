@@ -74,13 +74,13 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
 
             ("Func<Task>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
             ("Func<Task<object>>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
-#if NETCOREAPP
+#if NET
             ("Func<ValueTask>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
             ("Func<ValueTask<object>>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
 #endif
             ("Func<object, Task>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
             ("Func<object, Task<object>>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
-#if NETCOREAPP
+#if NET
             ("Func<object, ValueTask>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
             ("Func<object, ValueTask<object>>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
 #endif
@@ -96,7 +96,7 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
 
             "Func<CancellationToken, Task>",
             "Func<CancellationToken, Task<object>>",
-#if NETCOREAPP
+#if NET
             "Func<CancellationToken, ValueTask>",
             "Func<CancellationToken, ValueTask<object>>",
 #endif

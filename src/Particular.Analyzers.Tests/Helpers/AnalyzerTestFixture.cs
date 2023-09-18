@@ -26,7 +26,7 @@
 
         protected static readonly List<string> InterfacePrivateModifiers = new List<string>
         {
-#if NETCOREAPP
+#if NET
             "private",
 #endif
         };
@@ -36,7 +36,7 @@
             "",
             "public",
             "internal",
-#if NETCOREAPP
+#if NET
             "protected",
             "protected internal",
             "private protected",
