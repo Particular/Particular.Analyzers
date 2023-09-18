@@ -54,7 +54,7 @@ class MyClass : IMyInterface
     {0} void MyMethod({1});
 }}";
 
-#if NETCOREAPP
+#if NET
         static readonly string interfaceDefaultMethods =
 @"interface IMyType
 {{
@@ -143,7 +143,7 @@ class MyClass : IMyInterface
         [MemberData(nameof(HappyInterfaceMethodData))]
         public Task HappyInterfaceMethods(string modifiers, string @params) => Assert(GetCode(interfaceMethods, modifiers, @params));
 
-#if NETCOREAPP
+#if NET
         [Theory]
         [MemberData(nameof(SadInterfaceDefaultMethodData))]
         public Task SadInterfaceDefaultMethods(string modifiers, string @params, string diagnosticId) => Assert(GetCode(interfaceDefaultMethods, modifiers, @params), diagnosticId);
