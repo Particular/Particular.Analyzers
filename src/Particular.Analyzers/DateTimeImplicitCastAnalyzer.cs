@@ -32,7 +32,7 @@
             }
 
             var type = context.SemanticModel.GetTypeInfo(declaration.Type, context.CancellationToken).Type;
-            if (type.ToString() != "System.DateTimeOffset")
+            if (type?.ToString() != "System.DateTimeOffset")
             {
                 return;
             }

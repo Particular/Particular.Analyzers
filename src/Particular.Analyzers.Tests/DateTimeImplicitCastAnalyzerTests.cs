@@ -244,5 +244,23 @@ public class Foo
 }";
             return Assert(code, "PS0022");
         }
+
+        [Fact]
+        public Task DontFailOnRefAssignments()
+        {
+            // Because FastExpressionCompiler 4.0.0 caused a null-reference exception
+            const string code = @"
+public class Blah
+{
+    public void Test()
+    {
+        var arr = new object[3];
+        ref var di = ref arr[0];
+    }
+}
+";
+
+            return Assert(code);
+        }
     }
 }
