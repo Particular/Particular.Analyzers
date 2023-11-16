@@ -16,31 +16,31 @@
 
         public TypeNameAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
-        static readonly List<string> interfaceKeywords = new List<string>
-        {
+        static readonly List<string> interfaceKeywords =
+        [
            "interface",
-        };
+        ];
 
-        static readonly List<string> nonInterfaceKeywords = new List<string>
-        {
+        static readonly List<string> nonInterfaceKeywords =
+        [
             "class",
             "enum",
             "struct",
             "record",
-        };
+        ];
 
-        static readonly List<string> interfaceNames = new List<string>
-        {
+        static readonly List<string> interfaceNames =
+        [
             "ISomething",
             "II",
-        };
+        ];
 
-        static readonly List<string> nonInterfaceNames = new List<string>
-        {
+        static readonly List<string> nonInterfaceNames =
+        [
             "Something",
             "International",
             "I",
-        };
+        ];
 
         public static Data SadTypesData =>
             nonInterfaceKeywords.SelectMany(keyword => interfaceNames.Select(name => (keyword, name))).ToData();

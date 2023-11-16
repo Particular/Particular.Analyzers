@@ -20,19 +20,19 @@
 
         AnalyzerTestFixture() { }
 
-        protected static readonly List<string> PrivateModifiers = new List<string> { "", "private" };
+        protected static readonly List<string> PrivateModifiers = ["", "private"];
 
-        protected static readonly List<string> NonPrivateModifiers = new List<string> { "public", "protected", "internal", "protected internal", "private protected" };
+        protected static readonly List<string> NonPrivateModifiers = ["public", "protected", "internal", "protected internal", "private protected"];
 
-        protected static readonly List<string> InterfacePrivateModifiers = new List<string>
-        {
+        protected static readonly List<string> InterfacePrivateModifiers =
+        [
 #if NET
             "private",
 #endif
-        };
+        ];
 
-        protected static readonly List<string> InterfaceNonPrivateModifiers = new List<string>
-        {
+        protected static readonly List<string> InterfaceNonPrivateModifiers =
+        [
             "",
             "public",
             "internal",
@@ -41,7 +41,7 @@
             "protected internal",
             "private protected",
 #endif
-        };
+        ];
 
         protected ITestOutputHelper Output { get; }
 
@@ -147,7 +147,7 @@ using NServiceBus;
         {
             if (markupCode == null)
             {
-                return (null, new List<TextSpan>());
+                return (null, []);
             }
 
             var code = new StringBuilder();
