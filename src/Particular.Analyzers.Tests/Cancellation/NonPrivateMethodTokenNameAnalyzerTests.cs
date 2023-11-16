@@ -67,19 +67,19 @@ class MyClass : IMyInterface
 
         public NonPrivateMethodTokenNameAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
-        static readonly List<string> sadParams = new List<string>
-        {
+        static readonly List<string> sadParams =
+        [
             "CancellationToken [|token|]",
             "object foo, CancellationToken [|token|]",
-        };
+        ];
 
-        static readonly List<string> happyParams = new List<string>
-        {
+        static readonly List<string> happyParams =
+        [
             "CancellationToken cancellationToken",
             "object foo, CancellationToken cancellationToken",
             "CancellationToken token1, CancellationToken token2",
             "object foo, CancellationToken token1, CancellationToken token2",
-        };
+        ];
 
         public static Data SadData =>
             NonPrivateModifiers.SelectMany(modifiers => sadParams.Select(param => (modifiers, param))).ToData();

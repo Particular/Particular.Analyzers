@@ -92,26 +92,26 @@ class MyClass<T> where T : CancellableContext
     }
 }";
 
-        static readonly List<string> notTaskTypes = new List<string> { "void", "object", "IMessage" };
+        static readonly List<string> notTaskTypes = ["void", "object", "IMessage"];
 
-        static readonly List<string> taskTypes = new List<string>
-        {
+        static readonly List<string> taskTypes =
+        [
             "Task",
             "Task<string>",
 #if NET
             "ValueTask",
             "ValueTask<string>",
 #endif
-        };
+        ];
 
-        static readonly List<string> notTaskParams = new List<string>
-        {
+        static readonly List<string> notTaskParams =
+        [
             "",
             "object foo",
-        };
+        ];
 
-        static readonly List<string> taskParams = new List<string>
-        {
+        static readonly List<string> taskParams =
+        [
             "CancellationToken cancellationToken",
             "object foo, CancellationToken cancellationToken",
             "ICancellableContext foo",
@@ -120,7 +120,7 @@ class MyClass<T> where T : CancellableContext
             "CancellableContext foo, object bar",
             "T foo",
             "T foo, object bar",
-        };
+        ];
 
         public TaskReturningMethodAnalyzerTests(ITestOutputHelper output) : base(output) { }
 

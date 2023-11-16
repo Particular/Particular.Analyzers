@@ -62,19 +62,19 @@ class MyClass : IMyInterface
 }}";
 #endif
 
-        static readonly List<string> privateParams = new List<string>
-        {
+        static readonly List<string> privateParams =
+        [
             "object foo, CancellationToken [|cancellationToken|]",
             "object foo, CancellationToken [|cancellationToken1|], CancellationToken [|cancellationToken2|]",
             "object foo, CancellationToken [|cancellationToken1|], CancellationToken [|cancellationToken2|], CancellationToken [|cancellationToken3|]",
-        };
+        ];
 
-        static readonly List<string> nonPrivateParams = new List<string>
-        {
+        static readonly List<string> nonPrivateParams =
+        [
             "object foo, CancellationToken [|cancellationToken|] = default",
             "object foo, CancellationToken [|cancellationToken1|] = default, CancellationToken [|cancellationToken2|] = default",
             "object foo, CancellationToken [|cancellationToken1|] = default, CancellationToken [|cancellationToken2|] = default, CancellationToken [|cancellationToken3|] = default",
-        };
+        ];
 
         public TokenAccessibilityAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
