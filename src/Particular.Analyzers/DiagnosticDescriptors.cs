@@ -195,5 +195,13 @@
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ImproperPathCombine = new DiagnosticDescriptor(
+            id: DiagnosticIds.ImproperPathCombine,
+            title: "Improper Path.Combine()",
+            messageFormat: "Fix {0}",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
     }
 }

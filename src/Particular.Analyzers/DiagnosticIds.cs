@@ -26,5 +26,6 @@
         public const string ImplicitCastFromDateTimeToDateTimeOffset = "PS0022";
         public const string NowUsedInsteadOfUtcNow = "PS0023";
         public const string NonInterfaceTypePrefixedWithI = "PS0024";
+        public const string ImproperPathCombine = "PS0025";
     }
 }
