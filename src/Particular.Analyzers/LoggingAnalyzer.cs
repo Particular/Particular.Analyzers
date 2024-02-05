@@ -157,6 +157,6 @@
             return true;
         }
 
-        static readonly Regex FormatExpressionArgumentRegex = new Regex(@"\{\w\}", RegexOptions.Compiled);
+        static readonly Regex FormatExpressionArgumentRegex = new Regex(@"\{\w+\}", RegexOptions.Compiled);
     }
 }
