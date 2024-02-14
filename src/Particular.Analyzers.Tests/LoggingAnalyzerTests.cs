@@ -106,6 +106,9 @@ namespace Code
             log.Log(LogLevel.LOGLEVEL, ""{0}"", 0);
             log.Log(LogLevel.LOGLEVEL, ""{0} {1}"", 0, 1);
             log.Log(LogLevel.LOGLEVEL, ""{0} {1} {2}"", 0, 1, 2);
+            log.Log(LogLevel.LOGLEVEL, ""{One}"", 1);
+            log.Log(LogLevel.LOGLEVEL, ""{One} {Two}"", 1, 2);
+            log.Log(LogLevel.LOGLEVEL, ""{One} {Two} {Three}"", 1, 2, 3);
 
             // With EventId
             log.METHODNAME(eventId, ""plain message"");
@@ -116,6 +119,9 @@ namespace Code
             log.Log(LogLevel.LOGLEVEL, eventId, ""{0}"", 0);
             log.Log(LogLevel.LOGLEVEL, eventId, ""{0} {1}"", 0, 1);
             log.Log(LogLevel.LOGLEVEL, eventId, ""{0} {1} {2}"", 0, 1, 2);
+            log.Log(LogLevel.LOGLEVEL, eventId, ""{One}"", 1);
+            log.Log(LogLevel.LOGLEVEL, eventId, ""{One} {Two}"", 1, 2);
+            log.Log(LogLevel.LOGLEVEL, eventId, ""{One} {Two} {Three}"", 1, 2, 3);
 
             // With Exception
             log.METHODNAME(x, ""plain message"");
@@ -126,6 +132,9 @@ namespace Code
             log.Log(LogLevel.LOGLEVEL, x, ""{0}"", 0);
             log.Log(LogLevel.LOGLEVEL, x, ""{0} {1}"", 0, 1);
             log.Log(LogLevel.LOGLEVEL, x, ""{0} {1} {2}"", 0, 1, 2);
+            log.Log(LogLevel.LOGLEVEL, x, ""{One}"", 1);
+            log.Log(LogLevel.LOGLEVEL, x, ""{One} {Two}"", 1, 2);
+            log.Log(LogLevel.LOGLEVEL, x, ""{One} {Two} {Three}"", 1, 2, 3);
 
             // With Both
             log.METHODNAME(eventId, x, ""plain message"");
@@ -136,6 +145,9 @@ namespace Code
             log.Log(LogLevel.LOGLEVEL, eventId, x, ""{0}"", 0);
             log.Log(LogLevel.LOGLEVEL, eventId, x, ""{0} {1}"", 0, 1);
             log.Log(LogLevel.LOGLEVEL, eventId, x, ""{0} {1} {2}"", 0, 1, 2);
+            log.Log(LogLevel.LOGLEVEL, eventId, x, ""{One}"", 1);
+            log.Log(LogLevel.LOGLEVEL, eventId, x, ""{One} {Two}"", 1, 2);
+            log.Log(LogLevel.LOGLEVEL, eventId, x, ""{One} {Two} {Three}"", 1, 2, 3);
         }
     }
 }
@@ -172,18 +184,22 @@ namespace Code
             // Basic method
             [|log.METHODNAME(""{0} {0}"", 0, 1)|];
             [|log.Log(LogLevel.LOGLEVEL, ""{0} {0}"", 0, 1)|];
+            [|log.Log(LogLevel.LOGLEVEL, ""{Repeated} {Repeated}"", 0)|];
 
             // With EventId
             [|log.METHODNAME(eventId, ""{0} {0}"", 0, 1)|];
             [|log.Log(LogLevel.LOGLEVEL, eventId, ""{0} {0}"", 0, 1)|];
+            [|log.Log(LogLevel.LOGLEVEL, eventId, ""{Repeated} {Repeated}"", 0)|];
 
             // With Exception
             [|log.METHODNAME(x, ""{0} {0}"", 0, 1)|];
             [|log.Log(LogLevel.LOGLEVEL, x, ""{0} {0}"", 0, 1)|];
+            [|log.Log(LogLevel.LOGLEVEL, x, ""{Repeated} {Repeated}"", 0)|];
 
             // With Both
             [|log.METHODNAME(eventId, x, ""{0} {0}"", 0, 1)|];
             [|log.Log(LogLevel.LOGLEVEL, eventId, x, ""{0} {0}"", 0, 1)|];
+            [|log.Log(LogLevel.LOGLEVEL, eventId, x, ""{Repeated} {Repeated}"", 0)|];
         }
     }
 }
