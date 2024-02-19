@@ -195,5 +195,13 @@
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor StructuredLoggingWithRepeatedToken = new DiagnosticDescriptor(
+            id: DiagnosticIds.StructuredLoggingWithRepeatedToken,
+            title: "Structured logging tokens cannot be repeated",
+            messageFormat: "A token '{0}' was repeated in a logging format string. While this works with string.Format(), it is known to break when using some structured logging libraries and so must be avoided.",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
     }
 }
