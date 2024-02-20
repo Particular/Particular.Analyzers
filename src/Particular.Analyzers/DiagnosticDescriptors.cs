@@ -203,5 +203,13 @@
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor DictionaryHasUnsupportedKeyType = new DiagnosticDescriptor(
+            id: DiagnosticIds.DictionaryHasUnsupportedKeyType,
+            title: "Dictionary keys must implement GetHashCode",
+            messageFormat: "Temp",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }
