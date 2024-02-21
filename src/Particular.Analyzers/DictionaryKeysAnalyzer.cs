@@ -40,7 +40,8 @@
         {
             if (context.Symbol is IPropertySymbol prop)
             {
-                AnalyzeType(knownTypes, prop.Type, GetNearest<PropertyDeclarationSyntax>(prop, context.CancellationToken).Type, context.ReportDiagnostic);
+                var typeSyntax = GetNearest<PropertyDeclarationSyntax>(prop, context.CancellationToken)?.Type;
+                AnalyzeType(knownTypes, prop.Type, typeSyntax, context.ReportDiagnostic);
             }
         }
 
@@ -48,7 +49,8 @@
         {
             if (context.Symbol is IFieldSymbol field)
             {
-                AnalyzeType(knownTypes, field.Type, GetNearest<VariableDeclarationSyntax>(field, context.CancellationToken).Type, context.ReportDiagnostic);
+                var typeSyntax = GetNearest<VariableDeclarationSyntax>(field, context.CancellationToken)?.Type;
+                AnalyzeType(knownTypes, field.Type, typeSyntax, context.ReportDiagnostic);
             }
         }
 
@@ -62,9 +64,10 @@
                     return;
                 }
 
+                // Will be null for things like operator overloads
                 var methodSyntax = GetNearest<MethodDeclarationSyntax>(method, context.CancellationToken);
 
-                if (!method.ReturnsVoid)
+                if (!method.ReturnsVoid && methodSyntax != null)
                 {
                     AnalyzeType(knownTypes, method.ReturnType, methodSyntax.ReturnType, context.ReportDiagnostic);
                 }
@@ -72,8 +75,12 @@
                 for (var i = 0; i < method.Parameters.Length; i++)
                 {
                     var parameterType = method.Parameters[i].Type;
-                    var parameterSyntax = GetNearest<ParameterSyntax>(method.Parameters[i], context.CancellationToken).Type;
-                    AnalyzeType(knownTypes, parameterType, parameterSyntax, context.ReportDiagnostic);
+                    var parameterSyntax = GetNearest<ParameterSyntax>(method.Parameters[i], context.CancellationToken)?.Type;
+                    if (parameterSyntax != null)
+                    {
+                        // Syntax will be null for a parameter when analyzing a top-level statements class
+                        AnalyzeType(knownTypes, parameterType, parameterSyntax, context.ReportDiagnostic);
+                    }
                 }
             }
         }
@@ -91,7 +98,7 @@
 
                 foreach (var variable in vDec.Declaration.Variables)
                 {
-                    if (variable.Initializer.Value is ObjectCreationExpressionSyntax creationSyntax)
+                    if (variable.Initializer?.Value is ObjectCreationExpressionSyntax creationSyntax)
                     {
                         // Don't want to analyze "null" or another variable name or new()
                         if (creationSyntax.Type != null)
@@ -140,6 +147,12 @@
 
         void AnalyzeType(KnownTypes knownTypes, ITypeSymbol type, SyntaxNode syntax, Action<Diagnostic> reportDiagnostic)
         {
+            if (syntax is null)
+            {
+                // Situations like a record class, where the "Property" is expressed like a "Parameter" so we don't find a PropertyDeclarationSyntax
+                return;
+            }
+
             if (type is IArrayTypeSymbol arrayType)
             {
                 AnalyzeType(knownTypes, arrayType.ElementType, syntax, reportDiagnostic);
@@ -152,7 +165,8 @@
 
                 if (!IsAppropriateDictionaryKey(knownTypes, key))
                 {
-                    var diagnostic = Diagnostic.Create(DiagnosticDescriptors.DictionaryHasUnsupportedKeyType, syntax.GetLocation());
+                    var simpleType = namedType.Name.Split('`')[0];
+                    var diagnostic = Diagnostic.Create(DiagnosticDescriptors.DictionaryHasUnsupportedKeyType, syntax.GetLocation(), simpleType, key.ToDisplayString());
                     reportDiagnostic(diagnostic);
                 }
             }
@@ -161,6 +175,14 @@
         static bool IsAppropriateDictionaryKey(KnownTypes knownTypes, ITypeSymbol type)
         {
             if (type.Equals(knownTypes.String, SymbolEqualityComparer.IncludeNullability) || type.IsValueType)
+            {
+                return true;
+            }
+
+            var implementsIEquatable = type.Interfaces
+                .Any(iface => iface.IsGenericType && iface.ConstructedFrom.Equals(knownTypes.IEquatableT, SymbolEqualityComparer.Default));
+
+            if (implementsIEquatable)
             {
                 return true;
             }
@@ -181,6 +203,7 @@
         {
             public ImmutableHashSet<INamedTypeSymbol> DictionaryTypes { get; }
             public INamedTypeSymbol String { get; }
+            public INamedTypeSymbol IEquatableT { get; }
 
             public KnownTypes(Compilation compilation)
             {
@@ -201,6 +224,8 @@
                     .ToImmutableHashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
                 String = compilation.GetSpecialType(SpecialType.System_String);
+                IEquatableT = compilation.GetTypeByMetadataName("System.IEquatable`1");
+
             }
         }
     }
