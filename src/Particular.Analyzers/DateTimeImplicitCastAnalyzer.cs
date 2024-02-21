@@ -26,7 +26,7 @@
 
         static void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is VariableDeclarationSyntax declaration))
+            if (context.Node is not VariableDeclarationSyntax declaration)
             {
                 return;
             }
@@ -57,19 +57,19 @@
 
         static void AnalyzeAssignment(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is AssignmentExpressionSyntax assignment))
+            if (context.Node is not AssignmentExpressionSyntax assignment)
             {
                 return;
             }
 
-            if (!(context.SemanticModel.GetTypeInfo(assignment.Left, context.CancellationToken).Type is INamedTypeSymbol leftType))
+            if (context.SemanticModel.GetTypeInfo(assignment.Left, context.CancellationToken).Type is not INamedTypeSymbol leftType)
             {
                 return;
             }
 
             if (leftType.IsTupleType && leftType.TypeArguments.Any(t => t.ToString() == "System.DateTimeOffset"))
             {
-                if (!(context.SemanticModel.GetTypeInfo(assignment.Right, context.CancellationToken).Type is INamedTypeSymbol rightType))
+                if (context.SemanticModel.GetTypeInfo(assignment.Right, context.CancellationToken).Type is not INamedTypeSymbol rightType)
                 {
                     return;
                 }
@@ -112,14 +112,14 @@
 
         static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is MethodDeclarationSyntax method))
+            if (context.Node is not MethodDeclarationSyntax method)
             {
                 return;
             }
 
             var returnType = method.ReturnType.ToString();
 
-            if (returnType != "DateTimeOffset" && returnType != "Task<DateTimeOffset>")
+            if (returnType is not "DateTimeOffset" and not "Task<DateTimeOffset>")
             {
                 return;
             }
@@ -139,7 +139,7 @@
 
         static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is InvocationExpressionSyntax invocation))
+            if (context.Node is not InvocationExpressionSyntax invocation)
             {
                 return;
             }
@@ -149,7 +149,7 @@
                 return;
             }
 
-            if (!(context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken).Symbol?.GetMethodOrDefault() is IMethodSymbol method))
+            if (context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken).Symbol?.GetMethodOrDefault() is not IMethodSymbol method)
             {
                 return;
             }

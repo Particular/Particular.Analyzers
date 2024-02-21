@@ -27,13 +27,13 @@
                     continue;
                 }
 
-                if (!(node is ParameterSyntax parameter))
+                if (node is not ParameterSyntax parameter)
                 {
                     continue;
                 }
 
                 // cheapest checks first
-                if (!(parameter.Type is NameSyntax))
+                if (parameter.Type is not NameSyntax)
                 {
                     return;
                 }

@@ -29,7 +29,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is TryStatementSyntax tryStatement))
+            if (context.Node is not TryStatementSyntax tryStatement)
             {
                 return;
             }
@@ -45,7 +45,7 @@
                 return;
             }
 
-            if (!(GetFirstCancellationTokenExpressionOrDefault(context, tryStatement) is string cancellationTokenExpression))
+            if (GetFirstCancellationTokenExpressionOrDefault(context, tryStatement) is not string cancellationTokenExpression)
             {
                 return;
             }
@@ -85,7 +85,7 @@
                 return false;
             }
 
-            if (!(catchClause.Filter.FilterExpression is MemberAccessExpressionSyntax memberAccess) || !memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (catchClause.Filter.FilterExpression is not MemberAccessExpressionSyntax memberAccess || !memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 return false;
             }
@@ -172,8 +172,8 @@
                 }
 
                 var argExpressions = call.ArgumentList.Arguments
-                    .Where(arg => !(arg.Expression is LiteralExpressionSyntax))
-                    .Where(arg => !(arg.Expression is DefaultExpressionSyntax))
+                    .Where(arg => arg.Expression is not LiteralExpressionSyntax)
+                    .Where(arg => arg.Expression is not DefaultExpressionSyntax)
                     .Where(arg => !IsCancellationTokenNone(arg))
                     .Select(arg =>
                     {
@@ -209,21 +209,17 @@
             //   {
             //   }
             // assume "Exception" and "OperationCanceledException" refer to the System types
-            switch (catchType)
+            return catchType switch
             {
-                case null:
-                case "Exception":
-                    return ExceptionType;
-                case "OperationCanceledException":
-                    return OperationCanceledExceptionType;
-                default:
-                    return catchType;
-            }
+                null or "Exception" => ExceptionType,
+                "OperationCanceledException" => OperationCanceledExceptionType,
+                _ => catchType,
+            };
         }
 
         static bool IsCancellationTokenNone(ArgumentSyntax arg)
         {
-            if (!(arg.Expression is MemberAccessExpressionSyntax memberAccess))
+            if (arg.Expression is not MemberAccessExpressionSyntax memberAccess)
             {
                 return false;
             }
@@ -233,7 +229,7 @@
                 return false;
             }
 
-            if (!(memberAccess.Expression is SimpleNameSyntax @ref))
+            if (memberAccess.Expression is not SimpleNameSyntax @ref)
             {
                 return false;
             }

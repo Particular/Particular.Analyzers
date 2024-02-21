@@ -23,7 +23,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is DelegateDeclarationSyntax delegateSyntax))
+            if (context.Node is not DelegateDeclarationSyntax delegateSyntax)
             {
                 return;
             }

@@ -23,7 +23,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is ArgumentSyntax arg))
+            if (context.Node is not ArgumentSyntax arg)
             {
                 return;
             }

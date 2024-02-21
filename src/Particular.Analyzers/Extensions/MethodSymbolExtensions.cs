@@ -13,21 +13,11 @@
 
         static bool IsTestAttribute(string typeName)
         {
-            switch (typeName)
+            return typeName switch
             {
-                case "NUnit.Framework.OneTimeSetUpAttribute":
-                case "NUnit.Framework.OneTimeTearDownAttribute":
-                case "NUnit.Framework.SetUpAttribute":
-                case "NUnit.Framework.TearDownAttribute":
-                case "NUnit.Framework.TestAttribute":
-                case "NUnit.Framework.TestCaseAttribute":
-                case "NUnit.Framework.TestCaseSourceAttribute":
-                case "NUnit.Framework.TheoryAttribute":
-                case "Xunit.FactAttribute":
-                    return true;
-                default:
-                    return false;
-            }
+                "NUnit.Framework.OneTimeSetUpAttribute" or "NUnit.Framework.OneTimeTearDownAttribute" or "NUnit.Framework.SetUpAttribute" or "NUnit.Framework.TearDownAttribute" or "NUnit.Framework.TestAttribute" or "NUnit.Framework.TestCaseAttribute" or "NUnit.Framework.TestCaseSourceAttribute" or "NUnit.Framework.TheoryAttribute" or "Xunit.FactAttribute" => true,
+                _ => false,
+            };
         }
 
         public static bool IsEntryPoint(this IMethodSymbol method) =>

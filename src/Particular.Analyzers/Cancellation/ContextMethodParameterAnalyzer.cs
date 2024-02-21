@@ -27,7 +27,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is TypeDeclarationSyntax type))
+            if (context.Node is not TypeDeclarationSyntax type)
             {
                 return;
             }
@@ -52,7 +52,7 @@
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
 
-                if (!(member is IMethodSymbol method))
+                if (member is not IMethodSymbol method)
                 {
                     continue;
                 }

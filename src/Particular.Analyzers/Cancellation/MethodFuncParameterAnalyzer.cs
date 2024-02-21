@@ -31,12 +31,12 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is MemberDeclarationSyntax member))
+            if (context.Node is not MemberDeclarationSyntax member)
             {
                 return;
             }
 
-            if (!(context.SemanticModel.GetMethod(member, context.CancellationToken, out _) is IMethodSymbol method))
+            if (context.SemanticModel.GetMethod(member, context.CancellationToken, out _) is not IMethodSymbol method)
             {
                 return;
             }
@@ -67,7 +67,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context, IParameterSymbol param)
         {
-            if (!(param.Type is INamedTypeSymbol type))
+            if (param.Type is not INamedTypeSymbol type)
             {
                 return;
             }

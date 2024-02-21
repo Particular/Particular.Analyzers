@@ -22,7 +22,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is MemberAccessExpressionSyntax memberAccess))
+            if (context.Node is not MemberAccessExpressionSyntax memberAccess)
             {
                 return;
             }
@@ -32,14 +32,14 @@
                 return;
             }
 
-            if (!(memberAccess.Expression is IdentifierNameSyntax identifier))
+            if (memberAccess.Expression is not IdentifierNameSyntax identifier)
             {
                 return;
             }
 
             var value = identifier?.Identifier.ValueText;
 
-            if (value == "DateTime" || value == "DateTimeOffset")
+            if (value is "DateTime" or "DateTimeOffset")
             {
                 context.ReportDiagnostic(DiagnosticDescriptors.NowUsedInsteadOfUtcNow, memberAccess, value);
             }
