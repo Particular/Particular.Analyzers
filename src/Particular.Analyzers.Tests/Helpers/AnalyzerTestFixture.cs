@@ -91,7 +91,7 @@ using NServiceBus;
                 .Select(diagnostic => (diagnostic.Location.SourceSpan, diagnostic.Id))
                 .ToList();
 
-            NUnit.Framework.Assert.AreEqual(expectedSpansAndIds, actualSpansAndIds);
+            NUnit.Framework.Assert.That(actualSpansAndIds, Is.EqualTo(expectedSpansAndIds));
         }
 
         protected static void WriteCode(string code)

@@ -120,9 +120,12 @@ class MyClass : IMyInterface
         public Task HappyOverrides(string modifiers, string @params) => Assert(GetCode(@override, modifiers, @params));
 
         [Test]
-        [TestCaseSource(nameof(SadInterfaceMethodData))]
         [TestCaseSource(nameof(HappyInterfaceMethodData))]
-        public Task HappyExplicits(string modifiers, string @params, params string[] diagnosticIds) => Assert(RemoveMarkUp(GetCode(@explicit, modifiers, @params)), diagnosticIds);
+        public Task HappyExplicits(string modifiers, string @params) => Assert(RemoveMarkUp(GetCode(@explicit, modifiers, @params)));
+
+        [Test]
+        [TestCaseSource(nameof(SadInterfaceMethodData))]
+        public Task SadExplicits(string modifiers, string @params, string diagnosticId) => Assert(RemoveMarkUp(GetCode(@explicit, modifiers, @params)), diagnosticId);
 
         [Test]
         [TestCaseSource(nameof(SadData))]
