@@ -5,10 +5,9 @@
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
+    using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class TaskReturningMethodAnalyzerTests : AnalyzerTestFixture<TaskReturningMethodAnalyzer>
@@ -122,8 +121,6 @@ class MyClass<T> where T : CancellableContext
             "T foo, object bar",
         ];
 
-        public TaskReturningMethodAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
         public static readonly Data TestAttributes = new List<string>
         {
             "[NUnit.Framework.OneTimeSetUp]",
@@ -145,42 +142,42 @@ class MyClass<T> where T : CancellableContext
             .Concat(notTaskTypes.SelectMany(type => notTaskParams.Concat(taskParams).Select(@params => (type, @params))))
             .ToData();
 
-        [Theory]
-        [MemberData(nameof(SadData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
         public Task SadMethods(string returnType, string @params) => Assert(GetCode(method, returnType, @params), DiagnosticIds.TaskReturningMethodNoCancellation);
 
-        [Theory]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyMethods(string returnType, string @params) => Assert(GetCode(method, returnType, @params));
 
-        [Theory]
-        [MemberData(nameof(SadData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
         public Task SadDelegates(string returnType, string @params) => Assert(GetCode(@delegate, returnType, @params), DiagnosticIds.TaskReturningMethodNoCancellation);
 
-        [Theory]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyDelegates(string returnType, string @params) => Assert(GetCode(@delegate, returnType, @params));
 
-        [Theory]
-        [MemberData(nameof(SadData))]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyOverrides(string returnType, string @params) => Assert(GetCode(@override, returnType, @params));
 
-        [Theory]
-        [MemberData(nameof(SadData))]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyExplicits(string returnType, string @params) => Assert(GetCode(@explicit, returnType, @params));
 
-        [Theory]
-        [MemberData(nameof(SadData))]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyContexts(string returnType, string @params) => Assert(GetCode(context, returnType, @params));
 
-        [Theory]
-        [MemberData(nameof(TestAttributes))]
+        [Test]
+        [TestCaseSource(nameof(TestAttributes))]
         public Task HappyTests(string attribute) => Assert(GetTestCode(attribute, taskTypes.First(), notTaskParams.First()));
 
-        [Fact]
+        [Test]
         public Task HappyEntryPoint() => Assert(entryPoint, c => c.CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication));
 
         static string GetCode(string template, string returnType, string @params) => string.Format(template, returnType, @params);

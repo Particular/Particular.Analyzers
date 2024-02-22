@@ -3,10 +3,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class NonPrivateMethodTokenNameAnalyzerTests : AnalyzerTestFixture<NonPrivateMethodTokenNameAnalyzer>
@@ -65,8 +64,6 @@ class MyClass : IMyInterface
 }}";
 #endif
 
-        public NonPrivateMethodTokenNameAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
         static readonly List<string> sadParams =
         [
             "CancellationToken [|token|]",
@@ -101,61 +98,61 @@ class MyClass : IMyInterface
             InterfacePrivateModifiers.SelectMany(modifiers => sadParams.Concat(happyParams).Select(param => (modifiers, param)))
             .Concat(InterfaceNonPrivateModifiers.SelectMany(modifiers => happyParams.Select(param => (modifiers, param)))).ToData();
 
-        [Theory]
-        [MemberData(nameof(SadData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
         public Task SadMethods(string modifiers, string @params) => Assert(GetCode(method, modifiers, @params), DiagnosticIds.NonPrivateMethodSingleCancellationTokenMisnamed);
 
-        [Theory]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyMethods(string modifiers, string @params) => Assert(GetCode(method, modifiers, @params));
 
-        [Theory]
-        [MemberData(nameof(SadData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
         public Task SadConstructors(string modifiers, string @params) => Assert(GetCode(constructor, modifiers, @params), DiagnosticIds.NonPrivateMethodSingleCancellationTokenMisnamed);
 
-        [Theory]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyConstructors(string modifiers, string @params) => Assert(GetCode(constructor, modifiers, @params));
 
-        [Theory]
-        [MemberData(nameof(SadData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
         public Task SadOverrides(string modifiers, string @params) => Assert(GetCode(@override, modifiers, @params), DiagnosticIds.NonPrivateMethodSingleCancellationTokenMisnamed);
 
-        [Theory]
-        [MemberData(nameof(HappyOverridesData))]
+        [Test]
+        [TestCaseSource(nameof(HappyOverridesData))]
         public Task HappyOverrides(string modifiers, string @params) => Assert(GetCode(@override, modifiers, @params));
 
-        [Theory]
-        [MemberData(nameof(SadInterfaceData))]
+        [Test]
+        [TestCaseSource(nameof(SadInterfaceData))]
         public Task SadExplicits(string modifiers, string @params) => Assert(GetCode(@explicit, modifiers, @params), DiagnosticIds.NonPrivateMethodSingleCancellationTokenMisnamed);
 
-        [Theory]
-        [MemberData(nameof(HappyInterfaceMethodData))]
+        [Test]
+        [TestCaseSource(nameof(HappyInterfaceMethodData))]
         public Task HappyExplicits(string modifiers, string @params) => Assert(GetCode(@explicit, modifiers, @params));
 
-        [Theory]
-        [MemberData(nameof(SadData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
         public Task SadDelegates(string modifiers, string @params) => Assert(GetCode(@delegate, modifiers, @params), DiagnosticIds.NonPrivateMethodSingleCancellationTokenMisnamed);
 
-        [Theory]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyDelegates(string modifiers, string @params) => Assert(GetCode(@delegate, modifiers, @params));
 
-        [Theory]
-        [MemberData(nameof(SadInterfaceData))]
+        [Test]
+        [TestCaseSource(nameof(SadInterfaceData))]
         public Task SadInterfaceMethods(string modifiers, string @params) => Assert(GetCode(interfaceMethods, modifiers, @params), DiagnosticIds.NonPrivateMethodSingleCancellationTokenMisnamed);
 
-        [Theory]
-        [MemberData(nameof(HappyInterfaceMethodData))]
+        [Test]
+        [TestCaseSource(nameof(HappyInterfaceMethodData))]
         public Task HappyInterfaceMethods(string modifiers, string @params) => Assert(GetCode(interfaceMethods, modifiers, @params));
 
 #if NET
-        [Theory]
-        [MemberData(nameof(SadInterfaceData))]
+        [Test]
+        [TestCaseSource(nameof(SadInterfaceData))]
         public Task SadInterfaceDefaultMethods(string modifiers, string @params) => Assert(GetCode(interfaceDefaultMethods, modifiers, @params), DiagnosticIds.NonPrivateMethodSingleCancellationTokenMisnamed);
 
-        [Theory]
-        [MemberData(nameof(HappyInterfaceDefaultMethodData))]
+        [Test]
+        [TestCaseSource(nameof(HappyInterfaceDefaultMethodData))]
         public Task HappyInterfaceDefaultMethods(string modifiers, string @params) => Assert(GetCode(interfaceDefaultMethods, modifiers, @params));
 #endif
 

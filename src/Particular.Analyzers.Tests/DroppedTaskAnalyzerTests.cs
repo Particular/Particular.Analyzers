@@ -2,9 +2,8 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class DroppedTaskAnalyzerTests : AnalyzerTestFixture<DroppedTaskAnalyzer>
@@ -98,14 +97,12 @@
             "void MyMethod() { var task = Task.Delay(0).ConfigureAwait(false); }",
         }.ToData();
 
-        public DroppedTaskAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
-        [Theory]
-        [MemberData(nameof(SadMethodData))]
+        [Test]
+        [TestCaseSource(nameof(SadMethodData))]
         public Task SadMethods(string method) => Assert(GetCode(method), DiagnosticIds.DroppedTask);
 
-        [Theory]
-        [MemberData(nameof(HappyMethodData))]
+        [Test]
+        [TestCaseSource(nameof(HappyMethodData))]
         public Task HappyMethods(string method) => Assert(GetCode(method));
 
         public static string GetCode(string method) => string.Format(code, method);

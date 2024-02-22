@@ -1,17 +1,14 @@
 ﻿namespace Particular.Analyzers.Tests
 {
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
 
     public class DateTimeImplicitCastAnalyzerTests
         : AnalyzerTestFixture<DateTimeImplicitCastAnalyzer>
     {
-        public DateTimeImplicitCastAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
-        [Fact]
+        [Test]
         public Task SimpleTest()
         {
             const string code = @"
@@ -46,7 +43,7 @@ public class Foo
             return Assert(code, "PS0022");
         }
 
-        [Fact]
+        [Test]
         public Task Tuples()
         {
             const string code = @"
@@ -63,7 +60,7 @@ public class Foo
             return Assert(code, "PS0022");
         }
 
-        [Fact]
+        [Test]
         public Task Indexer()
         {
             const string code = @"
@@ -89,7 +86,7 @@ public class HasIndexer
             return Assert(code, "PS0022");
         }
 
-        [Fact]
+        [Test]
         public Task MethodReturnValue()
         {
             const string code = @"
@@ -119,7 +116,7 @@ public class Foo
             return Assert(code, "PS0022");
         }
 
-        [Fact]
+        [Test]
         public Task MethodReturnValueAsync()
         {
             const string code = @"
@@ -156,7 +153,7 @@ public class Foo
             return Assert(code, "PS0022");
         }
 
-        [Fact]
+        [Test]
         public Task MethodParameter()
         {
             const string code = @"
@@ -190,7 +187,7 @@ public class Foo
             return Assert(code, "PS0022");
         }
 
-        [Fact]
+        [Test]
         public Task DelegateInvocation()
         {
             const string code = @"
@@ -230,7 +227,7 @@ public class Foo
             return Assert(code, "PS0022");
         }
 
-        [Fact]
+        [Test]
         public Task DontScrewUpOnParamsArrays()
         {
             const string code = @"
@@ -245,7 +242,7 @@ public class Foo
             return Assert(code, "PS0022");
         }
 
-        [Fact]
+        [Test]
         public Task DontFailOnRefAssignments()
         {
             // Because FastExpressionCompiler 4.0.0 caused a null-reference exception

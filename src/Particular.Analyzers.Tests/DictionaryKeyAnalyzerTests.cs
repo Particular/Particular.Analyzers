@@ -1,17 +1,13 @@
 ﻿namespace Particular.Analyzers.Tests
 {
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
 
     public class DictionaryKeysAnalyzerTests : AnalyzerTestFixture<DictionaryKeysAnalyzer>
     {
-        public DictionaryKeysAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
         static readonly string template = """
             using System.Collections.Generic;
 
@@ -50,12 +46,12 @@
             public class InheritFromDictionary : DICTIONARY_TYPE { }
             """;
 
-        [Theory]
-        [InlineData("string")]
-        [InlineData("int")]
-        [InlineData("OkStruct")]
-        [InlineData("ClassWithMembers")]
-        [InlineData("IOkBecauseEquatable")]
+        [Test]
+        [TestCase("string")]
+        [TestCase("int")]
+        [TestCase("OkStruct")]
+        [TestCase("ClassWithMembers")]
+        [TestCase("IOkBecauseEquatable")]
         public Task Good(string keyType)
         {
             var dictionaryType = $"Dictionary<{keyType}, int>";
@@ -63,8 +59,8 @@
             return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
         }
 
-        [Theory]
-        [InlineData("BadKey")]
+        [Test]
+        [TestCase("BadKey")]
         public Task Bad(string keyType)
         {
             var dictionaryType = $"Dictionary<{keyType}, int>";
@@ -73,14 +69,14 @@
             return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
         }
 
-        [Theory]
-        [InlineData("IDictionary<BadKey, int>")]
-        [InlineData("Dictionary<BadKey, int>")]
-        [InlineData("ConcurrentDictionary<BadKey, int>")]
-        [InlineData("HashSet<BadKey>")]
-        [InlineData("ISet<BadKey>")]
-        [InlineData("ImmutableHashSet<BadKey>")]
-        [InlineData("ImmutableDictionary<BadKey, int>")]
+        [Test]
+        [TestCase("IDictionary<BadKey, int>")]
+        [TestCase("Dictionary<BadKey, int>")]
+        [TestCase("ConcurrentDictionary<BadKey, int>")]
+        [TestCase("HashSet<BadKey>")]
+        [TestCase("ISet<BadKey>")]
+        [TestCase("ImmutableHashSet<BadKey>")]
+        [TestCase("ImmutableDictionary<BadKey, int>")]
         public Task CheckTypes(string type)
         {
             var code = $$"""
@@ -101,7 +97,7 @@
             {
                 config
 #if NETFRAMEWORK
-                    .AddMetadataReferenceUsing<ISet<string>>()
+                    .AddMetadataReferenceUsing<System.Collections.Generic.ISet<string>>()
 #endif
                     .AddMetadataReferenceUsing<ConcurrentDictionary<string, string>>()
                     .AddMetadataReferenceUsing<ImmutableDictionary<string, string>>();
@@ -109,7 +105,7 @@
         }
 
 #if !NETFRAMEWORK
-        [Fact]
+        [Test]
         public Task RecordTypesOk()
         {
             var code = """

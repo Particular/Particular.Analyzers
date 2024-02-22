@@ -3,9 +3,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class TypeNameAnalyzerTests : AnalyzerTestFixture<TypeNameAnalyzer>
@@ -13,8 +12,6 @@
         static readonly string @type = "{0} [|{1}|] {{ }}";
 
         static readonly string @delegate = "delegate void [|{0}|]();";
-
-        public TypeNameAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
         static readonly List<string> interfaceKeywords =
         [
@@ -53,20 +50,20 @@
 
         public static Data HappyDelegatesData => nonInterfaceNames.ToData();
 
-        [Theory]
-        [MemberData(nameof(SadTypesData))]
+        [Test]
+        [TestCaseSource(nameof(SadTypesData))]
         public Task SadTypes(string keyword, string name) => Assert(GetTypeCode(@type, keyword, name), DiagnosticIds.NonInterfaceTypePrefixedWithI);
 
-        [Theory]
-        [MemberData(nameof(HappyTypesData))]
+        [Test]
+        [TestCaseSource(nameof(HappyTypesData))]
         public Task HappyTypes(string keyword, string name) => Assert(GetTypeCode(@type, keyword, name));
 
-        [Theory]
-        [MemberData(nameof(SadDelegatesData))]
+        [Test]
+        [TestCaseSource(nameof(SadDelegatesData))]
         public Task SadDelegates(string name) => Assert(GetDelegateCode(@delegate, name), DiagnosticIds.NonInterfaceTypePrefixedWithI);
 
-        [Theory]
-        [MemberData(nameof(HappyDelegatesData))]
+        [Test]
+        [TestCaseSource(nameof(HappyDelegatesData))]
         public Task HappyDelegates(string name) => Assert(GetDelegateCode(@delegate, name));
 
         static string GetTypeCode(string template, string keyword, string name) => string.Format(template, keyword, name);

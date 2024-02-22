@@ -2,10 +2,9 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class MethodParametersAnalyzerTests : AnalyzerTestFixture<MethodParametersAnalyzer>
@@ -54,8 +53,6 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
     void IMyInterface<T>.MyMethod({0}) {{ }}
 }}";
 
-        public MethodParametersAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
         public static readonly Data SadParams = new List<(string, string[])>
         {
             ("ICancellableContext foo, CancellationToken cancellationToken", new[] { DiagnosticIds.MethodMixedCancellation }),
@@ -92,39 +89,45 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
             "T foo, object bar",
         }.ToData();
 
-        [Theory]
-        [MemberData(nameof(SadParams))]
+        [Test]
+        [TestCaseSource(nameof(SadParams))]
         public Task SadMethods(string @params, params string[] diagnosticIds) => Assert(GetCode(method, @params), diagnosticIds);
 
-        [Theory]
-        [MemberData(nameof(HappyParams))]
+        [Test]
+        [TestCaseSource(nameof(HappyParams))]
         public Task HappyMethods(string @params) => Assert(GetCode(method, @params));
 
-        [Theory]
-        [MemberData(nameof(SadParams))]
+        [Test]
+        [TestCaseSource(nameof(SadParams))]
         public Task SadConstructors(string @params, params string[] diagnosticIds) => Assert(GetCode(constructor, @params), diagnosticIds);
 
-        [Theory]
-        [MemberData(nameof(HappyParams))]
+        [Test]
+        [TestCaseSource(nameof(HappyParams))]
         public Task HappyConstructors(string @params) => Assert(GetCode(constructor, @params));
 
-        [Theory]
-        [MemberData(nameof(SadParams))]
+        [Test]
+        [TestCaseSource(nameof(SadParams))]
         public Task SadDelegates(string @params, params string[] diagnosticIds) => Assert(GetCode(@delegate, @params), diagnosticIds);
 
-        [Theory]
-        [MemberData(nameof(HappyParams))]
+        [Test]
+        [TestCaseSource(nameof(HappyParams))]
         public Task HappyDelegates(string @params) => Assert(GetCode(@delegate, @params));
 
-        [Theory]
-        [MemberData(nameof(SadParams))]
-        [MemberData(nameof(HappyParams))]
-        public Task HappyOverrides(string @params, params string[] diagnosticIds) => Assert(GetCode(@override, @params), diagnosticIds);
+        [Test]
+        [TestCaseSource(nameof(HappyParams))]
+        public Task HappyOverrides(string @params) => Assert(GetCode(@override, @params));
 
-        [Theory]
-        [MemberData(nameof(SadParams))]
-        [MemberData(nameof(HappyParams))]
-        public Task HappyExplicits(string @params, params string[] diagnosticIds) => Assert(GetCode(@explicit, @params), diagnosticIds);
+        [Test]
+        [TestCaseSource(nameof(SadParams))]
+        public Task SadOverrides(string @params, params string[] diagnosticIds) => Assert(GetCode(@override, @params), diagnosticIds);
+
+        [Test]
+        [TestCaseSource(nameof(HappyParams))]
+        public Task HappyExplicits(string @params) => Assert(GetCode(@explicit, @params));
+
+        [Test]
+        [TestCaseSource(nameof(SadParams))]
+        public Task SadExplicits(string @params, params string[] diagnosticIds) => Assert(GetCode(@explicit, @params), diagnosticIds);
 
         static string GetCode(string template, string @params) => string.Format(template, @params);
     }

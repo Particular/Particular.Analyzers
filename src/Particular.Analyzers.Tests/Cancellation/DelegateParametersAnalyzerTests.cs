@@ -2,10 +2,9 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class DelegateParametersAnalyzerTests : AnalyzerTestFixture<DelegateParametersAnalyzer>
@@ -15,8 +14,6 @@
 {{
     delegate void MyDelegate({0});
 }}";
-
-        public DelegateParametersAnalyzerTests(ITestOutputHelper output) : base(output) { }
 
         public static readonly Data SadParams = new List<string>
         {
@@ -36,12 +33,12 @@
             "CancellationToken cancellationToken1, CancellationToken cancellationToken2, params object[] foos",
         }.ToData();
 
-        [Theory]
-        [MemberData(nameof(SadParams))]
+        [Test]
+        [TestCaseSource(nameof(SadParams))]
         public Task Sad(string @params) => Assert(GetCode(@params), DiagnosticIds.DelegateCancellationTokenMisplaced);
 
-        [Theory]
-        [MemberData(nameof(HappyParams))]
+        [Test]
+        [TestCaseSource(nameof(HappyParams))]
         public Task Happy(string @params) => Assert(GetCode(@params));
 
         static string GetCode(string @params) => string.Format(@delegate, @params);

@@ -2,16 +2,13 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class CancellationTryCatchAnalyzerTests : AnalyzerTestFixture<CancellationTryCatchAnalyzer>
     {
-        public CancellationTryCatchAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
         public static readonly Data AllCatchBlocks;
         public static readonly Data CatchBlocksWithoutIdentifiers;
 
@@ -65,8 +62,8 @@
             CatchBlocksWithoutIdentifiers = catchBlocksWithoutIdentifiers.ToData();
         }
 
-        [Theory]
-        [MemberData(nameof(AllCatchBlocks))]
+        [Test]
+        [TestCaseSource(nameof(AllCatchBlocks))]
         public Task PassingSimpleToken(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesSimpleTokenTemplate =
@@ -88,8 +85,8 @@
             return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), expectedDiagnostic);
         }
 
-        [Theory]
-        [MemberData(nameof(AllCatchBlocks))]
+        [Test]
+        [TestCaseSource(nameof(AllCatchBlocks))]
         public Task PassingTokenProperty(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesTokenPropertyTemplate =
@@ -115,8 +112,8 @@ public class SomeContext
             return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, "context.Token"), expectedDiagnostic);
         }
 
-        [Theory]
-        [MemberData(nameof(CatchBlocksWithoutIdentifiers))]
+        [Test]
+        [TestCaseSource(nameof(CatchBlocksWithoutIdentifiers))]
         public Task MethodThatGeneratesToken(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesTokenPropertyTemplate =
@@ -139,8 +136,8 @@ public class SomeContext
             return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), expectedDiagnostic);
         }
 
-        [Theory]
-        [MemberData(nameof(CatchBlocksWithoutIdentifiers))]
+        [Test]
+        [TestCaseSource(nameof(CatchBlocksWithoutIdentifiers))]
         public Task FuncThatGeneratesToken(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesTokenPropertyTemplate =
@@ -164,8 +161,8 @@ public class SomeContext
             return Assert(GetCode(PassesTokenPropertyTemplate, catchBlocks, null), expectedDiagnostic);
         }
 
-        [Theory]
-        [MemberData(nameof(AllCatchBlocks))]
+        [Test]
+        [TestCaseSource(nameof(AllCatchBlocks))]
         public Task ThrowIfCancellationRequested(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesSimpleTokenTemplate =
@@ -187,8 +184,8 @@ public class SomeContext
             return Assert(GetCode(PassesSimpleTokenTemplate, catchBlocks, "cancellationToken"), expectedDiagnostic);
         }
 
-        [Theory]
-        [MemberData(nameof(AllCatchBlocks))]
+        [Test]
+        [TestCaseSource(nameof(AllCatchBlocks))]
         public Task PassesCancellableContext(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesCancellableContextTemplate =
@@ -215,8 +212,8 @@ class SomeContext : ICancellableContext { public CancellationToken CancellationT
             return Assert(GetCode(PassesCancellableContextTemplate, catchBlocks, "context.CancellationToken"), expectedDiagnostic);
         }
 
-        [Theory]
-        [MemberData(nameof(AllCatchBlocks))]
+        [Test]
+        [TestCaseSource(nameof(AllCatchBlocks))]
         public Task PassesTokenFromTokenSource(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesCancellableContextTemplate =
@@ -242,8 +239,8 @@ class SomeContext : ICancellableContext { public CancellationToken CancellationT
             return Assert(GetCode(PassesCancellableContextTemplate, catchBlocks, "tokenSource.Token"), expectedDiagnostic);
         }
 
-        [Theory]
-        [MemberData(nameof(CatchBlocksWithoutIdentifiers))]
+        [Test]
+        [TestCaseSource(nameof(CatchBlocksWithoutIdentifiers))]
         public Task PassesNoTokenOrEmptyToken(string expectedDiagnostic, string catchBlocks)
         {
             const string PassesNoTokenOrEmptyTokenTemplate =
@@ -274,7 +271,7 @@ class SomeContext : ICancellableContext { public CancellationToken CancellationT
             return Assert(GetCode(PassesNoTokenOrEmptyTokenTemplate, noDiagnosticCatchBlocks, null), expectedDiagnostic);
         }
 
-        [Fact]
+        [Test]
         public Task NoWarnWhenSingleTokenUsedMultipleTimesInTry()
         {
             const string UsesSameTokenMultipleTimes =
@@ -309,10 +306,10 @@ class SomeContext : ICancellableContext { public CancellationToken CancellationT
             return Assert(UsesSameTokenMultipleTimes);
         }
 
-        [Theory]
-        [InlineData("newToken")]
-        [InlineData("tokenSource.Token")]
-        [InlineData("context.Token")]
+        [Test]
+        [TestCase("newToken")]
+        [TestCase("tokenSource.Token")]
+        [TestCase("context.Token")]
         public Task WarnWhenMultipleTokenUsedInTry(string tokenExpression)
         {
             const string UsesMultipleTokenTemplate =
