@@ -1,6 +1,7 @@
 ﻿namespace Particular.Analyzers.Tests
 {
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Threading.Tasks;
     using Particular.Analyzers.Tests.Helpers;
@@ -99,6 +100,9 @@
             return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType, config =>
             {
                 config
+#if NETFRAMEWORK
+                    .AddMetadataReferenceUsing<ISet<string>>()
+#endif
                     .AddMetadataReferenceUsing<ConcurrentDictionary<string, string>>()
                     .AddMetadataReferenceUsing<ImmutableDictionary<string, string>>();
             });
