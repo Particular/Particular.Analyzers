@@ -8,7 +8,7 @@
         public static bool IsTest(this IMethodSymbol method) =>
             method != null && method.GetAttributes().Any(attribute => IsTestAttribute(attribute.AttributeClass));
 
-        static bool IsTestAttribute(INamedTypeSymbol type) =>
+        static bool IsTestAttribute(INamedTypeSymbol? type) =>
             type != null && (IsTestAttribute(type.ToString()) || IsTestAttribute(type.BaseType));
 
         static bool IsTestAttribute(string typeName)

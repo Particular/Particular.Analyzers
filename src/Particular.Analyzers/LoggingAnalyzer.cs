@@ -82,12 +82,12 @@
         {
             var loggerSymbol = context.SemanticModel.GetSymbolInfo(invocationSyntax, context.CancellationToken).Symbol;
 
-            if (loggerSymbol.GetMethodOrDefault() is not IMethodSymbol method)
+            if (loggerSymbol is null || loggerSymbol.GetMethodOrDefault() is not IMethodSymbol method)
             {
                 return false;
             }
 
-            if (method.ReceiverType.ToString() != loggerFullName)
+            if (method is null || method.ReceiverType?.ToString() != loggerFullName)
             {
                 return false;
             }

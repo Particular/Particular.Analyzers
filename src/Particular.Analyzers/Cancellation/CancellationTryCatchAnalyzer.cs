@@ -132,7 +132,7 @@
             return filterIdentifiers.Any();
         }
 
-        static string GetFirstCancellationTokenExpressionOrDefault(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
+        static string? GetFirstCancellationTokenExpressionOrDefault(SyntaxNodeAnalysisContext context, TryStatementSyntax tryStatement)
         {
             // Because we are examining all descendants, this may result in false positives.
             // For example, a nested try block may contain cancellable invocations and
@@ -191,7 +191,7 @@
 
                         return null;
                     })
-                    .Where(expr => expr != null);
+                    .OfType<string>(); // removes nulls
 
                 foreach (var expr in argExpressions)
                 {

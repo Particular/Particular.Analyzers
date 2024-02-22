@@ -38,7 +38,10 @@
                 return;
             }
 
-            Analyze(context, context.SemanticModel.GetDeclaredSymbol(type, context.CancellationToken));
+            if (context.SemanticModel.GetDeclaredSymbol(type, context.CancellationToken) is INamedTypeSymbol symbol)
+            {
+                Analyze(context, symbol);
+            }
         }
 
         static void Analyze(SyntaxNodeAnalysisContext context, INamedTypeSymbol type)

@@ -4,7 +4,7 @@
 
     public static class SymbolExtensions
     {
-        public static IMethodSymbol GetMethodOrDefault(this ISymbol symbol)
+        public static IMethodSymbol? GetMethodOrDefault(this ISymbol symbol)
         {
             return symbol switch
             {

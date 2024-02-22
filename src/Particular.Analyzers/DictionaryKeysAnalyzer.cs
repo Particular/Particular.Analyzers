@@ -40,8 +40,10 @@
         {
             if (context.Symbol is IPropertySymbol prop)
             {
-                var typeSyntax = GetNearest<PropertyDeclarationSyntax>(prop, context.CancellationToken)?.Type;
-                AnalyzeType(knownTypes, prop.Type, typeSyntax, context.ReportDiagnostic);
+                if (GetNearest<PropertyDeclarationSyntax>(prop, context.CancellationToken)?.Type is TypeSyntax typeSyntax)
+                {
+                    AnalyzeType(knownTypes, prop.Type, typeSyntax, context.ReportDiagnostic);
+                }
             }
         }
 
@@ -49,8 +51,10 @@
         {
             if (context.Symbol is IFieldSymbol field)
             {
-                var typeSyntax = GetNearest<VariableDeclarationSyntax>(field, context.CancellationToken)?.Type;
-                AnalyzeType(knownTypes, field.Type, typeSyntax, context.ReportDiagnostic);
+                if (GetNearest<VariableDeclarationSyntax>(field, context.CancellationToken)?.Type is TypeSyntax typeSyntax)
+                {
+                    AnalyzeType(knownTypes, field.Type, typeSyntax, context.ReportDiagnostic);
+                }
             }
         }
 
@@ -92,8 +96,10 @@
                 // Don't want to analyze "var"
                 if (vDec.Declaration.Type is GenericNameSyntax nameSyntax)
                 {
-                    var typeSymbol = context.SemanticModel.GetTypeInfo(vDec.Declaration.Type);
-                    AnalyzeType(knownTypes, typeSymbol.Type, nameSyntax, context.ReportDiagnostic);
+                    if (context.SemanticModel.GetTypeInfo(vDec.Declaration.Type).Type is ITypeSymbol typeSymbol)
+                    {
+                        AnalyzeType(knownTypes, typeSymbol, nameSyntax, context.ReportDiagnostic);
+                    }
                 }
 
                 foreach (var variable in vDec.Declaration.Variables)
@@ -131,7 +137,7 @@
             }
         }
 
-        TSyntaxType GetNearest<TSyntaxType>(ISymbol symbol, CancellationToken cancellationToken)
+        TSyntaxType? GetNearest<TSyntaxType>(ISymbol symbol, CancellationToken cancellationToken)
             where TSyntaxType : SyntaxNode
         {
             if (symbol.DeclaringSyntaxReferences.Length == 0)
@@ -147,12 +153,6 @@
 
         void AnalyzeType(KnownTypes knownTypes, ITypeSymbol type, SyntaxNode syntax, Action<Diagnostic> reportDiagnostic)
         {
-            if (syntax is null)
-            {
-                // Situations like a record class, where the "Property" is expressed like a "Parameter" so we don't find a PropertyDeclarationSyntax
-                return;
-            }
-
             if (type is IArrayTypeSymbol arrayType)
             {
                 AnalyzeType(knownTypes, arrayType.ElementType, syntax, reportDiagnostic);
@@ -221,11 +221,11 @@
 
                 DictionaryTypes = dictionaryTypes
                     .Select(t => compilation.GetTypeByMetadataName(t.FullName))
+                    .OfType<INamedTypeSymbol>() // Removes not-found types if not found in the compilation
                     .ToImmutableHashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
                 String = compilation.GetSpecialType(SpecialType.System_String);
-                IEquatableT = compilation.GetTypeByMetadataName("System.IEquatable`1");
-
+                IEquatableT = compilation.GetTypeByMetadataName("System.IEquatable`1") ?? throw new Exception("Cannot find IEquatable<T>");
             }
         }
     }

@@ -1,13 +1,13 @@
 ﻿namespace Particular.Analyzers.Cancellation
 {
+    using System;
     using System.Collections.Immutable;
     using System.Linq;
     using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Diagnostics;
     using Particular.Analyzers.Extensions;
-    using System;
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MethodTokenNamesAnalyzer : DiagnosticAnalyzer
@@ -33,7 +33,7 @@
                 return;
             }
 
-            if (context.SemanticModel.GetMethod(member, context.CancellationToken, out var declaredSymbol) is not IMethodSymbol method)
+            if (context.SemanticModel.GetMethod(member, context.CancellationToken, out var declaredSymbol) is not IMethodSymbol method || declaredSymbol is null)
             {
                 return;
             }

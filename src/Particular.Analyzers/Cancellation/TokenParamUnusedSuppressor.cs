@@ -20,8 +20,13 @@
         {
             foreach (var diagnostic in context.ReportedDiagnostics)
             {
-                var node = diagnostic.Location.SourceTree.GetRoot(context.CancellationToken).FindNode(diagnostic.Location.SourceSpan);
+                var sourceTree = diagnostic.Location.SourceTree;
+                if (sourceTree is null)
+                {
+                    continue;
+                }
 
+                var node = sourceTree.GetRoot(context.CancellationToken).FindNode(diagnostic.Location.SourceSpan);
                 if (node == null)
                 {
                     continue;

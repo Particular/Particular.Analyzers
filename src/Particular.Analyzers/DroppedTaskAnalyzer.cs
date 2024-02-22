@@ -33,7 +33,10 @@
                 return;
             }
 
-            Analyze(context, context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken).Symbol, invocation);
+            if (context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken).Symbol is ISymbol symbol)
+            {
+                Analyze(context, symbol, invocation);
+            }
         }
 
         static void Analyze(SyntaxNodeAnalysisContext context, ISymbol expression, InvocationExpressionSyntax invocation)

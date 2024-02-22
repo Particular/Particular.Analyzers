@@ -46,7 +46,7 @@
                 }
 
                 var initializerType = context.SemanticModel.GetTypeInfo(initializer, context.CancellationToken).Type;
-                if (initializerType.ToString() != "System.DateTime")
+                if (initializerType?.ToString() != "System.DateTime")
                 {
                     continue;
                 }
@@ -101,7 +101,7 @@
             {
                 var rightType = context.SemanticModel.GetTypeInfo(assignment.Right, context.CancellationToken).Type;
 
-                if (rightType.ToString() != "System.DateTime")
+                if (rightType?.ToString() != "System.DateTime")
                 {
                     return;
                 }
@@ -124,15 +124,19 @@
                 return;
             }
 
-            var returnStatements = method.DescendantNodes().OfType<ReturnStatementSyntax>().ToImmutableArray();
+            var returnStatementExpressions = method.DescendantNodes()
+                .OfType<ReturnStatementSyntax>()
+                .Select(returnStatement => returnStatement.Expression)
+                .OfType<ExpressionSyntax>()
+                .ToImmutableArray();
 
-            foreach (var returnStatement in returnStatements)
+            foreach (var returnStatement in returnStatementExpressions)
             {
-                var typeInfo = context.SemanticModel.GetTypeInfo(returnStatement.Expression, context.CancellationToken);
+                var typeInfo = context.SemanticModel.GetTypeInfo(returnStatement, context.CancellationToken);
 
                 if (typeInfo.Type?.ToString() == "System.DateTime")
                 {
-                    context.ReportDiagnostic(DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset, returnStatement.Expression);
+                    context.ReportDiagnostic(DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset, returnStatement);
                 }
             }
         }

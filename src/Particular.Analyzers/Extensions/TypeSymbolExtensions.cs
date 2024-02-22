@@ -6,10 +6,10 @@
 
     public static class TypeSymbolExtensions
     {
-        public static bool IsCancellationToken(this ITypeSymbol type) =>
+        public static bool IsCancellationToken(this ITypeSymbol? type) =>
             type?.ToString() == "System.Threading.CancellationToken";
 
-        public static bool IsCancellableContext(this ITypeSymbol type)
+        public static bool IsCancellableContext(this ITypeSymbol? type)
         {
             if (type == null)
             {
@@ -32,23 +32,23 @@
         static bool IsCancellableContext(string type) =>
             type == "NServiceBus.ICancellableContext";
 
-        public static bool IsTask(this ITypeSymbol type) =>
+        public static bool IsTask(this ITypeSymbol? type) =>
             type != null && (IsTask(type.ToString()) || type.BaseType.IsTask());
 
-        static bool IsTask(string type) =>
+        static bool IsTask(string? type) =>
             type != null &&
             (type == "System.Threading.Tasks.Task" ||
                 type == "System.Threading.Tasks.ValueTask" ||
                 type.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal));
 
-        public static bool IsConfiguredTaskAwaitable(this ITypeSymbol type) =>
+        public static bool IsConfiguredTaskAwaitable(this ITypeSymbol? type) =>
             type != null && IsConfiguredTaskAwaitable(type.ToString());
 
         static bool IsConfiguredTaskAwaitable(string type) =>
             type == "System.Runtime.CompilerServices.ConfiguredTaskAwaitable" ||
             type.StartsWith("System.Runtime.CompilerServices.ConfiguredTaskAwaitable<", StringComparison.Ordinal);
 
-        public static bool IsFunc(this INamedTypeSymbol type) =>
+        public static bool IsFunc(this INamedTypeSymbol? type) =>
             type != null && type.TypeArguments.Length > 0 && type.ToString().StartsWith("System.Func<", StringComparison.Ordinal);
     }
 }
