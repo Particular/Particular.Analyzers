@@ -1,5 +1,7 @@
 ﻿namespace Particular.Analyzers.Tests
 {
+    using System.Collections.Concurrent;
+    using System.Collections.Immutable;
     using System.Threading.Tasks;
     using Particular.Analyzers.Tests.Helpers;
     using Xunit;
@@ -68,6 +70,38 @@
             var code = template.Replace("DICTIONARY_TYPE[]", $"[|{dictionaryType}[]|]")
                 .Replace("DICTIONARY_TYPE", $"[|{dictionaryType}|]");
             return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
+        }
+
+        [Theory]
+        [InlineData("IDictionary<BadKey, int>")]
+        [InlineData("Dictionary<BadKey, int>")]
+        [InlineData("ConcurrentDictionary<BadKey, int>")]
+        [InlineData("HashSet<BadKey>")]
+        [InlineData("ISet<BadKey>")]
+        [InlineData("ImmutableHashSet<BadKey>")]
+        [InlineData("ImmutableDictionary<BadKey, int>")]
+        public Task CheckTypes(string type)
+        {
+            var code = $$"""
+                using System.Collections.Generic;
+                using System.Collections.Concurrent;
+                using System.Collections.Immutable;
+
+                public class Foo
+                {
+                    public [|{{type}}|] Field;
+                    public [|{{type}}|] Property { get; set; }
+                }
+
+                public class BadKey { }
+                """;
+
+            return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType, config =>
+            {
+                config
+                    .AddMetadataReferenceUsing<ConcurrentDictionary<string, string>>()
+                    .AddMetadataReferenceUsing<ImmutableDictionary<string, string>>();
+            });
         }
 
 #if !NETFRAMEWORK

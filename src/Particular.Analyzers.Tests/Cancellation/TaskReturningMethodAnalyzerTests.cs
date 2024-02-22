@@ -181,7 +181,7 @@ class MyClass<T> where T : CancellableContext
         public Task HappyTests(string attribute) => Assert(GetTestCode(attribute, taskTypes.First(), notTaskParams.First()));
 
         [Fact]
-        public Task HappyEntryPoint() => Assert(entryPoint, new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+        public Task HappyEntryPoint() => Assert(entryPoint, c => c.CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication));
 
         static string GetCode(string template, string returnType, string @params) => string.Format(template, returnType, @params);
 

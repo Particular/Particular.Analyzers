@@ -2,9 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Linq;
-    using System.Reflection;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -45,14 +43,17 @@
 
         protected ITestOutputHelper Output { get; }
 
-        protected Task Assert(string markupCode, CompilationOptions compilationOptions = null, CancellationToken cancellationToken = default) =>
-            Assert(markupCode, Array.Empty<string>(), compilationOptions, cancellationToken);
+        protected Task Assert(string markupCode, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
+            Assert(markupCode, Array.Empty<string>(), customize, cancellationToken);
 
-        protected Task Assert(string markupCode, string expectedDiagnosticId, CompilationOptions compilationOptions = null, CancellationToken cancellationToken = default) =>
-            Assert(markupCode, new[] { expectedDiagnosticId }, compilationOptions, cancellationToken);
+        protected Task Assert(string markupCode, string expectedDiagnosticId, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
+            Assert(markupCode, new[] { expectedDiagnosticId }, customize, cancellationToken);
 
-        protected async Task Assert(string markupCode, string[] expectedDiagnosticIds, CompilationOptions compilationOptions = null, CancellationToken cancellationToken = default)
+        protected async Task Assert(string markupCode, string[] expectedDiagnosticIds, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default)
         {
+            var testCustomizations = new TestCustomizations();
+            customize?.Invoke(testCustomizations);
+
             var externalTypes =
 @"namespace NServiceBus
 {
@@ -75,7 +76,7 @@ using NServiceBus;
             var (code, markupSpans) = Parse(markupCode);
             WriteCode(Output, code);
 
-            var document = CreateDocument(code, externalTypes, compilationOptions);
+            var document = CreateDocument(code, externalTypes, testCustomizations);
 
             var compilerDiagnostics = await document.GetCompilerDiagnostics(cancellationToken);
             WriteCompilerDiagnostics(Output, compilerDiagnostics);
@@ -108,16 +109,12 @@ using NServiceBus;
             }
         }
 
-        protected static Document CreateDocument(string code, string externalTypes, CompilationOptions compilationOptions)
+        protected static Document CreateDocument(string code, string externalTypes, TestCustomizations customizations)
         {
-            var references = ImmutableList.Create(
-                MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.Location));
-
             return new AdhocWorkspace()
                 .AddProject("TestProject", LanguageNames.CSharp)
-                .WithCompilationOptions(compilationOptions ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddMetadataReferences(references)
+                .WithCompilationOptions(customizations.CompilationOptions ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .AddMetadataReferences(customizations.GetMetadataReferences())
                 .AddDocument("Externaltypes", externalTypes)
                 .Project
                 .AddDocument("TestDocument", code);
