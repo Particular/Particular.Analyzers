@@ -206,7 +206,7 @@
 
         public static readonly DiagnosticDescriptor DictionaryHasUnsupportedKeyType = new DiagnosticDescriptor(
             id: DiagnosticIds.DictionaryHasUnsupportedKeyType,
-            title: "Dictionary keys should implement GetHashCode",
+            title: "Dictionary keys should implement IEquatable<T>",
             messageFormat: "This {0} uses the type {1} as its key, which is a reference type that does not implement IEquatable<T>, which means that every object added to the collection will be evaluated using reference equality (object.Equals()) to be unique. This is often (but not always) a mistake, especially when used as a cache, because every lookup will be a cache miss.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Error,
