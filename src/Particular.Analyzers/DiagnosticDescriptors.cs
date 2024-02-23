@@ -211,5 +211,13 @@
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor AsyncVoid = new DiagnosticDescriptor(
+            id: DiagnosticIds.AsyncVoid,
+            title: "Methods should not be declared async void",
+            messageFormat: "An `async void` method is almost always a mistake as nothing can be returned to await. Should only be used for event delegates, in which case this rule should be disabled in that instance.",
+            category: "Code",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

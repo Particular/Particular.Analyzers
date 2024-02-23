@@ -28,5 +28,6 @@
         public const string NonInterfaceTypePrefixedWithI = "PS0024";
         public const string DictionaryHasUnsupportedKeyType = "PS0025";
         public const string StructuredLoggingWithRepeatedToken = "PS0026";
+        public const string AsyncVoid = "PS0027";
     }
 }
