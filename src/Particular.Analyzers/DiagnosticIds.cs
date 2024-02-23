@@ -26,7 +26,7 @@
         public const string ImplicitCastFromDateTimeToDateTimeOffset = "PS0022";
         public const string NowUsedInsteadOfUtcNow = "PS0023";
         public const string NonInterfaceTypePrefixedWithI = "PS0024";
-        public const string StructuredLoggingWithRepeatedToken = "PS0025";
         public const string DictionaryHasUnsupportedKeyType = "PS0025";
+        public const string StructuredLoggingWithRepeatedToken = "PS0026";
     }
 }
