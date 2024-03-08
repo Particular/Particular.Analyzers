@@ -36,7 +36,7 @@
             context.RegisterSyntaxNodeAction(c => AnalyzeClassDeclaration(c, knownTypes), SyntaxKind.ClassDeclaration);
         }
 
-        void AnalyzeProperty(SymbolAnalysisContext context, KnownTypes knownTypes)
+        static void AnalyzeProperty(SymbolAnalysisContext context, KnownTypes knownTypes)
         {
             if (context.Symbol is IPropertySymbol prop)
             {
@@ -47,7 +47,7 @@
             }
         }
 
-        void AnalyzeField(SymbolAnalysisContext context, KnownTypes knownTypes)
+        static void AnalyzeField(SymbolAnalysisContext context, KnownTypes knownTypes)
         {
             if (context.Symbol is IFieldSymbol field)
             {
@@ -58,7 +58,7 @@
             }
         }
 
-        void AnalyzeMethod(SymbolAnalysisContext context, KnownTypes knownTypes)
+        static void AnalyzeMethod(SymbolAnalysisContext context, KnownTypes knownTypes)
         {
             if (context.Symbol is IMethodSymbol method)
             {
@@ -89,7 +89,7 @@
             }
         }
 
-        void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context, KnownTypes knownTypes)
+        static void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context, KnownTypes knownTypes)
         {
             if (context.Node is LocalDeclarationStatementSyntax vDec)
             {
@@ -119,7 +119,7 @@
             }
         }
 
-        void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context, KnownTypes knownTypes)
+        static void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context, KnownTypes knownTypes)
         {
             if (context.Node is ClassDeclarationSyntax classDec)
             {
@@ -137,8 +137,7 @@
             }
         }
 
-        TSyntaxType? GetNearest<TSyntaxType>(ISymbol symbol, CancellationToken cancellationToken)
-            where TSyntaxType : SyntaxNode
+        static TSyntaxType? GetNearest<TSyntaxType>(ISymbol symbol, CancellationToken cancellationToken) where TSyntaxType : SyntaxNode
         {
             if (symbol.DeclaringSyntaxReferences.Length == 0)
             {
@@ -151,7 +150,7 @@
             return syntax;
         }
 
-        void AnalyzeType(KnownTypes knownTypes, ITypeSymbol type, SyntaxNode syntax, Action<Diagnostic> reportDiagnostic)
+        static void AnalyzeType(KnownTypes knownTypes, ITypeSymbol type, SyntaxNode syntax, Action<Diagnostic> reportDiagnostic)
         {
             if (type is IArrayTypeSymbol arrayType)
             {
@@ -202,7 +201,9 @@
         class KnownTypes
         {
             public ImmutableHashSet<INamedTypeSymbol> DictionaryTypes { get; }
+
             public INamedTypeSymbol String { get; }
+
             public INamedTypeSymbol IEquatableT { get; }
 
             public KnownTypes(Compilation compilation)

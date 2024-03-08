@@ -104,7 +104,7 @@
             });
         }
 
-#if !NETFRAMEWORK
+#if NET
         [Test]
         public Task RecordTypesOk()
         {

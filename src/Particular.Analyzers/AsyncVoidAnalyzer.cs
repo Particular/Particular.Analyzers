@@ -33,7 +33,7 @@
             }
         }
 
-        void Analyze(SyntaxNodeAnalysisContext context, SyntaxToken identifier, TypeSyntax returnType, SyntaxTokenList modifiers)
+        static void Analyze(SyntaxNodeAnalysisContext context, SyntaxToken identifier, TypeSyntax returnType, SyntaxTokenList modifiers)
         {
             if (returnType?.ToString() == "void" && modifiers.Any(token => token.IsKind(SyntaxKind.AsyncKeyword)))
             {

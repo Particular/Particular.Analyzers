@@ -6,8 +6,6 @@
 
     public class AsyncVoidAnalyzerTests : AnalyzerTestFixture<AsyncVoidAnalyzer>
     {
-
-
         [Test]
         public Task NoAsyncVoid()
         {
