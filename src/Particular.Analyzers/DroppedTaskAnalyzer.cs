@@ -22,23 +22,26 @@
 
         static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is InvocationExpressionSyntax invocation))
+            if (context.Node is not InvocationExpressionSyntax invocation)
             {
                 return;
             }
 
             // cheapest checks first
-            if (!(invocation.Parent is ExpressionStatementSyntax))
+            if (invocation.Parent is not ExpressionStatementSyntax)
             {
                 return;
             }
 
-            Analyze(context, context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken).Symbol, invocation);
+            if (context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken).Symbol is ISymbol symbol)
+            {
+                Analyze(context, symbol, invocation);
+            }
         }
 
         static void Analyze(SyntaxNodeAnalysisContext context, ISymbol expression, InvocationExpressionSyntax invocation)
         {
-            if (!(expression.GetMethodOrDefault() is IMethodSymbol method))
+            if (expression.GetMethodOrDefault() is not IMethodSymbol method)
             {
                 return;
             }

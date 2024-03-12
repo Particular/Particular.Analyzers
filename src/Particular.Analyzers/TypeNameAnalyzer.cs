@@ -28,7 +28,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is MemberDeclarationSyntax type))
+            if (context.Node is not MemberDeclarationSyntax type)
             {
                 return;
             }

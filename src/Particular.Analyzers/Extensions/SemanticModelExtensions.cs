@@ -1,13 +1,13 @@
 ﻿namespace Particular.Analyzers.Extensions
 {
+    using System.Threading;
+    using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Microsoft.CodeAnalysis;
-    using System.Threading;
 
     static class SemanticModelExtensions
     {
-        public static IMethodSymbol GetMethod(this SemanticModel semanticModel, MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken, out ISymbol declaredSymbol)
+        public static IMethodSymbol? GetMethod(this SemanticModel semanticModel, MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken, out ISymbol? declaredSymbol)
         {
             switch (declarationSyntax)
             {
@@ -23,11 +23,11 @@
             }
         }
 
-        public static IMethodSymbol GetInvokeMethod(this SemanticModel semanticModel, DelegateDeclarationSyntax declarationSyntax, CancellationToken cancellationToken, out ISymbol declaredSymbol)
+        public static IMethodSymbol? GetInvokeMethod(this SemanticModel semanticModel, DelegateDeclarationSyntax declarationSyntax, CancellationToken cancellationToken, out ISymbol? declaredSymbol)
         {
             var @delegate = semanticModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
             declaredSymbol = @delegate;
-            return @delegate.DelegateInvokeMethod;
+            return @delegate?.DelegateInvokeMethod;
         }
     }
 }

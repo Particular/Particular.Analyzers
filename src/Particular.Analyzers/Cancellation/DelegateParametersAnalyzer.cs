@@ -23,7 +23,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is DelegateDeclarationSyntax delegateSyntax))
+            if (context.Node is not DelegateDeclarationSyntax delegateSyntax)
             {
                 return;
             }
@@ -39,7 +39,10 @@
                 return;
             }
 
-            Analyze(context, context.SemanticModel.GetInvokeMethod(delegateSyntax, context.CancellationToken, out _).Parameters);
+            if (context.SemanticModel.GetInvokeMethod(delegateSyntax, context.CancellationToken, out _) is IMethodSymbol method)
+            {
+                Analyze(context, method.Parameters);
+            }
         }
 
         static void Analyze(SyntaxNodeAnalysisContext context, ImmutableArray<IParameterSymbol> @params)

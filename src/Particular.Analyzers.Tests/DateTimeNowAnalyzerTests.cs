@@ -1,16 +1,13 @@
 ﻿namespace Particular.Analyzers.Tests
 {
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
 
     public class DateTimeNowAnalyzerTests : AnalyzerTestFixture<DateTimeNowAnalyzer>
     {
-        public DateTimeNowAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
-        [Fact]
+        [Test]
         public Task SimpleTest()
         {
             const string code = @"

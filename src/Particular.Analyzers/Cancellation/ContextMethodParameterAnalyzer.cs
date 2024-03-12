@@ -27,7 +27,7 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is TypeDeclarationSyntax type))
+            if (context.Node is not TypeDeclarationSyntax type)
             {
                 return;
             }
@@ -38,7 +38,10 @@
                 return;
             }
 
-            Analyze(context, context.SemanticModel.GetDeclaredSymbol(type, context.CancellationToken));
+            if (context.SemanticModel.GetDeclaredSymbol(type, context.CancellationToken) is INamedTypeSymbol symbol)
+            {
+                Analyze(context, symbol);
+            }
         }
 
         static void Analyze(SyntaxNodeAnalysisContext context, INamedTypeSymbol type)
@@ -52,7 +55,7 @@
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
 
-                if (!(member is IMethodSymbol method))
+                if (member is not IMethodSymbol method)
                 {
                     continue;
                 }

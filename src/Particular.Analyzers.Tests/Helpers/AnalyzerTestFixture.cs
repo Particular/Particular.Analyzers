@@ -2,9 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Linq;
-    using System.Reflection;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -12,14 +10,10 @@
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.Diagnostics;
     using Microsoft.CodeAnalysis.Text;
-    using Xunit.Abstractions;
+    using NUnit.Framework;
 
     public class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer, new()
     {
-        public AnalyzerTestFixture(ITestOutputHelper output) => Output = output;
-
-        AnalyzerTestFixture() { }
-
         protected static readonly List<string> PrivateModifiers = ["", "private"];
 
         protected static readonly List<string> NonPrivateModifiers = ["public", "protected", "internal", "protected internal", "private protected"];
@@ -43,16 +37,17 @@
 #endif
         ];
 
-        protected ITestOutputHelper Output { get; }
+        protected Task Assert(string markupCode, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
+            Assert(markupCode, Array.Empty<string>(), customize, cancellationToken);
 
-        protected Task Assert(string markupCode, CompilationOptions compilationOptions = null, CancellationToken cancellationToken = default) =>
-            Assert(markupCode, Array.Empty<string>(), compilationOptions, cancellationToken);
+        protected Task Assert(string markupCode, string expectedDiagnosticId, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
+            Assert(markupCode, new[] { expectedDiagnosticId }, customize, cancellationToken);
 
-        protected Task Assert(string markupCode, string expectedDiagnosticId, CompilationOptions compilationOptions = null, CancellationToken cancellationToken = default) =>
-            Assert(markupCode, new[] { expectedDiagnosticId }, compilationOptions, cancellationToken);
-
-        protected async Task Assert(string markupCode, string[] expectedDiagnosticIds, CompilationOptions compilationOptions = null, CancellationToken cancellationToken = default)
+        protected async Task Assert(string markupCode, string[] expectedDiagnosticIds, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default)
         {
+            var testCustomizations = new TestCustomizations();
+            customize?.Invoke(testCustomizations);
+
             var externalTypes =
 @"namespace NServiceBus
 {
@@ -73,18 +68,18 @@ using NServiceBus;
                 markupCode;
 
             var (code, markupSpans) = Parse(markupCode);
-            WriteCode(Output, code);
+            WriteCode(code);
 
-            var document = CreateDocument(code, externalTypes, compilationOptions);
+            var document = CreateDocument(code, externalTypes, testCustomizations);
 
             var compilerDiagnostics = await document.GetCompilerDiagnostics(cancellationToken);
-            WriteCompilerDiagnostics(Output, compilerDiagnostics);
+            WriteCompilerDiagnostics(compilerDiagnostics);
 
             var compilation = await document.Project.GetCompilationAsync(cancellationToken);
             compilation.Compile();
 
             var analyzerDiagnostics = (await compilation.GetAnalyzerDiagnostics(new TAnalyzer(), cancellationToken)).ToList();
-            WriteAnalyzerDiagnostics(Output, analyzerDiagnostics);
+            WriteAnalyzerDiagnostics(analyzerDiagnostics);
 
             var expectedSpansAndIds = expectedDiagnosticIds
                 .SelectMany(id => markupSpans.Select(span => (span, id)))
@@ -96,50 +91,46 @@ using NServiceBus;
                 .Select(diagnostic => (diagnostic.Location.SourceSpan, diagnostic.Id))
                 .ToList();
 
-            Xunit.Assert.Equal(expectedSpansAndIds, actualSpansAndIds);
+            NUnit.Framework.Assert.That(actualSpansAndIds, Is.EqualTo(expectedSpansAndIds));
         }
 
-        protected static void WriteCode(ITestOutputHelper Output, string code)
+        protected static void WriteCode(string code)
         {
             foreach (var (line, index) in code.Replace("\r\n", "\n").Split('\n')
                 .Select((line, index) => (line, index)))
             {
-                Output.WriteLine($"  {index + 1,3}: {line}");
+                TestContext.Out.WriteLine($"  {index + 1,3}: {line}");
             }
         }
 
-        protected static Document CreateDocument(string code, string externalTypes, CompilationOptions compilationOptions)
+        protected static Document CreateDocument(string code, string externalTypes, TestCustomizations customizations)
         {
-            var references = ImmutableList.Create(
-                MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Enumerable).GetTypeInfo().Assembly.Location));
-
             return new AdhocWorkspace()
                 .AddProject("TestProject", LanguageNames.CSharp)
-                .WithCompilationOptions(compilationOptions ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddMetadataReferences(references)
+                .WithCompilationOptions(customizations.CompilationOptions ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .AddMetadataReferences(customizations.GetMetadataReferences())
                 .AddDocument("Externaltypes", externalTypes)
                 .Project
                 .AddDocument("TestDocument", code);
         }
 
-        protected static void WriteCompilerDiagnostics(ITestOutputHelper Output, IEnumerable<Diagnostic> diagnostics)
+        protected static void WriteCompilerDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
-            Output.WriteLine("Compiler diagnostics:");
+            TestContext.Out.WriteLine("Compiler diagnostics:");
 
             foreach (var diagnostic in diagnostics)
             {
-                Output.WriteLine($"  {diagnostic}");
+                TestContext.Out.WriteLine($"  {diagnostic}");
             }
         }
 
-        protected static void WriteAnalyzerDiagnostics(ITestOutputHelper Output, IEnumerable<Diagnostic> diagnostics)
+        protected static void WriteAnalyzerDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
-            Output.WriteLine("Analyzer diagnostics:");
+            TestContext.Out.WriteLine("Analyzer diagnostics:");
 
             foreach (var diagnostic in diagnostics)
             {
-                Output.WriteLine($"  {diagnostic}");
+                TestContext.Out.WriteLine($"  {diagnostic}");
             }
         }
 

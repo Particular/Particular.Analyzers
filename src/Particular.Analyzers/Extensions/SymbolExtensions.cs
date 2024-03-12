@@ -4,23 +4,17 @@
 
     public static class SymbolExtensions
     {
-        public static IMethodSymbol GetMethodOrDefault(this ISymbol symbol)
+        public static IMethodSymbol? GetMethodOrDefault(this ISymbol symbol)
         {
-            switch (symbol)
+            return symbol switch
             {
-                case IFieldSymbol field when field.Type is INamedTypeSymbol type:
-                    return type.DelegateInvokeMethod;
-                case ILocalSymbol local when local.Type is INamedTypeSymbol type:
-                    return type.DelegateInvokeMethod;
-                case IMethodSymbol method:
-                    return method;
-                case IParameterSymbol param when param.Type is INamedTypeSymbol type:
-                    return type.DelegateInvokeMethod;
-                case IPropertySymbol property when property.Type is INamedTypeSymbol type:
-                    return type.DelegateInvokeMethod;
-                default:
-                    return null;
-            }
+                IFieldSymbol field when field.Type is INamedTypeSymbol type => type.DelegateInvokeMethod,
+                ILocalSymbol local when local.Type is INamedTypeSymbol type => type.DelegateInvokeMethod,
+                IMethodSymbol method => method,
+                IParameterSymbol param when param.Type is INamedTypeSymbol type => type.DelegateInvokeMethod,
+                IPropertySymbol property when property.Type is INamedTypeSymbol type => type.DelegateInvokeMethod,
+                _ => null,
+            };
         }
     }
 }

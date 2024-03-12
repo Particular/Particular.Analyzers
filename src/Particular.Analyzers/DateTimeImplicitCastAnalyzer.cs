@@ -26,7 +26,7 @@
 
         static void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is VariableDeclarationSyntax declaration))
+            if (context.Node is not VariableDeclarationSyntax declaration)
             {
                 return;
             }
@@ -46,7 +46,7 @@
                 }
 
                 var initializerType = context.SemanticModel.GetTypeInfo(initializer, context.CancellationToken).Type;
-                if (initializerType.ToString() != "System.DateTime")
+                if (initializerType?.ToString() != "System.DateTime")
                 {
                     continue;
                 }
@@ -57,19 +57,19 @@
 
         static void AnalyzeAssignment(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is AssignmentExpressionSyntax assignment))
+            if (context.Node is not AssignmentExpressionSyntax assignment)
             {
                 return;
             }
 
-            if (!(context.SemanticModel.GetTypeInfo(assignment.Left, context.CancellationToken).Type is INamedTypeSymbol leftType))
+            if (context.SemanticModel.GetTypeInfo(assignment.Left, context.CancellationToken).Type is not INamedTypeSymbol leftType)
             {
                 return;
             }
 
             if (leftType.IsTupleType && leftType.TypeArguments.Any(t => t.ToString() == "System.DateTimeOffset"))
             {
-                if (!(context.SemanticModel.GetTypeInfo(assignment.Right, context.CancellationToken).Type is INamedTypeSymbol rightType))
+                if (context.SemanticModel.GetTypeInfo(assignment.Right, context.CancellationToken).Type is not INamedTypeSymbol rightType)
                 {
                     return;
                 }
@@ -101,7 +101,7 @@
             {
                 var rightType = context.SemanticModel.GetTypeInfo(assignment.Right, context.CancellationToken).Type;
 
-                if (rightType.ToString() != "System.DateTime")
+                if (rightType?.ToString() != "System.DateTime")
                 {
                     return;
                 }
@@ -112,34 +112,38 @@
 
         static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is MethodDeclarationSyntax method))
+            if (context.Node is not MethodDeclarationSyntax method)
             {
                 return;
             }
 
             var returnType = method.ReturnType.ToString();
 
-            if (returnType != "DateTimeOffset" && returnType != "Task<DateTimeOffset>")
+            if (returnType is not "DateTimeOffset" and not "Task<DateTimeOffset>")
             {
                 return;
             }
 
-            var returnStatements = method.DescendantNodes().OfType<ReturnStatementSyntax>().ToImmutableArray();
+            var returnStatementExpressions = method.DescendantNodes()
+                .OfType<ReturnStatementSyntax>()
+                .Select(returnStatement => returnStatement.Expression)
+                .OfType<ExpressionSyntax>()
+                .ToImmutableArray();
 
-            foreach (var returnStatement in returnStatements)
+            foreach (var returnStatement in returnStatementExpressions)
             {
-                var typeInfo = context.SemanticModel.GetTypeInfo(returnStatement.Expression, context.CancellationToken);
+                var typeInfo = context.SemanticModel.GetTypeInfo(returnStatement, context.CancellationToken);
 
                 if (typeInfo.Type?.ToString() == "System.DateTime")
                 {
-                    context.ReportDiagnostic(DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset, returnStatement.Expression);
+                    context.ReportDiagnostic(DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset, returnStatement);
                 }
             }
         }
 
         static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is InvocationExpressionSyntax invocation))
+            if (context.Node is not InvocationExpressionSyntax invocation)
             {
                 return;
             }
@@ -149,7 +153,7 @@
                 return;
             }
 
-            if (!(context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken).Symbol?.GetMethodOrDefault() is IMethodSymbol method))
+            if (context.SemanticModel.GetSymbolInfo(invocation.Expression, context.CancellationToken).Symbol?.GetMethodOrDefault() is not IMethodSymbol method)
             {
                 return;
             }

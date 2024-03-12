@@ -2,20 +2,17 @@
 {
     using System;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
 
     public class LoggingAnalyzerTests : AnalyzerTestFixture<LoggingAnalyzer>
     {
-        public LoggingAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
-        [Theory]
-        [InlineData("DebugFormat")]
-        [InlineData("InfoFormat")]
-        [InlineData("WarnFormat")]
-        [InlineData("ErrorFormat")]
-        [InlineData("FatalFormat")]
+        [Test]
+        [TestCase("DebugFormat")]
+        [TestCase("InfoFormat")]
+        [TestCase("WarnFormat")]
+        [TestCase("ErrorFormat")]
+        [TestCase("FatalFormat")]
         public Task NServiceBusLogging(string methodName)
         {
             var code = $$$""""
@@ -69,13 +66,13 @@
             return Assert(code, DiagnosticIds.StructuredLoggingWithRepeatedToken);
         }
 
-        [Theory]
-        [InlineData("LogDebug", "Debug")]
-        [InlineData("LogTrace", "Trace")]
-        [InlineData("LogInformation", "Information")]
-        [InlineData("LogWarning", "Warning")]
-        [InlineData("LogError", "Error")]
-        [InlineData("LogCritical", "Critical")]
+        [Test]
+        [TestCase("LogDebug", "Debug")]
+        [TestCase("LogTrace", "Trace")]
+        [TestCase("LogInformation", "Information")]
+        [TestCase("LogWarning", "Warning")]
+        [TestCase("LogError", "Error")]
+        [TestCase("LogCritical", "Critical")]
         public Task MicrosoftExtensionsLoggingAllOk(string methodName, string logLevel)
         {
             var code = $$"""
@@ -155,13 +152,13 @@
             return Assert(code, DiagnosticIds.StructuredLoggingWithRepeatedToken);
         }
 
-        [Theory]
-        [InlineData("LogDebug", "Debug")]
-        [InlineData("LogTrace", "Trace")]
-        [InlineData("LogInformation", "Information")]
-        [InlineData("LogWarning", "Warning")]
-        [InlineData("LogError", "Error")]
-        [InlineData("LogCritical", "Critical")]
+        [Test]
+        [TestCase("LogDebug", "Debug")]
+        [TestCase("LogTrace", "Trace")]
+        [TestCase("LogInformation", "Information")]
+        [TestCase("LogWarning", "Warning")]
+        [TestCase("LogError", "Error")]
+        [TestCase("LogCritical", "Critical")]
         public Task MicrosoftExtensionsLoggingNotOk(string methodName, string logLevel)
         {
             var code = $$"""

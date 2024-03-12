@@ -3,10 +3,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
-    using Xunit;
-    using Xunit.Abstractions;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class TokenAccessibilityAnalyzerTests : AnalyzerTestFixture<TokenAccessibilityAnalyzer>
@@ -24,7 +23,7 @@
 }}
 
 class MyClass : MyBase
-{{    
+{{
     {0} override void MyMethod({1}) {{ }}
 }}";
 
@@ -76,8 +75,6 @@ class MyClass : IMyInterface
             "object foo, CancellationToken [|cancellationToken1|] = default, CancellationToken [|cancellationToken2|] = default, CancellationToken [|cancellationToken3|] = default",
         ];
 
-        public TokenAccessibilityAnalyzerTests(ITestOutputHelper output) : base(output) { }
-
         public static Data SadData =>
             PrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenPrivateOptional)))
             .Concat(NonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired)))).ToData();
@@ -106,50 +103,53 @@ class MyClass : IMyInterface
             InterfacePrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param)))
             .Concat(InterfaceNonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param)))).ToData();
 
-        [Theory]
-        [MemberData(nameof(SadData))]
+        [Test]
+        [TestCaseSource(nameof(SadData))]
         public Task SadMethods(string modifiers, string @params, string diagnosticId) => Assert(GetCode(method, modifiers, @params), diagnosticId);
 
-        [Theory]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyMethods(string modifiers, string @params) => Assert(GetCode(method, modifiers, @params));
 
-        [Theory]
-        [MemberData(nameof(SadOverridesData))]
+        [Test]
+        [TestCaseSource(nameof(SadOverridesData))]
         public Task SadOverrides(string modifiers, string @params, string diagnosticId) => Assert(GetCode(@override, modifiers, @params), diagnosticId);
 
-        [Theory]
-        [MemberData(nameof(HappyOverridesData))]
+        [Test]
+        [TestCaseSource(nameof(HappyOverridesData))]
         public Task HappyOverrides(string modifiers, string @params) => Assert(GetCode(@override, modifiers, @params));
 
-        [Theory]
-        [MemberData(nameof(SadInterfaceMethodData))]
-        [MemberData(nameof(HappyInterfaceMethodData))]
-        public Task HappyExplicits(string modifiers, string @params, params string[] diagnosticIds) => Assert(RemoveMarkUp(GetCode(@explicit, modifiers, @params)), diagnosticIds);
+        [Test]
+        [TestCaseSource(nameof(HappyInterfaceMethodData))]
+        public Task HappyExplicits(string modifiers, string @params) => Assert(RemoveMarkUp(GetCode(@explicit, modifiers, @params)));
 
-        [Theory]
-        [MemberData(nameof(SadData))]
+        [Test]
+        [TestCaseSource(nameof(SadInterfaceMethodData))]
+        public Task SadExplicits(string modifiers, string @params, string diagnosticId) => Assert(RemoveMarkUp(GetCode(@explicit, modifiers, @params)), diagnosticId);
+
+        [Test]
+        [TestCaseSource(nameof(SadData))]
         public Task SadDelegates(string modifiers, string @params, string diagnosticId) => Assert(GetCode(@delegate, modifiers, @params), diagnosticId);
 
-        [Theory]
-        [MemberData(nameof(HappyData))]
+        [Test]
+        [TestCaseSource(nameof(HappyData))]
         public Task HappyDelegates(string modifiers, string @params) => Assert(GetCode(@delegate, modifiers, @params));
 
-        [Theory]
-        [MemberData(nameof(SadInterfaceMethodData))]
+        [Test]
+        [TestCaseSource(nameof(SadInterfaceMethodData))]
         public Task SadInterfaceMethods(string modifiers, string @params, string diagnosticId) => Assert(GetCode(interfaceMethods, modifiers, @params), diagnosticId);
 
-        [Theory]
-        [MemberData(nameof(HappyInterfaceMethodData))]
+        [Test]
+        [TestCaseSource(nameof(HappyInterfaceMethodData))]
         public Task HappyInterfaceMethods(string modifiers, string @params) => Assert(GetCode(interfaceMethods, modifiers, @params));
 
 #if NET
-        [Theory]
-        [MemberData(nameof(SadInterfaceDefaultMethodData))]
+        [Test]
+        [TestCaseSource(nameof(SadInterfaceDefaultMethodData))]
         public Task SadInterfaceDefaultMethods(string modifiers, string @params, string diagnosticId) => Assert(GetCode(interfaceDefaultMethods, modifiers, @params), diagnosticId);
 
-        [Theory]
-        [MemberData(nameof(HappyInterfaceDefaultMethodData))]
+        [Test]
+        [TestCaseSource(nameof(HappyInterfaceDefaultMethodData))]
         public Task HappyInterfaceDefaultMethods(string modifiers, string @params) => Assert(GetCode(interfaceDefaultMethods, modifiers, @params));
 #endif
 

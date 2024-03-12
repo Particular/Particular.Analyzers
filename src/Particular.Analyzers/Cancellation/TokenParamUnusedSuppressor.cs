@@ -20,20 +20,25 @@
         {
             foreach (var diagnostic in context.ReportedDiagnostics)
             {
-                var node = diagnostic.Location.SourceTree.GetRoot(context.CancellationToken).FindNode(diagnostic.Location.SourceSpan);
+                var sourceTree = diagnostic.Location.SourceTree;
+                if (sourceTree is null)
+                {
+                    continue;
+                }
 
+                var node = sourceTree.GetRoot(context.CancellationToken).FindNode(diagnostic.Location.SourceSpan);
                 if (node == null)
                 {
                     continue;
                 }
 
-                if (!(node is ParameterSyntax parameter))
+                if (node is not ParameterSyntax parameter)
                 {
                     continue;
                 }
 
                 // cheapest checks first
-                if (!(parameter.Type is NameSyntax))
+                if (parameter.Type is not NameSyntax)
                 {
                     return;
                 }

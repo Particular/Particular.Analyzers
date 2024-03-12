@@ -3,8 +3,8 @@
     using System.Collections.Immutable;
     using System.Linq;
     using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Diagnostics;
     using Particular.Analyzers.Extensions;
 
@@ -27,12 +27,12 @@
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is MemberDeclarationSyntax member))
+            if (context.Node is not MemberDeclarationSyntax member)
             {
                 return;
             }
 
-            if (!(context.SemanticModel.GetMethod(member, context.CancellationToken, out var declaredSymbol) is IMethodSymbol method))
+            if (context.SemanticModel.GetMethod(member, context.CancellationToken, out var declaredSymbol) is not IMethodSymbol method || declaredSymbol is null)
             {
                 return;
             }

@@ -46,17 +46,17 @@
 
         static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            if (!(context.Node is InvocationExpressionSyntax invocation))
+            if (context.Node is not InvocationExpressionSyntax invocation)
             {
                 return;
             }
 
-            if (!(invocation.Expression is MemberAccessExpressionSyntax memberAccess))
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
             {
                 return;
             }
 
-            if (!(memberAccess.Name is IdentifierNameSyntax identifierName))
+            if (memberAccess.Name is not IdentifierNameSyntax identifierName)
             {
                 return;
             }
@@ -82,12 +82,12 @@
         {
             var loggerSymbol = context.SemanticModel.GetSymbolInfo(invocationSyntax, context.CancellationToken).Symbol;
 
-            if (!(loggerSymbol.GetMethodOrDefault() is IMethodSymbol method))
+            if (loggerSymbol is null || loggerSymbol.GetMethodOrDefault() is not IMethodSymbol method)
             {
                 return false;
             }
 
-            if (method.ReceiverType.ToString() != loggerFullName)
+            if (method is null || method.ReceiverType?.ToString() != loggerFullName)
             {
                 return false;
             }
@@ -100,10 +100,10 @@
                 var p = method.Parameters[i];
                 if (formatIndex < 0)
                 {
-                    if (p.Name == "message" || p.Name == "format")
+                    if (p.Name is "message" or "format")
                     {
                         var typeString = p.Type.ToString();
-                        if (typeString == "string" || typeString == "string?")
+                        if (typeString is "string" or "string?")
                         {
                             formatIndex = i;
                         }
@@ -114,7 +114,7 @@
                     if (p.Type is IArrayTypeSymbol arrayType)
                     {
                         var elementType = arrayType.ElementType.ToString();
-                        if (elementType == "object" || elementType == "object?")
+                        if (elementType is "object" or "object?")
                         {
                             argsIndex = i;
                             break;
