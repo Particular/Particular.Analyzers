@@ -199,7 +199,7 @@
         public static readonly DiagnosticDescriptor DictionaryHasUnsupportedKeyType = new(
             id: DiagnosticIds.DictionaryHasUnsupportedKeyType,
             title: "Dictionary keys should implement IEquatable<T>",
-            messageFormat: "This {0} uses the type {1} as its key, which is a reference type that does not implement IEquatable<T>, which means that every object added to the collection will be evaluated using reference equality (object.Equals()) to be unique. This is often (but not always) a mistake, especially when used as a cache, because every lookup will be a cache miss. Don't blindly suppress this diagnostic or change this code. Be sure to consider whether the collection is really meant to evaluate equality using default reference equality, or if doing so will cause unintended side effects from objects that have the same data appearing to be duplicated.",
+            messageFormat: "This {0} uses the type {1} as its key, which is a reference type that does not implement IEquatable<T>, which means that every object added to the collection will be evaluated using reference equality (object.Equals()) to be unique. This is often (but not always) a mistake, especially when used as a cache, because every lookup will be a cache miss. Before suppressing this diagnostic or changing the code, be sure to consider whether the collection is really meant to evaluate equality using default reference equality, or if doing so will cause unintended side effects from objects that have the same data appearing to be duplicated.",
             category: "Code",
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
