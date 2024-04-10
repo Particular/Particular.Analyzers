@@ -178,6 +178,12 @@
                 return true;
             }
 
+            if (type is ITypeParameterSymbol)
+            {
+                // Especially on extension methods and whatnot, the user will be warned on whatever concrete type they're using
+                return true;
+            }
+
             var implementsIEquatable = type.Interfaces
                 .Any(iface => iface.IsGenericType && iface.ConstructedFrom.Equals(knownTypes.IEquatableT, SymbolEqualityComparer.Default));
 

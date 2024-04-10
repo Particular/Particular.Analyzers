@@ -123,5 +123,23 @@
             return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
         }
 #endif
+
+        [Test]
+        public Task IgnoreGenericParameters()
+        {
+            var code = """
+                using System.Collections.Generic;
+
+                public static class Extensions
+                {
+                    public static void GoodExtensionMethod<T>(this HashSet<T> set)
+                    {
+                        // User will be warned on the type they are trying to use the method on
+                    }
+                }
+                """;
+
+            return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
+        }
     }
 }
