@@ -98,7 +98,11 @@
                 {
                     if (context.SemanticModel.GetTypeInfo(vDec.Declaration.Type).Type is ITypeSymbol typeSymbol)
                     {
-                        AnalyzeType(knownTypes, typeSymbol, nameSyntax, context.ReportDiagnostic);
+                        AnalyzeType(knownTypes, typeSymbol, nameSyntax, context.ReportDiagnostic, () =>
+                        {
+                            // In a (rare) multi-variable declaration, only report if all of the variable declarators don't use custom comparers
+                            return vDec.Declaration.Variables.All(variable => IsVariableDeclarationWithEqualityComparer(context, knownTypes, variable));
+                        });
                     }
                 }
 
@@ -111,7 +115,7 @@
                         {
                             if (context.SemanticModel.GetSymbolInfo(creationSyntax.Type, context.CancellationToken).Symbol is INamedTypeSymbol typeSymbol)
                             {
-                                AnalyzeType(knownTypes, typeSymbol, creationSyntax.Type, context.ReportDiagnostic);
+                                AnalyzeType(knownTypes, typeSymbol, creationSyntax.Type, context.ReportDiagnostic, () => IsVariableDeclarationWithEqualityComparer(context, knownTypes, variable));
                             }
                         }
                     }
@@ -150,7 +154,7 @@
             return syntax;
         }
 
-        static void AnalyzeType(KnownTypes knownTypes, ITypeSymbol type, SyntaxNode syntax, Action<Diagnostic> reportDiagnostic)
+        static void AnalyzeType(KnownTypes knownTypes, ITypeSymbol type, SyntaxNode syntax, Action<Diagnostic> reportDiagnostic, Func<bool>? additionalCheckIsOk = null)
         {
             if (type is IArrayTypeSymbol arrayType)
             {
@@ -162,12 +166,20 @@
             {
                 var key = namedType.TypeArguments[0];
 
-                if (!IsAppropriateDictionaryKey(knownTypes, key))
+                if (IsAppropriateDictionaryKey(knownTypes, key))
                 {
-                    var simpleType = namedType.Name.Split('`')[0];
-                    var diagnostic = Diagnostic.Create(DiagnosticDescriptors.DictionaryHasUnsupportedKeyType, syntax.GetLocation(), simpleType, key.ToDisplayString());
-                    reportDiagnostic(diagnostic);
+                    return;
                 }
+
+                if (additionalCheckIsOk?.Invoke() ?? false)
+                {
+                    return;
+                }
+
+                var simpleType = namedType.Name.Split('`')[0];
+                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.DictionaryHasUnsupportedKeyType, syntax.GetLocation(), simpleType, key.ToDisplayString());
+                reportDiagnostic(diagnostic);
+
             }
         }
 
@@ -204,6 +216,47 @@
             return hasEquals && hasGetHashCode;
         }
 
+        static bool IsVariableDeclarationWithEqualityComparer(SyntaxNodeAnalysisContext context, KnownTypes knownTypes, VariableDeclaratorSyntax variable)
+        {
+            if (variable.Initializer?.Value is not BaseObjectCreationExpressionSyntax initializer)
+            {
+                return false;
+            }
+
+            if (initializer.ArgumentList is null)
+            {
+                return false;
+            }
+
+            foreach (var arg in initializer.ArgumentList.Arguments)
+            {
+                var symbol = context.SemanticModel.GetSymbolInfo(arg.Expression, context.CancellationToken).Symbol;
+                var returnType = GetReturnTypeOf(symbol);
+
+                if (returnType is not null)
+                {
+                    var implementsIEqualityComparer = returnType.AllInterfaces
+                        .Any(iface => iface.IsGenericType && iface.ConstructedFrom.Equals(knownTypes.IEqualityComparerT, SymbolEqualityComparer.Default));
+
+                    if (implementsIEqualityComparer)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        static ITypeSymbol? GetReturnTypeOf(ISymbol? symbol) => symbol switch
+        {
+            IMethodSymbol m => m.ReceiverType,
+            IFieldSymbol f => f.Type,
+            IPropertySymbol p => p.Type,
+            _ => null
+        };
+
+
         class KnownTypes
         {
             public ImmutableHashSet<INamedTypeSymbol> DictionaryTypes { get; }
@@ -211,6 +264,8 @@
             public INamedTypeSymbol String { get; }
 
             public INamedTypeSymbol IEquatableT { get; }
+
+            public INamedTypeSymbol IEqualityComparerT { get; }
 
             public KnownTypes(Compilation compilation)
             {
@@ -233,6 +288,7 @@
 
                 String = compilation.GetSpecialType(SpecialType.System_String);
                 IEquatableT = compilation.GetTypeByMetadataName("System.IEquatable`1") ?? throw new Exception("Cannot find IEquatable<T>");
+                IEqualityComparerT = compilation.GetTypeByMetadataName("System.Collections.Generic.IEqualityComparer`1") ?? throw new Exception("Cannot find IEqualityComparer<T>");
             }
         }
     }
