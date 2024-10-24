@@ -9,6 +9,9 @@
         public static bool IsCancellationToken(this ITypeSymbol? type) =>
             type?.ToString() == "System.Threading.CancellationToken";
 
+        public static bool IsAsyncDisposable(this ITypeSymbol? type) =>
+            type?.ToString() == "System.IAsyncDisposable";
+
         public static bool IsCancellableContext(this ITypeSymbol? type)
         {
             if (type == null)

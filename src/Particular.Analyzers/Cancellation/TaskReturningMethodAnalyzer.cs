@@ -62,6 +62,11 @@
                 return;
             }
 
+            if (method.IsFromAsyncDisposable())
+            {
+                return;
+            }
+
             if (method.ContainingType?.IsCancellableContext() ?? false)
             {
                 return;
