@@ -91,6 +91,24 @@ class MyClass<T> where T : CancellableContext
     }
 }";
 
+        static readonly string asyncDisposable =
+@"namespace MyNamespace
+{
+    class MyAsyncDisposableClass : IAsyncDisposable
+    {
+        public ValueTask DisposeAsync() => throw new Exception();
+    }
+}";
+
+        static readonly string notAsyncDisposable =
+@"namespace MyNamespace
+{{
+    class MyFakeAsyncDisposableClass
+    {{
+        public {0} [|DisposeAsync|]({1}) => throw new Exception();
+    }}
+}}";
+
         static readonly List<string> notTaskTypes = ["void", "object", "IMessage"];
 
         static readonly List<string> taskTypes =
@@ -179,6 +197,13 @@ class MyClass<T> where T : CancellableContext
 
         [Test]
         public Task HappyEntryPoint() => Assert(entryPoint, c => c.CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+
+        [Test]
+        public Task HappyAsyncDisposable() => Assert(asyncDisposable);
+
+        [Test]
+        [TestCaseSource(nameof(SadData))]
+        public Task SadAsyncDisposable(string returnType, string @params) => Assert(GetCode(notAsyncDisposable, returnType, @params), DiagnosticIds.TaskReturningMethodNoCancellation);
 
         static string GetCode(string template, string returnType, string @params) => string.Format(template, returnType, @params);
 
