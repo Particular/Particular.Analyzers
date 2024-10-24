@@ -22,5 +22,8 @@
 
         public static bool IsEntryPoint(this IMethodSymbol method) =>
             method.ContainingType.Name == "Program" && method.Name == "Main";
+
+        public static bool IsFromAsyncDisposable(this IMethodSymbol method) =>
+            method is { Name: "DisposeAsync" } && method.ContainingType.AllInterfaces.Any(t => t.IsAsyncDisposable());
     }
 }
