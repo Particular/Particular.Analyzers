@@ -111,6 +111,40 @@ class MyClass<T> where T : CancellableContext
 }}";
 #endif
 
+        static readonly string asyncEventHandler =
+@"namespace MyNamespace
+{{
+    public delegate {0} [|AsyncEventHandler|]<in TEvent>(object sender, TEvent @event) where TEvent : EventArgs;
+
+    class MyClassWithAsyncEventHandler
+    {{
+        public event AsyncEventHandler<EventArgs> ShutdownAsync
+        {{
+            add => throw new Exception();
+            remove => throw new Exception();
+        }}
+
+        public void Initialize()
+        {{
+            ShutdownAsync += HandleShutdownAsync;
+            ShutdownAsync += (sender, @event) => throw new Exception();
+        }}
+
+        {0} [|HandleShutdownAsync|](object sender, EventArgs @event) => throw new Exception();
+    }}
+}}";
+
+        static readonly string notAsyncEventHandler =
+            @"namespace MyNamespace
+{{
+    public delegate {0} [|NotAsyncEventHandler|]<in TEvent>(object sender, TEvent @event);
+
+    class MyClassNotAsyncEventHandler
+    {{
+        {0} [|HandleShutdownAsync|](string sender, EventArgs @event) => throw new Exception();
+    }}
+}}";
+
         static readonly List<string> notTaskTypes = ["void", "object", "IMessage"];
 
         static readonly List<string> taskTypes =
@@ -122,6 +156,8 @@ class MyClass<T> where T : CancellableContext
             "ValueTask<string>",
 #endif
         ];
+
+        public static readonly Data TaskTypes = taskTypes.ToData();
 
         static readonly List<string> notTaskParams =
         [
@@ -208,6 +244,14 @@ class MyClass<T> where T : CancellableContext
         [TestCaseSource(nameof(SadData))]
         public Task SadAsyncDisposable(string returnType, string @params) => Assert(GetCode(notAsyncDisposable, returnType, @params), DiagnosticIds.TaskReturningMethodNoCancellation);
 #endif
+        [Test]
+        [TestCaseSource(nameof(TaskTypes))]
+        public Task HappyAsyncEventHandler(string returnType) => Assert(string.Format(asyncEventHandler, returnType));
+
+        [Test]
+        [TestCaseSource(nameof(TaskTypes))]
+        public Task SadAsyncEventHandler(string returnType) => Assert(string.Format(notAsyncEventHandler, returnType), DiagnosticIds.TaskReturningMethodNoCancellation);
+
         static string GetCode(string template, string returnType, string @params) => string.Format(template, returnType, @params);
 
         static string GetTestCode(string attribute, string returnType, string @params) => string.Format(test, attribute, returnType, @params);

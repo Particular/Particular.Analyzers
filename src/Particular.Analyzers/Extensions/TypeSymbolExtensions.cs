@@ -12,6 +12,24 @@
         public static bool IsAsyncDisposable(this ITypeSymbol? type) =>
             type?.ToString() == "System.IAsyncDisposable";
 
+        public static bool IsEventArgs(this ITypeSymbol? typeSymbol)
+        {
+            if (typeSymbol is ITypeParameterSymbol typeParameter)
+            {
+                return typeParameter.ConstraintTypes.Any(constraintType => constraintType.IsEventArgs());
+            }
+
+            while (typeSymbol != null)
+            {
+                if (typeSymbol.ToString() == "System.EventArgs")
+                {
+                    return true;
+                }
+                typeSymbol = typeSymbol.BaseType;
+            }
+            return false;
+        }
+
         public static bool IsCancellableContext(this ITypeSymbol? type)
         {
             if (type == null)
@@ -52,6 +70,6 @@
             type.StartsWith("System.Runtime.CompilerServices.ConfiguredTaskAwaitable<", StringComparison.Ordinal);
 
         public static bool IsFunc(this INamedTypeSymbol? type) =>
-            type != null && type.TypeArguments.Length > 0 && type.ToString().StartsWith("System.Func<", StringComparison.Ordinal);
+            type is { TypeArguments.Length: > 0 } && type.ToString().StartsWith("System.Func<", StringComparison.Ordinal);
     }
 }

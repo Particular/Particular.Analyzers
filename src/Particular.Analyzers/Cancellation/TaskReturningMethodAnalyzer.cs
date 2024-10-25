@@ -67,6 +67,16 @@
                 return;
             }
 
+            if (method.IsAsyncEventHandlerDelegate())
+            {
+                return;
+            }
+
+            if (method.IsAsyncEventHandler())
+            {
+                return;
+            }
+
             if (method.ContainingType?.IsCancellableContext() ?? false)
             {
                 return;
