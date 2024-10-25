@@ -12,6 +12,24 @@
         public static bool IsAsyncDisposable(this ITypeSymbol? type) =>
             type?.ToString() == "System.IAsyncDisposable";
 
+        public static bool IsEventArgs(this ITypeSymbol? typeSymbol)
+        {
+            if (typeSymbol is ITypeParameterSymbol typeParameter)
+            {
+                return typeParameter.ConstraintTypes.Any(constraintType => constraintType.IsEventArgs());
+            }
+
+            while (typeSymbol != null)
+            {
+                if (typeSymbol.ToString() == "System.EventArgs")
+                {
+                    return true;
+                }
+                typeSymbol = typeSymbol.BaseType;
+            }
+            return false;
+        }
+
         public static bool IsCancellableContext(this ITypeSymbol? type)
         {
             if (type == null)

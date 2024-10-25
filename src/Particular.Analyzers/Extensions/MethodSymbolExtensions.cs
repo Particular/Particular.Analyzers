@@ -25,5 +25,11 @@
 
         public static bool IsFromAsyncDisposable(this IMethodSymbol method) =>
             method is { Name: "DisposeAsync" } && method.ContainingType.AllInterfaces.Any(t => t.IsAsyncDisposable());
+        public static bool IsAsyncEventHandler(this IMethodSymbol? method) =>
+            method?.Parameters.Length == 2 && method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+            method.Parameters[1].Type.IsEventArgs();
+
+        public static bool IsAsyncEventHandlerDelegate(this IMethodSymbol? method) =>
+            method?.ContainingType.TypeKind == TypeKind.Delegate && method.IsAsyncEventHandler();
     }
 }
