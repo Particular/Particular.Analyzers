@@ -127,9 +127,21 @@ class MyClass<T> where T : CancellableContext
         public void Initialize()
         {{
             ShutdownAsync += HandleShutdownAsync;
+            ShutdownAsync += (sender, @event) => throw new Exception();
         }}
 
         {0} [|HandleShutdownAsync|](object sender, EventArgs @event) => throw new Exception();
+    }}
+}}";
+
+        static readonly string notAsyncEventHandler =
+            @"namespace MyNamespace
+{{
+    public delegate {0} [|NotAsyncEventHandler|]<in TEvent>(object sender, TEvent @event);
+
+    class MyClassNotAsyncEventHandler
+    {{
+        {0} [|HandleShutdownAsync|](string sender, EventArgs @event) => throw new Exception();
     }}
 }}";
 
@@ -235,6 +247,10 @@ class MyClass<T> where T : CancellableContext
         [Test]
         [TestCaseSource(nameof(TaskTypes))]
         public Task HappyAsyncEventHandler(string returnType) => Assert(string.Format(asyncEventHandler, returnType));
+
+        [Test]
+        [TestCaseSource(nameof(TaskTypes))]
+        public Task SadAsyncEventHandler(string returnType) => Assert(string.Format(notAsyncEventHandler, returnType), DiagnosticIds.TaskReturningMethodNoCancellation);
 
         static string GetCode(string template, string returnType, string @params) => string.Format(template, returnType, @params);
 
