@@ -70,6 +70,6 @@
             type.StartsWith("System.Runtime.CompilerServices.ConfiguredTaskAwaitable<", StringComparison.Ordinal);
 
         public static bool IsFunc(this INamedTypeSymbol? type) =>
-            type != null && type.TypeArguments.Length > 0 && type.ToString().StartsWith("System.Func<", StringComparison.Ordinal);
+            type is { TypeArguments.Length: > 0 } && type.ToString().StartsWith("System.Func<", StringComparison.Ordinal);
     }
 }
