@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Custom.Build.props" />
+  </Folder>
+  <Project Path="Particular.Analyzers.Tests/Particular.Analyzers.Tests.csproj" />
+  <Project Path="Particular.Analyzers/Particular.Analyzers.csproj" />
+</Solution>
