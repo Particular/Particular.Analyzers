@@ -36,7 +36,7 @@
                 logAnalyzerExecutionTime: false);
 
             var diagnostics = await compilation
-                .WithAnalyzers(ImmutableArray.Create(analyzer), analysisOptions)
+                .WithAnalyzers([analyzer], analysisOptions)
                 .GetAnalyzerDiagnosticsAsync(cancellationToken);
 
             if (exceptions.Any())

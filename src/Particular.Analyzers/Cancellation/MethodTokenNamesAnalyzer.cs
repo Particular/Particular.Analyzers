@@ -12,8 +12,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MethodTokenNamesAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.MethodCancellationTokenMisnamed);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.MethodCancellationTokenMisnamed];
 
         public override void Initialize(AnalysisContext context)
         {

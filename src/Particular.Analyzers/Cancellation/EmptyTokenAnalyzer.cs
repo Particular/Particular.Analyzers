@@ -10,9 +10,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class EmptyTokenAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.EmptyCancellationTokenDefaultLiteral,
-            DiagnosticDescriptors.EmptyCancellationTokenDefaultOperator);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.EmptyCancellationTokenDefaultLiteral, DiagnosticDescriptors.EmptyCancellationTokenDefaultOperator];
 
         public override void Initialize(AnalysisContext context)
         {

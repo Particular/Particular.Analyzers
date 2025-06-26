@@ -10,7 +10,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class AsyncVoidAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.AsyncVoid);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.AsyncVoid];
 
         public override void Initialize(AnalysisContext context)
         {

@@ -15,10 +15,12 @@
         static readonly string ExceptionType = "System.Exception";
         static readonly string OperationCanceledExceptionType = "System.OperationCanceledException";
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        [
             DiagnosticDescriptors.ImproperTryCatchSystemException,
             DiagnosticDescriptors.ImproperTryCatchOperationCanceled,
-            DiagnosticDescriptors.MultipleCancellationTokensInATry);
+            DiagnosticDescriptors.MultipleCancellationTokensInATry,
+        ];
 
         public override void Initialize(AnalysisContext context)
         {

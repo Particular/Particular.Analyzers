@@ -10,8 +10,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DateTimeNowAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.NowUsedInsteadOfUtcNow);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.NowUsedInsteadOfUtcNow];
 
         public override void Initialize(AnalysisContext context)
         {

@@ -10,8 +10,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DroppedTaskAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.DroppedTask);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.DroppedTask];
 
         public override void Initialize(AnalysisContext context)
         {

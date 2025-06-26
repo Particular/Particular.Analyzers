@@ -10,8 +10,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class TypeNameAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.NonInterfaceTypePrefixedWithI);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.NonInterfaceTypePrefixedWithI];
 
         public override void Initialize(AnalysisContext context)
         {

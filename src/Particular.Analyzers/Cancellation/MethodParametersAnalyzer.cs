@@ -11,11 +11,13 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class MethodParametersAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        [
             DiagnosticDescriptors.MethodCancellationTokenMisnamed,
             DiagnosticDescriptors.MethodMixedCancellation,
             DiagnosticDescriptors.MethodMultipleCancellableContexts,
-            DiagnosticDescriptors.MethodMultipleCancellationTokens);
+            DiagnosticDescriptors.MethodMultipleCancellationTokens,
+        ];
 
         public override void Initialize(AnalysisContext context)
         {
