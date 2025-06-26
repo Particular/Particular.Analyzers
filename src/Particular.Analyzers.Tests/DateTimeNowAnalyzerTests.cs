@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using NUnit.Framework;
-    using Particular.Analyzers.Cancellation;
     using Particular.Analyzers.Tests.Helpers;
 
     public class DateTimeNowAnalyzerTests : AnalyzerTestFixture<DateTimeNowAnalyzer>

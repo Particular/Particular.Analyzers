@@ -1,4 +1,4 @@
-﻿namespace Particular.Analyzers.Cancellation
+﻿namespace Particular.Analyzers
 {
     using System.Collections.Immutable;
     using System.Linq;
