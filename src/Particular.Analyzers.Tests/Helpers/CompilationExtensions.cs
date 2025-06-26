@@ -2,11 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.IO;
     using System.Linq;
-    using System.Threading.Tasks;
     using System.Threading;
+    using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -14,14 +13,13 @@
     {
         public static void Compile(this Compilation compilation)
         {
-            using (var peStream = new MemoryStream())
-            {
-                var emitResult = compilation.Emit(peStream);
+            using var peStream = new MemoryStream();
 
-                if (!emitResult.Success)
-                {
-                    throw new Exception("Compilation failed.");
-                }
+            var emitResult = compilation.Emit(peStream);
+
+            if (!emitResult.Success)
+            {
+                throw new Exception("Compilation failed.");
             }
         }
 
@@ -30,7 +28,7 @@
             var exceptions = new List<Exception>();
 
             var analysisOptions = new CompilationWithAnalyzersOptions(
-                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                new AnalyzerOptions([]),
                 (exception, _, __) => exceptions.Add(exception),
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: false);

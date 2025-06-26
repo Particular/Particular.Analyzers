@@ -8,7 +8,7 @@
 
     public class TestCustomizations
     {
-        HashSet<Type> typesForMetadataReferences = [
+        readonly HashSet<Type> typesForMetadataReferences = [
             typeof(object),
             typeof(Enumerable)
         ];
