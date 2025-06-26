@@ -14,7 +14,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DictionaryKeysAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.DictionaryHasUnsupportedKeyType);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.DictionaryHasUnsupportedKeyType];
 
         public override void Initialize(AnalysisContext context)
         {
@@ -99,10 +99,8 @@
                     if (context.SemanticModel.GetTypeInfo(vDec.Declaration.Type).Type is ITypeSymbol typeSymbol)
                     {
                         AnalyzeType(knownTypes, typeSymbol, nameSyntax, context.ReportDiagnostic, () =>
-                        {
                             // In a (rare) multi-variable declaration, only report if all of the variable declarators don't use custom comparers
-                            return vDec.Declaration.Variables.All(variable => IsVariableDeclarationWithEqualityComparer(context, knownTypes, variable));
-                        });
+                            vDec.Declaration.Variables.All(variable => IsVariableDeclarationWithEqualityComparer(context, knownTypes, variable)));
                     }
                 }
 

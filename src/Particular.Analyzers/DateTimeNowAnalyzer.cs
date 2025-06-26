@@ -1,4 +1,4 @@
-﻿namespace Particular.Analyzers.Cancellation
+﻿namespace Particular.Analyzers
 {
     using System.Collections.Immutable;
     using Microsoft.CodeAnalysis;
@@ -10,8 +10,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DateTimeNowAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.NowUsedInsteadOfUtcNow);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.NowUsedInsteadOfUtcNow];
 
         public override void Initialize(AnalysisContext context)
         {

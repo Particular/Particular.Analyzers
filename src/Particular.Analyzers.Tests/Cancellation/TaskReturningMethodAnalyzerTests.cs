@@ -52,7 +52,7 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
 
         static readonly string context =
 @"class MyClass<T> : CancellableContext where T : CancellableContext
-{{    
+{{
     {0} MyMethod({1}) => throw new Exception();
 }}";
 

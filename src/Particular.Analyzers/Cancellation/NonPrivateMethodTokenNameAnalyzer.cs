@@ -11,8 +11,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class NonPrivateMethodTokenNameAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.NonPrivateMethodSingleCancellationTokenMisnamed);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.NonPrivateMethodSingleCancellationTokenMisnamed];
 
         public override void Initialize(AnalysisContext context)
         {

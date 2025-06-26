@@ -20,9 +20,7 @@
                 SyntaxKind.MethodDeclaration);
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.CancellationTokenNonPrivateRequired,
-            DiagnosticDescriptors.CancellationTokenPrivateOptional);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.CancellationTokenNonPrivateRequired, DiagnosticDescriptors.CancellationTokenPrivateOptional];
 
         static void Analyze(SyntaxNodeAnalysisContext context)
         {

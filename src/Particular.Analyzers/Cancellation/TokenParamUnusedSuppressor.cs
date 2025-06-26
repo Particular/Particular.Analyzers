@@ -13,8 +13,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class TokenParamUnusedSuppressor : DiagnosticSuppressor
     {
-        public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => ImmutableArray.Create(
-            SuppressionDescriptors.CancellationTokenParameterUnused);
+        public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions => [SuppressionDescriptors.CancellationTokenParameterUnused];
 
         public override void ReportSuppressions(SuppressionAnalysisContext context)
         {

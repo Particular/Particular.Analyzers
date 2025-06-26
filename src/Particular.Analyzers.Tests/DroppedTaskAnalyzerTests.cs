@@ -105,6 +105,6 @@
         [TestCaseSource(nameof(HappyMethodData))]
         public Task HappyMethods(string method) => Assert(GetCode(method));
 
-        public static string GetCode(string method) => string.Format(code, method);
+        static string GetCode(string method) => string.Format(code, method);
     }
 }

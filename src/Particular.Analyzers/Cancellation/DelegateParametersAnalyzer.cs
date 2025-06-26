@@ -11,8 +11,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DelegateParametersAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.DelegateCancellationTokenMisplaced);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.DelegateCancellationTokenMisplaced];
 
         public override void Initialize(AnalysisContext context)
         {

@@ -11,8 +11,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class TaskReturningMethodAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.TaskReturningMethodNoCancellation);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.TaskReturningMethodNoCancellation];
 
         public override void Initialize(AnalysisContext context)
         {

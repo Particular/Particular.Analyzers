@@ -93,15 +93,12 @@
                 public class BadKey { }
                 """;
 
-            return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType, config =>
-            {
-                config
+            return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType, config => config
 #if NETFRAMEWORK
                     .AddMetadataReferenceUsing<System.Collections.Generic.ISet<string>>()
 #endif
                     .AddMetadataReferenceUsing<ConcurrentDictionary<string, string>>()
-                    .AddMetadataReferenceUsing<ImmutableDictionary<string, string>>();
-            });
+                    .AddMetadataReferenceUsing<ImmutableDictionary<string, string>>());
         }
 
 #if NET

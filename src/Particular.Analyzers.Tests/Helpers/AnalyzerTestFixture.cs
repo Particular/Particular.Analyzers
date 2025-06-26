@@ -38,10 +38,10 @@
         ];
 
         protected Task Assert(string markupCode, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
-            Assert(markupCode, Array.Empty<string>(), customize, cancellationToken);
+            Assert(markupCode, [], customize, cancellationToken);
 
         protected Task Assert(string markupCode, string expectedDiagnosticId, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
-            Assert(markupCode, new[] { expectedDiagnosticId }, customize, cancellationToken);
+            Assert(markupCode, [expectedDiagnosticId], customize, cancellationToken);
 
         protected async Task Assert(string markupCode, string[] expectedDiagnosticIds, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default)
         {
@@ -103,16 +103,13 @@ using NServiceBus;
             }
         }
 
-        protected static Document CreateDocument(string code, string externalTypes, TestCustomizations customizations)
-        {
-            return new AdhocWorkspace()
+        protected static Document CreateDocument(string code, string externalTypes, TestCustomizations customizations) => new AdhocWorkspace()
                 .AddProject("TestProject", LanguageNames.CSharp)
                 .WithCompilationOptions(customizations.CompilationOptions ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddMetadataReferences(customizations.GetMetadataReferences())
                 .AddDocument("Externaltypes", externalTypes)
                 .Project
                 .AddDocument("TestDocument", code);
-        }
 
         protected static void WriteCompilerDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
@@ -149,7 +146,7 @@ using NServiceBus;
 
             while (remainingCode.Length > 0)
             {
-                var beforeAndAfterOpening = remainingCode.Split(new[] { "[|" }, 2, StringSplitOptions.None);
+                var beforeAndAfterOpening = remainingCode.Split(["[|"], 2, StringSplitOptions.None);
 
                 if (beforeAndAfterOpening.Length == 1)
                 {
@@ -157,7 +154,7 @@ using NServiceBus;
                     break;
                 }
 
-                var midAndAfterClosing = beforeAndAfterOpening[1].Split(new[] { "|]" }, 2, StringSplitOptions.None);
+                var midAndAfterClosing = beforeAndAfterOpening[1].Split(["|]"], 2, StringSplitOptions.None);
 
                 if (midAndAfterClosing.Length == 1)
                 {

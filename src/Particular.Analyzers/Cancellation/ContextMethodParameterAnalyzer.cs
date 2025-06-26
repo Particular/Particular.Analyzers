@@ -10,8 +10,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ContextMethodParameterAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.CancellableContextMethodCancellationToken);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.CancellableContextMethodCancellationToken];
 
         public override void Initialize(AnalysisContext context)
         {

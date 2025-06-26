@@ -12,21 +12,19 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class LoggingAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.StructuredLoggingWithRepeatedToken);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.StructuredLoggingWithRepeatedToken];
 
-        static readonly ImmutableHashSet<string> wellKnownNsbLoggingMethodsWithFormat = new[]
-        {
+        static readonly ImmutableHashSet<string> wellKnownNsbLoggingMethodsWithFormat =
+        [
             "DebugFormat",
             "InfoFormat",
             "WarnFormat",
             "ErrorFormat",
             "FatalFormat",
-        }
-        .ToImmutableHashSet();
+        ];
 
-        static readonly ImmutableHashSet<string> wellKnownMsLoggingMethodsWithFormat = new[]
-        {
+        static readonly ImmutableHashSet<string> wellKnownMsLoggingMethodsWithFormat =
+        [
             "Log",
             "LogTrace",
             "LogDebug",
@@ -34,8 +32,7 @@
             "LogWarning",
             "LogError",
             "LogCritical",
-        }
-        .ToImmutableHashSet();
+        ];
 
         public override void Initialize(AnalysisContext context)
         {
@@ -157,6 +154,6 @@
             return true;
         }
 
-        static readonly Regex FormatExpressionArgumentRegex = new Regex(@"\{\w+\}", RegexOptions.Compiled);
+        static readonly Regex FormatExpressionArgumentRegex = new(@"\{\w+\}", RegexOptions.Compiled);
     }
 }

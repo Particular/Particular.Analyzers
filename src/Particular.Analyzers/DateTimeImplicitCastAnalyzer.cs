@@ -1,4 +1,4 @@
-﻿namespace Particular.Analyzers.Cancellation
+﻿namespace Particular.Analyzers
 {
     using System.Collections.Immutable;
     using System.Linq;
@@ -11,8 +11,7 @@
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DateTimeImplicitCastAnalyzer : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [DiagnosticDescriptors.ImplicitCastFromDateTimeToDateTimeOffset];
 
         public override void Initialize(AnalysisContext context)
         {
