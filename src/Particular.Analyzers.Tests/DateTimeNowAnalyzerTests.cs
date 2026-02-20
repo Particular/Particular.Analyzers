@@ -1,8 +1,8 @@
 ﻿namespace Particular.Analyzers.Tests
 {
     using System.Threading.Tasks;
+    using AnalyzerTesting;
     using NUnit.Framework;
-    using Particular.Analyzers.Tests.Helpers;
 
     public class DateTimeNowAnalyzerTests : AnalyzerTestFixture<DateTimeNowAnalyzer>
     {

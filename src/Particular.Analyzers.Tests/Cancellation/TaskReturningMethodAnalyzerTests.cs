@@ -3,11 +3,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using AnalyzerTesting;
+    using Helpers;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
-    using Particular.Analyzers.Tests.Helpers;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class TaskReturningMethodAnalyzerTests : AnalyzerTestFixture<TaskReturningMethodAnalyzer>
@@ -91,7 +92,6 @@ class MyClass<T> where T : CancellableContext
     }
 }";
 
-#if NET
         static readonly string asyncDisposable =
 @"namespace MyNamespace
 {
@@ -109,7 +109,6 @@ class MyClass<T> where T : CancellableContext
         public {0} [|DisposeAsync|]({1}) => throw new Exception();
     }}
 }}";
-#endif
 
         static readonly string asyncEventHandler =
 @"namespace MyNamespace
@@ -151,10 +150,8 @@ class MyClass<T> where T : CancellableContext
         [
             "Task",
             "Task<string>",
-#if NET
             "ValueTask",
             "ValueTask<string>",
-#endif
         ];
 
         public static readonly Data TaskTypes = taskTypes.ToData();
@@ -234,16 +231,14 @@ class MyClass<T> where T : CancellableContext
         public Task HappyTests(string attribute) => Assert(GetTestCode(attribute, taskTypes.First(), notTaskParams.First()));
 
         [Test]
-        public Task HappyEntryPoint() => Assert(entryPoint, c => c.CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+        public Task HappyEntryPoint() => Assert(entryPoint);
 
-#if NET
         [Test]
         public Task HappyAsyncDisposable() => Assert(asyncDisposable);
 
         [Test]
         [TestCaseSource(nameof(SadData))]
         public Task SadAsyncDisposable(string returnType, string @params) => Assert(GetCode(notAsyncDisposable, returnType, @params), DiagnosticIds.TaskReturningMethodNoCancellation);
-#endif
         [Test]
         [TestCaseSource(nameof(TaskTypes))]
         public Task HappyAsyncEventHandler(string returnType) => Assert(string.Format(asyncEventHandler, returnType));

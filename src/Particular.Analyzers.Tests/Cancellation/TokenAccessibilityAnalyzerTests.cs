@@ -3,9 +3,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using AnalyzerTesting;
+    using Helpers;
     using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
-    using Particular.Analyzers.Tests.Helpers;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class TokenAccessibilityAnalyzerTests : AnalyzerTestFixture<TokenAccessibilityAnalyzer>
@@ -53,13 +54,11 @@ class MyClass : IMyInterface
     {0} void MyMethod({1});
 }}";
 
-#if NET
         static readonly string interfaceDefaultMethods =
 @"interface IMyType
 {{
     {0} void MyMethod({1}) {{ }}
 }}";
-#endif
 
         static readonly List<string> privateParams =
         [
@@ -76,32 +75,32 @@ class MyClass : IMyInterface
         ];
 
         public static Data SadData =>
-            PrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenPrivateOptional)))
-            .Concat(NonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired)))).ToData();
+            ModifierLists.PrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenPrivateOptional)))
+            .Concat(ModifierLists.NonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired)))).ToData();
 
         public static Data HappyData =>
-            PrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param)))
-            .Concat(NonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param)))).ToData();
+            ModifierLists.PrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param)))
+            .Concat(ModifierLists.NonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param)))).ToData();
 
         public static Data SadOverridesData =>
-            NonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired))).ToData();
+            ModifierLists.NonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired))).ToData();
 
         public static Data HappyOverridesData =>
-            NonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param))).ToData();
+            ModifierLists.NonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param))).ToData();
 
         public static Data SadInterfaceMethodData =>
-            InterfaceNonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired))).ToData();
+            ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired))).ToData();
 
         public static Data HappyInterfaceMethodData =>
-            InterfaceNonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param))).ToData();
+            ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param))).ToData();
 
         public static Data SadInterfaceDefaultMethodData =>
-            InterfacePrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenPrivateOptional)))
-            .Concat(InterfaceNonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired)))).ToData();
+            ModifierLists.InterfacePrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenPrivateOptional)))
+            .Concat(ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired)))).ToData();
 
         public static Data HappyInterfaceDefaultMethodData =>
-            InterfacePrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param)))
-            .Concat(InterfaceNonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param)))).ToData();
+            ModifierLists.InterfacePrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param)))
+            .Concat(ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param)))).ToData();
 
         [Test]
         [TestCaseSource(nameof(SadData))]
@@ -143,7 +142,6 @@ class MyClass : IMyInterface
         [TestCaseSource(nameof(HappyInterfaceMethodData))]
         public Task HappyInterfaceMethods(string modifiers, string @params) => Assert(GetCode(interfaceMethods, modifiers, @params));
 
-#if NET
         [Test]
         [TestCaseSource(nameof(SadInterfaceDefaultMethodData))]
         public Task SadInterfaceDefaultMethods(string modifiers, string @params, string diagnosticId) => Assert(GetCode(interfaceDefaultMethods, modifiers, @params), diagnosticId);
@@ -151,7 +149,6 @@ class MyClass : IMyInterface
         [Test]
         [TestCaseSource(nameof(HappyInterfaceDefaultMethodData))]
         public Task HappyInterfaceDefaultMethods(string modifiers, string @params) => Assert(GetCode(interfaceDefaultMethods, modifiers, @params));
-#endif
 
         static string GetCode(string template, string modifiers, string @params) => string.Format(template, modifiers, @params);
 
