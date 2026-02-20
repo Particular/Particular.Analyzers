@@ -77,32 +77,32 @@ class MyClass : IMyInterface
         ];
 
         public static Data SadData =>
-            PrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenPrivateOptional)))
-            .Concat(NonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired)))).ToData();
+            ModifierLists.PrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenPrivateOptional)))
+            .Concat(ModifierLists.NonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired)))).ToData();
 
         public static Data HappyData =>
-            PrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param)))
-            .Concat(NonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param)))).ToData();
+            ModifierLists.PrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param)))
+            .Concat(ModifierLists.NonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param)))).ToData();
 
         public static Data SadOverridesData =>
-            NonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired))).ToData();
+            ModifierLists.NonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired))).ToData();
 
         public static Data HappyOverridesData =>
-            NonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param))).ToData();
+            ModifierLists.NonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param))).ToData();
 
         public static Data SadInterfaceMethodData =>
-            InterfaceNonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired))).ToData();
+            ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired))).ToData();
 
         public static Data HappyInterfaceMethodData =>
-            InterfaceNonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param))).ToData();
+            ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param))).ToData();
 
         public static Data SadInterfaceDefaultMethodData =>
-            InterfacePrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenPrivateOptional)))
-            .Concat(InterfaceNonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired)))).ToData();
+            ModifierLists.InterfacePrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenPrivateOptional)))
+            .Concat(ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param, DiagnosticIds.CancellationTokenNonPrivateRequired)))).ToData();
 
         public static Data HappyInterfaceDefaultMethodData =>
-            InterfacePrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param)))
-            .Concat(InterfaceNonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param)))).ToData();
+            ModifierLists.InterfacePrivateModifiers.SelectMany(modifiers => privateParams.Select(param => (modifiers, param)))
+            .Concat(ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => nonPrivateParams.Select(param => (modifiers, param)))).ToData();
 
         [Test]
         [TestCaseSource(nameof(SadData))]

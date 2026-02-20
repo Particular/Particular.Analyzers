@@ -14,29 +14,6 @@ using NUnit.Framework;
 
 public class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer, new()
 {
-    protected static readonly List<string> PrivateModifiers = ["", "private"];
-
-    protected static readonly List<string> NonPrivateModifiers = ["public", "protected", "internal", "protected internal", "private protected"];
-
-    protected static readonly List<string> InterfacePrivateModifiers =
-    [
-#if NET
-        "private",
-#endif
-    ];
-
-    protected static readonly List<string> InterfaceNonPrivateModifiers =
-    [
-        "",
-        "public",
-        "internal",
-#if NET
-        "protected",
-        "protected internal",
-        "private protected",
-#endif
-    ];
-
     protected Task Assert(string markupCode, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
         Assert(markupCode, [], customize, cancellationToken);
 
