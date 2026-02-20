@@ -12,8 +12,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 
-public class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer, new()
+public partial class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer, new()
 {
+    public virtual LanguageVersion AnalyzerLanguageVersion { get; } = LanguageVersion.CSharp14;
+
     protected Task Assert(string markupCode, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
         Assert(markupCode, [], customize, cancellationToken);
 
