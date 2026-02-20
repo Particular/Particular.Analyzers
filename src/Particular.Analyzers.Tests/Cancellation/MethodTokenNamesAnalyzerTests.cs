@@ -57,13 +57,11 @@ class MyClass : IMyInterface
     void MyMethod({0});
 }}";
 
-#if NET
         static readonly string interfaceDefaultMethods =
 @"interface IMyType
 {{
     void MyMethod({0}) {{ }}
 }}";
-#endif
 
         public static readonly Data SadPublicAndPrivateParams = new List<string>
         {
@@ -139,7 +137,6 @@ class MyClass : IMyInterface
         [TestCaseSource(nameof(HappyParams))]
         public Task HappyInterfaceMethods(string @params) => Assert(GetCode(interfaceMethods, @params));
 
-#if NET
         [Test]
         [TestCaseSource(nameof(SadPublicAndPrivateParams))]
         public Task SadInterfaceDefaultMethods(string @params) => Assert(GetCode(interfaceDefaultMethods, @params), DiagnosticIds.MethodCancellationTokenMisnamed);
@@ -147,7 +144,6 @@ class MyClass : IMyInterface
         [Test]
         [TestCaseSource(nameof(HappyParams))]
         public Task HappyInterfaceDefaultMethods(string @params) => Assert(GetCode(interfaceDefaultMethods, @params));
-#endif
 
         static string GetCode(string template, string @params) => string.Format(template, @params);
     }

@@ -102,7 +102,6 @@
             return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
         }
 
-#if NET
         [Test]
         public Task RecordTypesOk()
         {
@@ -120,7 +119,6 @@
 
             return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
         }
-#endif
 
         [Test]
         public Task IgnoreGenericParameters()

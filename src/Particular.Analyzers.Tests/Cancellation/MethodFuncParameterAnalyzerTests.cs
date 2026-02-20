@@ -72,16 +72,15 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
 
             ("Func<Task>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
             ("Func<Task<object>>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
-#if NET
+
             ("Func<ValueTask>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
             ("Func<ValueTask<object>>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
-#endif
+
             ("Func<object, Task>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
             ("Func<object, Task<object>>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
-#if NET
+
             ("Func<object, ValueTask>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
             ("Func<object, ValueTask<object>>", new[] { DiagnosticIds.MethodFuncParameterTaskReturnTypeNoCancellation }),
-#endif
         }.ToData();
 
         public static readonly Data HappyNames = new string[]
@@ -94,10 +93,9 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
 
             "Func<CancellationToken, Task>",
             "Func<CancellationToken, Task<object>>",
-#if NET
+
             "Func<CancellationToken, ValueTask>",
             "Func<CancellationToken, ValueTask<object>>",
-#endif
 
             "Func<ICancellableContext, Task>",
             "Func<CancellableContext, Task>",
