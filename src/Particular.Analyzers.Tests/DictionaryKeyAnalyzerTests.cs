@@ -3,8 +3,8 @@
     using System.Collections.Concurrent;
     using System.Collections.Immutable;
     using System.Threading.Tasks;
+    using AnalyzerTesting;
     using NUnit.Framework;
-    using Particular.Analyzers.Tests.Helpers;
 
     public class DictionaryKeysAnalyzerTests : AnalyzerTestFixture<DictionaryKeysAnalyzer>
     {

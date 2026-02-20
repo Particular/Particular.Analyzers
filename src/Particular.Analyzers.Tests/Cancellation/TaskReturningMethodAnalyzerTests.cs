@@ -3,11 +3,12 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using AnalyzerTesting;
+    using Helpers;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
-    using Particular.Analyzers.Tests.Helpers;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class TaskReturningMethodAnalyzerTests : AnalyzerTestFixture<TaskReturningMethodAnalyzer>

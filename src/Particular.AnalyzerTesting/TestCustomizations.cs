@@ -1,4 +1,4 @@
-﻿namespace Particular.Analyzers.Tests.Helpers;
+﻿namespace Particular.AnalyzerTesting;
 
 using System;
 using System.Collections.Generic;
