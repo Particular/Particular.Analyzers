@@ -235,7 +235,7 @@ class MyClass<T> where T : CancellableContext
         public Task HappyTests(string attribute) => Assert(GetTestCode(attribute, taskTypes.First(), notTaskParams.First()));
 
         [Test]
-        public Task HappyEntryPoint() => Assert(entryPoint, c => c.CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+        public Task HappyEntryPoint() => Assert(entryPoint);
 
 #if NET
         [Test]

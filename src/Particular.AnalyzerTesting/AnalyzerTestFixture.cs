@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,17 +17,21 @@ public partial class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : Diagnostic
 {
     public virtual LanguageVersion AnalyzerLanguageVersion { get; } = LanguageVersion.CSharp14;
 
-    protected Task Assert(string markupCode, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
-        Assert(markupCode, [], customize, cancellationToken);
+    readonly HashSet<Type> typesForMetadataReferences = [
+        typeof(object),
+        typeof(Enumerable)
+    ];
 
-    protected Task Assert(string markupCode, string expectedDiagnosticId, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default) =>
-        Assert(markupCode, [expectedDiagnosticId], customize, cancellationToken);
+    protected void AddMetadataReferenceUsing<TTypeFromAssembly>() => typesForMetadataReferences.Add(typeof(TTypeFromAssembly));
 
-    protected async Task Assert(string markupCode, string[] expectedDiagnosticIds, Action<TestCustomizations> customize = null, CancellationToken cancellationToken = default)
+    protected Task Assert(string markupCode, CancellationToken cancellationToken = default) =>
+        Assert(markupCode, [], cancellationToken);
+
+    protected Task Assert(string markupCode, string expectedDiagnosticId, CancellationToken cancellationToken = default) =>
+        Assert(markupCode, [expectedDiagnosticId], cancellationToken);
+
+    protected async Task Assert(string markupCode, string[] expectedDiagnosticIds, CancellationToken cancellationToken = default)
     {
-        var testCustomizations = new TestCustomizations();
-        customize?.Invoke(testCustomizations);
-
         var externalTypes =
             @"namespace NServiceBus
 {
@@ -49,7 +54,7 @@ using NServiceBus;
         var (code, markupSpans) = Parse(markupCode);
         WriteCode(code);
 
-        var document = CreateDocument(code, externalTypes, testCustomizations);
+        var document = CreateDocument(code, externalTypes);
 
         var compilerDiagnostics = await document.GetCompilerDiagnostics(cancellationToken);
         WriteCompilerDiagnostics(compilerDiagnostics);
@@ -82,10 +87,15 @@ using NServiceBus;
         }
     }
 
-    protected static Document CreateDocument(string code, string externalTypes, TestCustomizations customizations) => new AdhocWorkspace()
+    IEnumerable<MetadataReference> GetMetadataReferences() => typesForMetadataReferences
+        .Select(type => type.GetTypeInfo().Assembly)
+        .Distinct()
+        .Select(assembly => MetadataReference.CreateFromFile(assembly.Location));
+
+    Document CreateDocument(string code, string externalTypes) => new AdhocWorkspace()
         .AddProject("TestProject", LanguageNames.CSharp)
-        .WithCompilationOptions(customizations.CompilationOptions ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-        .AddMetadataReferences(customizations.GetMetadataReferences())
+        .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+        .AddMetadataReferences(GetMetadataReferences())
         .AddDocument("Externaltypes", externalTypes)
         .Project
         .AddDocument("TestDocument", code);

@@ -8,6 +8,12 @@
 
     public class DictionaryKeysAnalyzerTests : AnalyzerTestFixture<DictionaryKeysAnalyzer>
     {
+        public DictionaryKeysAnalyzerTests()
+        {
+            AddMetadataReferenceUsing<ConcurrentDictionary<string, string>>();
+            AddMetadataReferenceUsing<ImmutableDictionary<string, string>>();
+        }
+
         static readonly string template = """
             using System.Collections.Generic;
 
@@ -93,12 +99,7 @@
                 public class BadKey { }
                 """;
 
-            return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType, config => config
-#if NETFRAMEWORK
-                    .AddMetadataReferenceUsing<System.Collections.Generic.ISet<string>>()
-#endif
-                    .AddMetadataReferenceUsing<ConcurrentDictionary<string, string>>()
-                    .AddMetadataReferenceUsing<ImmutableDictionary<string, string>>());
+            return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
         }
 
 #if NET
