@@ -1,19 +1,11 @@
 ﻿namespace Particular.Analyzers.Tests
 {
-    using System.Collections.Concurrent;
-    using System.Collections.Immutable;
     using System.Threading.Tasks;
     using AnalyzerTesting;
     using NUnit.Framework;
 
     public class DictionaryKeysAnalyzerTests : AnalyzerTestFixture<DictionaryKeysAnalyzer>
     {
-        public DictionaryKeysAnalyzerTests()
-        {
-            AddMetadataReferenceUsing<ConcurrentDictionary<string, string>>();
-            AddMetadataReferenceUsing<ImmutableDictionary<string, string>>();
-        }
-
         static readonly string template = """
             using System.Collections.Generic;
 

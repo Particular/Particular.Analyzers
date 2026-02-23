@@ -77,7 +77,7 @@ public partial class AnalyzerTest
 
     public AnalyzerTest ExpectDiagnosticIds(params string[] expectedDiagnosticIds)
     {
-        this.expectedIds = expectedDiagnosticIds;
+        expectedIds = expectedDiagnosticIds;
         return this;
     }
 
