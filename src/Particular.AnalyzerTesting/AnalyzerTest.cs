@@ -23,6 +23,7 @@ public partial class AnalyzerTest
     readonly List<DiagnosticAnalyzer> analyzers = [];
     readonly List<string> commonUsings = [];
     string[] expectedIds = [];
+    static Action<AnalyzerTest>? configureAllTests;
 
     public List<MetadataReference> References { get; } = [];
     public LanguageVersion LangVersion { get; set; } = LanguageVersion.CSharp14;
@@ -38,7 +39,12 @@ public partial class AnalyzerTest
                 References.Add(MetadataReference.CreateFromFile(assembly.Location));
             }
         }
+
+        configureAllTests?.Invoke(this);
     }
+
+    public static void ConfigureAllAnalyzerTests(Action<AnalyzerTest> configure)
+        => configureAllTests = configure;
 
     public static AnalyzerTest ForAnalyzer<TAnalyzer>([CallerMemberName] string? outputAssemblyName = null)
         where TAnalyzer : DiagnosticAnalyzer, new()
