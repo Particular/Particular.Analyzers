@@ -12,4 +12,8 @@
     <PackageReference Include="NUnit" Version="4.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Particular.Analyzers.Tests" />
+  </ItemGroup>
+
 </Project>

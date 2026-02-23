@@ -219,5 +219,4 @@ public partial class AnalyzerTest
     }
 
     record SourceFile(string Filename, string Source, TextSpan[] Spans);
-
 }

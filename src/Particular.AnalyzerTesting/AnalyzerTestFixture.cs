@@ -1,17 +1,17 @@
-﻿namespace Particular.AnalyzerTesting;
+﻿#nullable enable
+
+namespace Particular.AnalyzerTesting;
 
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-public partial class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer, new()
+public class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer, new()
 {
     public virtual LanguageVersion AnalyzerLanguageVersion { get; } = LanguageVersion.CSharp14;
 
-    protected virtual void ConfigureFixtureTests(AnalyzerTest test)
-    {
-    }
+    protected virtual void ConfigureFixtureTests(AnalyzerTest test) { }
 
     protected Task Assert(string markupCode, CancellationToken cancellationToken = default) =>
         Assert(markupCode, [], cancellationToken);
@@ -26,8 +26,12 @@ public partial class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : Diagnostic
 
         ConfigureFixtureTests(test);
 
-        return test.WithSource(markupCode, "Code.cs")
-            .ExpectDiagnosticIds(expectedDiagnosticIds)
+        foreach (var file in MarkupSplitter.SplitMarkup(markupCode))
+        {
+            test.WithSource(file.Content, file.Filename);
+        }
+
+        return test.ExpectDiagnosticIds(expectedDiagnosticIds)
             .Run(cancellationToken);
     }
 }
