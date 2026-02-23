@@ -31,7 +31,6 @@ public class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer
             test.WithSource(file.Content, file.Filename);
         }
 
-        return test.ExpectDiagnosticIds(expectedDiagnosticIds)
-            .Run(cancellationToken);
+        return test.AssertDiagnostics(expectedDiagnosticIds);
     }
 }

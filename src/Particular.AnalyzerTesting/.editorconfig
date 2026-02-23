@@ -3,5 +3,8 @@
 # Justification: Tests have no synchronization context and don't need to ConfigureAwait(false)
 dotnet_diagnostic.CA2007.severity = none
 
-# Justification: Tests don't support cancellation and don't need to forward IMessageHandlerContext.CancellationToken
+# Justification: Tests don't need to forward IMessageHandlerContext.CancellationToken
 dotnet_diagnostic.NSB0002.severity = suggestion
+
+# Justification: Tests don't need to have cancellation tokens
+dotnet_diagnostic.PS0018.severity = suggestion

@@ -22,7 +22,6 @@ public partial class AnalyzerTest
     readonly List<(string Filename, string MarkupSource)> sources = [];
     readonly List<DiagnosticAnalyzer> analyzers = [];
     readonly List<string> commonUsings = [];
-    string[] expectedIds = [];
     static Action<AnalyzerTest>? configureAllTests;
 
     public List<MetadataReference> References { get; } = [];
@@ -81,17 +80,13 @@ public partial class AnalyzerTest
         return this;
     }
 
-    public AnalyzerTest ExpectDiagnosticIds(params string[] expectedDiagnosticIds)
-    {
-        expectedIds = expectedDiagnosticIds;
-        return this;
-    }
-
     [GeneratedRegex(@"\r?\n", RegexOptions.Compiled)]
     private static partial Regex NewLineRegex();
 
-    public async Task Run(CancellationToken cancellationToken = default)
+    public async Task AssertDiagnostics(params string[] expectedDiagnosticIds)
     {
+        var cancellationToken = TestContext.CurrentContext.CancellationToken;
+
         var codeSources = sources.Select(s => Parse(s.Filename, s.MarkupSource))
             .ToImmutableArray();
 
@@ -129,7 +124,7 @@ public partial class AnalyzerTest
         OutputAnalyzerDiagnostics(analyzerDiagnostics);
 
         var expectedDiagnostics = codeSources.SelectMany(src => src.Spans.Select(span => (src.Filename, span)))
-            .SelectMany(src => expectedIds.Select(id => new DiagnosticInfo(src.Filename, src.span, id)));
+            .SelectMany(src => expectedDiagnosticIds.Select(id => new DiagnosticInfo(src.Filename, src.span, id)));
 
         var actualDiagnostics = analyzerDiagnostics
             .Select(diagnostic => new DiagnosticInfo(diagnostic.Location.SourceTree?.FilePath ?? "<null-file>", diagnostic.Location.SourceSpan, diagnostic.Id));
