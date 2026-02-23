@@ -95,20 +95,7 @@ public partial class AnalyzerTest
         var codeSources = sources.Select(s => Parse(s.Filename, s.MarkupSource))
             .ToImmutableArray();
 
-        foreach (var source in codeSources)
-        {
-            await TestContext.Out.WriteLineAsync($"// == {source.Filename} ===============================");
-            var lines = NewLineRegex().Split(source.Source)
-                .Select((line, index) => (line, index))
-                .ToImmutableArray();
-            var lineNumberSize = (lines.Length + 1).ToString().Length;
-            var format = $$"""{0,{{lineNumberSize}}}: {1}""";
-
-            foreach (var (line, index) in lines)
-            {
-                await TestContext.Out.WriteLineAsync(string.Format(format, index + 1, line));
-            }
-        }
+        OutputCode(codeSources);
 
         var project = new AdhocWorkspace()
             .AddProject(outputAssemblyName, LanguageNames.CSharp)
@@ -124,7 +111,7 @@ public partial class AnalyzerTest
                 .Select(doc => doc.GetCompilerDiagnostics(cancellationToken))))
             .SelectMany(diagnostics => diagnostics);
 
-        WriteCompilerDiagnostics(compilerDiagnostics);
+        OutputCompilerDiagnostics(compilerDiagnostics);
 
         var compilation = await project.GetCompilationAsync(cancellationToken);
         compilation.Compile();
@@ -139,12 +126,7 @@ public partial class AnalyzerTest
             .SelectMany(t => t.Result)
             .ToArray();
 
-        await TestContext.Out.WriteLineAsync("Analyzer diagnostics:");
-
-        foreach (var diagnostic in analyzerDiagnostics)
-        {
-            await TestContext.Out.WriteLineAsync($"  {diagnostic}");
-        }
+        OutputAnalyzerDiagnostics(analyzerDiagnostics);
 
         var expectedDiagnostics = codeSources.SelectMany(src => src.Spans.Select(span => (src.Filename, span)))
             .SelectMany(src => expectedIds.Select(id => new DiagnosticInfo(src.Filename, src.span, id)));
@@ -153,18 +135,6 @@ public partial class AnalyzerTest
             .Select(diagnostic => new DiagnosticInfo(diagnostic.Location.SourceTree?.FilePath ?? "<null-file>", diagnostic.Location.SourceSpan, diagnostic.Id));
 
         Assert.That(actualDiagnostics, Is.EqualTo(expectedDiagnostics));
-    }
-
-    record DiagnosticInfo(string Filename, TextSpan Span, string Id);
-
-    static void WriteCompilerDiagnostics(IEnumerable<Diagnostic> diagnostics)
-    {
-        TestContext.Out.WriteLine("Compiler diagnostics:");
-
-        foreach (var diagnostic in diagnostics)
-        {
-            TestContext.Out.WriteLine($"  {diagnostic}");
-        }
     }
 
     SourceFile Parse(string filename, string markupCode)
@@ -218,5 +188,59 @@ public partial class AnalyzerTest
         return new SourceFile(filename, code.ToString(), [.. markupSpans]);
     }
 
+    static void OutputCode(ImmutableArray<SourceFile> codeSources)
+    {
+        if (!AnalyzerTestFixtureState.VerboseLogging)
+        {
+            return;
+        }
+
+        foreach (var source in codeSources)
+        {
+            TestContext.Out.WriteLine($"// == {source.Filename} ===============================");
+            var lines = NewLineRegex().Split(source.Source)
+                .Select((line, index) => (line, index))
+                .ToImmutableArray();
+            var lineNumberSize = (lines.Length + 1).ToString().Length;
+            var format = $$"""{0,{{lineNumberSize}}}: {1}""";
+
+            foreach (var (line, index) in lines)
+            {
+                TestContext.Out.WriteLine(string.Format(format, index + 1, line));
+            }
+        }
+    }
+
+    static void OutputCompilerDiagnostics(IEnumerable<Diagnostic> diagnostics)
+    {
+        if (!AnalyzerTestFixtureState.VerboseLogging)
+        {
+            return;
+        }
+
+        TestContext.Out.WriteLine("Compiler diagnostics:");
+
+        foreach (var diagnostic in diagnostics)
+        {
+            TestContext.Out.WriteLine($"  {diagnostic}");
+        }
+    }
+
+    static void OutputAnalyzerDiagnostics(Diagnostic[] analyzerDiagnostics)
+    {
+        if (!AnalyzerTestFixtureState.VerboseLogging)
+        {
+            return;
+        }
+
+        TestContext.Out.WriteLine("Analyzer diagnostics:");
+
+        foreach (var diagnostic in analyzerDiagnostics)
+        {
+            TestContext.Out.WriteLine($"  {diagnostic}");
+        }
+    }
+
     record SourceFile(string Filename, string Source, TextSpan[] Spans);
+    record DiagnosticInfo(string Filename, TextSpan Span, string Id);
 }
