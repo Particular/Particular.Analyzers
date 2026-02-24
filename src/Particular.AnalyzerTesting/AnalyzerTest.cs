@@ -11,8 +11,12 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 
@@ -20,7 +24,9 @@ public partial class AnalyzerTest
 {
     readonly string outputAssemblyName;
     readonly List<(string Filename, string MarkupSource)> sources = [];
+    readonly List<(string Filename, string Expected)> expectedFixResults = [];
     readonly List<DiagnosticAnalyzer> analyzers = [];
+    readonly List<CodeFixProvider> codeFixes = [];
     readonly List<string> commonUsings = [];
     static Action<AnalyzerTest>? configureAllTests;
 
@@ -51,8 +57,16 @@ public partial class AnalyzerTest
 
     public AnalyzerTest WithSource(string source, string? filename = null)
     {
-        filename ??= $"Source{sources.Count:00}.cs";
+        filename ??= $"CodeFile{sources.Count:00}.cs";
         sources.Add((filename, source));
+        return this;
+    }
+
+    public AnalyzerTest WithCodeFixSource(string source, string expectedResult, string? filename = null)
+    {
+        filename ??= $"CodeFile{sources.Count:00}.cs";
+        sources.Add((filename, source));
+        expectedFixResults.Add((filename, expectedResult));
         return this;
     }
 
@@ -62,15 +76,24 @@ public partial class AnalyzerTest
         return this;
     }
 
+    public AnalyzerTest WithCodeFix<TCodeFix>() where TCodeFix : CodeFixProvider, new()
+    {
+        codeFixes.Add(new TCodeFix());
+        return this;
+    }
+
     public AnalyzerTest WithLangVersion(LanguageVersion langVersion)
     {
         LangVersion = langVersion;
         return this;
     }
 
-    public AnalyzerTest AddReference(MetadataReference reference)
+    public AnalyzerTest AddReferences(params MetadataReference[] references)
+        => AddReferences(references.AsEnumerable());
+
+    public AnalyzerTest AddReferences(IEnumerable<MetadataReference> references)
     {
-        References.Add(reference);
+        References.AddRange(references);
         return this;
     }
 
@@ -83,15 +106,124 @@ public partial class AnalyzerTest
     [GeneratedRegex(@"\r?\n", RegexOptions.Compiled)]
     private static partial Regex NewLineRegex();
 
+    public async Task AssertCodeFixes(bool fixMustCompile = true)
+    {
+        var cancellationToken = TestContext.CurrentContext.CancellationToken;
+
+        var codeSources = sources.Select(s => CreateFile(s.Filename, s.MarkupSource, parseDiagnosticMarkup: false))
+            .ToImmutableArray();
+        OutputCode(codeSources);
+
+        var expectedResults = expectedFixResults.Select(s => CreateFile(s.Filename, s.Expected, parseDiagnosticMarkup: false))
+            .ToImmutableArray();
+
+        var project = CreateProject(codeSources);
+        var compilerDiagnostics = await GetCompilerDiagnostics(project, cancellationToken);
+
+        var compilation = await project.GetCompilationAsync(cancellationToken);
+        compilation.Compile(fixMustCompile);
+
+        var analyzerDiagnostics = await GetAnalyzerDiagnostics(compilation, cancellationToken);
+
+        // TODO: Reconfigure to be able to return code files here if no code diagnostics exist to run code fixes on
+
+        var actions = await GetCodeFixActions(project, analyzerDiagnostics, cancellationToken);
+        var actionsByDocumentName = actions.ToLookup(a => a.Document.Name);
+
+        List<SourceFile> updatedSources = [];
+        foreach (var projectDocument in project.Documents)
+        {
+            var document = projectDocument;
+            foreach (var action in actionsByDocumentName[document.Name])
+            {
+                var operations = await action.Action.GetOperationsAsync(cancellationToken);
+                var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
+                document = solution.GetDocument(document!.Id);
+            }
+
+            if (document is not null)
+            {
+                var updatedSource = await GetUpdatedCode(document, cancellationToken);
+                updatedSources.Add(new(projectDocument.Name, updatedSource, []));
+            }
+        }
+
+        var updatedProject = CreateProject(updatedSources);
+        var updatedDiagnostics = await GetCompilerDiagnostics(updatedProject, cancellationToken);
+
+        if (fixMustCompile)
+        {
+            Assert.That(updatedDiagnostics, Is.EqualTo(compilerDiagnostics).AsCollection, "Fix introduced new compiler diagnostics.");
+        }
+
+        var updatedSourcesByFilename = updatedSources.ToDictionary(s => s.Filename);
+        foreach (var expectedSource in expectedFixResults)
+        {
+            var updated = updatedSourcesByFilename.GetValueOrDefault(expectedSource.Filename);
+            Assert.That(updated, Is.Not.Null, $"No updated code for source filename {expectedSource.Filename}");
+            Assert.That(updated!.Source, Is.EqualTo(expectedSource.Expected).IgnoreLineEndingFormat);
+        }
+    }
+
+    async Task<string> GetUpdatedCode(Document document, CancellationToken cancellationToken)
+    {
+        var simplifiedDoc = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken);
+        var root = await simplifiedDoc.GetSyntaxRootAsync(cancellationToken);
+        root = Formatter.Format(root!, Formatter.Annotation, simplifiedDoc.Project.Solution.Workspace, cancellationToken: cancellationToken);
+        return root.GetText().ToString();
+
+    }
+
+    async Task<(Document Document, CodeAction Action)[]> GetCodeFixActions(Project project, Diagnostic[] diagnostics, CancellationToken cancellationToken)
+    {
+        var diagnosticsByFile = diagnostics.ToLookup(d => d.Location.SourceTree!.FilePath);
+        var fixesById = codeFixes.SelectMany(fix => fix.FixableDiagnosticIds.Select(id => (id, fix)))
+            .ToLookup(f => f.id, f => f.fix);
+
+        var actions = new List<(Document Document, CodeAction Action)>();
+
+        foreach (var document in project.Documents)
+        {
+            foreach (var diagnostic in diagnosticsByFile[document.Name])
+            {
+                foreach (var fixProvider in fixesById[diagnostic.Id])
+                {
+                    var context = new CodeFixContext(document, diagnostic, (action, _) => actions.Add((document, action)), cancellationToken);
+                    await fixProvider.RegisterCodeFixesAsync(context);
+                }
+            }
+        }
+
+        return [.. actions];
+    }
+
     public async Task AssertDiagnostics(params string[] expectedDiagnosticIds)
     {
         var cancellationToken = TestContext.CurrentContext.CancellationToken;
 
-        var codeSources = sources.Select(s => Parse(s.Filename, s.MarkupSource))
+        var codeSources = sources.Select(s => CreateFile(s.Filename, s.MarkupSource, parseDiagnosticMarkup: true))
             .ToImmutableArray();
-
         OutputCode(codeSources);
 
+        var project = CreateProject(codeSources);
+        _ = await GetCompilerDiagnostics(project, cancellationToken);
+
+        var compilation = await project.GetCompilationAsync(cancellationToken);
+        compilation.Compile();
+
+        var analyzerDiagnostics = await GetAnalyzerDiagnostics(compilation, cancellationToken);
+
+        var expectedDiagnostics = codeSources.SelectMany(src => src.Spans.Select(span => (src.Filename, span)))
+            .SelectMany(src => expectedDiagnosticIds.Select(id => new DiagnosticInfo(src.Filename, src.span, id)));
+
+        var actualDiagnostics = analyzerDiagnostics
+            .Select(diagnostic => new DiagnosticInfo(diagnostic.Location.SourceTree?.FilePath ?? "<null-file>", diagnostic.Location.SourceSpan, diagnostic.Id));
+
+        Assert.That(actualDiagnostics, Is.EqualTo(expectedDiagnostics));
+    }
+
+    Project CreateProject(IEnumerable<SourceFile> codeSources)
+    {
         var project = new AdhocWorkspace()
             .AddProject(outputAssemblyName, LanguageNames.CSharp)
             .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
@@ -102,15 +234,22 @@ public partial class AnalyzerTest
             project = project.AddDocument(source.Filename, source.Source).Project;
         }
 
+        return project;
+    }
+
+    static async Task<Diagnostic[]> GetCompilerDiagnostics(Project project, CancellationToken cancellationToken)
+    {
         var compilerDiagnostics = (await Task.WhenAll(project.Documents
                 .Select(doc => doc.GetCompilerDiagnostics(cancellationToken))))
-            .SelectMany(diagnostics => diagnostics);
+            .SelectMany(diagnostics => diagnostics)
+            .ToArray();
 
         OutputCompilerDiagnostics(compilerDiagnostics);
+        return compilerDiagnostics;
+    }
 
-        var compilation = await project.GetCompilationAsync(cancellationToken);
-        compilation.Compile();
-
+    async Task<Diagnostic[]> GetAnalyzerDiagnostics(Compilation? compilation, CancellationToken cancellationToken)
+    {
         var analyzerTasks = analyzers
             .Select(analyzer => compilation.GetAnalyzerDiagnostics(analyzer, cancellationToken))
             .ToArray();
@@ -122,19 +261,12 @@ public partial class AnalyzerTest
             .ToArray();
 
         OutputAnalyzerDiagnostics(analyzerDiagnostics);
-
-        var expectedDiagnostics = codeSources.SelectMany(src => src.Spans.Select(span => (src.Filename, span)))
-            .SelectMany(src => expectedDiagnosticIds.Select(id => new DiagnosticInfo(src.Filename, src.span, id)));
-
-        var actualDiagnostics = analyzerDiagnostics
-            .Select(diagnostic => new DiagnosticInfo(diagnostic.Location.SourceTree?.FilePath ?? "<null-file>", diagnostic.Location.SourceSpan, diagnostic.Id));
-
-        Assert.That(actualDiagnostics, Is.EqualTo(expectedDiagnostics));
+        return analyzerDiagnostics;
     }
 
-    SourceFile Parse(string filename, string markupCode)
+    SourceFile CreateFile(string filename, string sourceCode, bool parseDiagnosticMarkup)
     {
-        var code = new StringBuilder(markupCode.Length + (commonUsings.Count * 20));
+        var code = new StringBuilder(sourceCode.Length + (commonUsings.Count * 20));
 
         if (commonUsings.Count > 0)
         {
@@ -148,10 +280,16 @@ public partial class AnalyzerTest
             code.AppendLine();
         }
 
+        if (!parseDiagnosticMarkup)
+        {
+            code.Append(sourceCode);
+            return new SourceFile(filename, code.ToString(), []);
+        }
+
         var markupSpans = new List<TextSpan>();
         var prefixOffset = code.Length;
 
-        var remainingCode = markupCode;
+        var remainingCode = sourceCode;
         var remainingCodeStart = 0;
 
         while (remainingCode.Length > 0)
@@ -183,7 +321,7 @@ public partial class AnalyzerTest
         return new SourceFile(filename, code.ToString(), [.. markupSpans]);
     }
 
-    static void OutputCode(ImmutableArray<SourceFile> codeSources)
+    static void OutputCode(IEnumerable<SourceFile> codeSources)
     {
         if (!AnalyzerTestFixtureState.VerboseLogging)
         {

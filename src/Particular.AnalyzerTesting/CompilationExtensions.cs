@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -11,16 +12,22 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 static class CompilationExtensions
 {
-    public static void Compile(this Compilation compilation)
+    public static void Compile(this Compilation compilation, bool throwOnFailure = true)
     {
         using var peStream = new MemoryStream();
-
         var emitResult = compilation.Emit(peStream);
 
-        if (!emitResult.Success)
+        if (emitResult.Success)
+        {
+            return;
+        }
+
+        if (throwOnFailure)
         {
             throw new Exception("Compilation failed.");
         }
+
+        Debug.WriteLine("Compilation failed.");
     }
 
     public static async Task<IEnumerable<Diagnostic>> GetAnalyzerDiagnostics(this Compilation compilation, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken = default)
