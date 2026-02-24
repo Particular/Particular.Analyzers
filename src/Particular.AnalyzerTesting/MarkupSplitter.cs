@@ -3,6 +3,7 @@ namespace Particular.AnalyzerTesting;
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 
 record MarkupFile(string Filename, string Content);
@@ -14,35 +15,52 @@ static partial class MarkupSplitter
         List<MarkupFile> files = [];
 
         var markupCodeSpan = markupCode.AsSpan();
-        int pos = 0;
         int filenameCounter = 0;
-        string? nextFilename = null;
-        var matches = DocumentSplittingRegex().Matches(markupCode);
-        foreach (Match splitMatch in matches)
+        var b = new StringBuilder();
+        string? filename = null;
+
+        foreach (var lineRange in NewLineRegex().EnumerateSplits(markupCode))
         {
-            if (splitMatch.Index > 0)
+            var line = markupCodeSpan[lineRange.Start.Value..lineRange.End.Value];
+
+            if (line.StartsWith("//"))
             {
-                var beforeSlice = markupCodeSpan.Slice(pos, splitMatch.Index - pos);
-                var filename = nextFilename ?? $"Test{++filenameCounter}.cs";
-                files.Add(new MarkupFile(filename, beforeSlice.ToString()));
+                var match = FilenameRegex().Match(line.ToString());
+                if (match.Success)
+                {
+                    filename = match.Groups["Filename"].Value;
+                    continue;
+                }
             }
 
-            var filenameMatch = splitMatch.Groups["Filename"].Value;
-            nextFilename = filenameMatch.Length > 0 ? filenameMatch : null;
+            if (line.StartsWith("-----"))
+            {
+                if (b.Length > 0)
+                {
+                    filename ??= $"Test{++filenameCounter}.cs";
+                    files.Add(new MarkupFile(filename, b.ToString().TrimEnd()));
+                    filename = null;
+                    _ = b.Clear();
+                }
 
-            pos = splitMatch.Index + splitMatch.Length;
+                continue;
+            }
+
+            b.AppendLine(line.ToString());
         }
 
-        if (pos < markupCodeSpan.Length)
+        if (b.Length > 0)
         {
-            var filename = nextFilename ?? $"Test{++filenameCounter}.cs";
-
-            files.Add(new MarkupFile(filename, markupCodeSpan.Slice(pos, markupCodeSpan.Length - pos).ToString()));
+            filename ??= $"Test{++filenameCounter}.cs";
+            files.Add(new MarkupFile(filename, b.ToString().TrimEnd()));
         }
 
         return [.. files];
     }
 
-    [GeneratedRegex(@"(^|\r?\n-{5,}[^\r\n]*\r?\n)(// (?<Filename>[\w\.-]+\.cs)\r?\n)?", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.ExplicitCapture)]
-    private static partial Regex DocumentSplittingRegex();
+    [GeneratedRegex(@"^// (?<Filename>[\w\.-]+\.cs)$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.ExplicitCapture)]
+    private static partial Regex FilenameRegex();
+
+    [GeneratedRegex("\r?\n")]
+    private static partial Regex NewLineRegex();
 }

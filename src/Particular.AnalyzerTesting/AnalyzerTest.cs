@@ -28,6 +28,7 @@ public partial class AnalyzerTest
     readonly List<DiagnosticAnalyzer> analyzers = [];
     readonly List<CodeFixProvider> codeFixes = [];
     readonly List<string> commonUsings = [];
+    bool mustCompile = true;
     static Action<AnalyzerTest>? configureAllTests;
 
     public List<MetadataReference> References { get; } = [];
@@ -103,10 +104,16 @@ public partial class AnalyzerTest
         return this;
     }
 
+    public AnalyzerTest MustCompile(bool codeMustCompile)
+    {
+        mustCompile = codeMustCompile;
+        return this;
+    }
+
     [GeneratedRegex(@"\r?\n", RegexOptions.Compiled)]
     private static partial Regex NewLineRegex();
 
-    public async Task AssertCodeFixes(bool fixMustCompile = true)
+    public async Task AssertCodeFixes()
     {
         var cancellationToken = TestContext.CurrentContext.CancellationToken;
 
@@ -117,51 +124,69 @@ public partial class AnalyzerTest
         var expectedResults = expectedFixResults.Select(s => CreateFile(s.Filename, s.Expected, parseDiagnosticMarkup: false))
             .ToImmutableArray();
 
-        var project = CreateProject(codeSources);
-        var compilerDiagnostics = await GetCompilerDiagnostics(project, cancellationToken);
+        var currentSources = codeSources.ToArray();
 
-        var compilation = await project.GetCompilationAsync(cancellationToken);
-        compilation.Compile(fixMustCompile);
-
-        var analyzerDiagnostics = await GetAnalyzerDiagnostics(compilation, cancellationToken);
-
-        // TODO: Reconfigure to be able to return code files here if no code diagnostics exist to run code fixes on
-
-        var actions = await GetCodeFixActions(project, analyzerDiagnostics, cancellationToken);
-        var actionsByDocumentName = actions.ToLookup(a => a.Document.Name);
-
-        List<SourceFile> updatedSources = [];
-        foreach (var projectDocument in project.Documents)
+        while (true)
         {
-            var document = projectDocument;
-            foreach (var action in actionsByDocumentName[document.Name])
+            var project = CreateProject(currentSources);
+            var compilerDiagnostics = await GetCompilerDiagnostics(project, cancellationToken);
+
+            var compilation = await project.GetCompilationAsync(cancellationToken);
+            compilation.Compile(mustCompile);
+
+            var analyzerDiagnostics = await GetAnalyzerDiagnostics(compilation, [], cancellationToken);
+
+            if (analyzerDiagnostics.Length == 0)
             {
-                var operations = await action.Action.GetOperationsAsync(cancellationToken);
-                var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
-                document = solution.GetDocument(document!.Id);
+                break;
             }
 
-            if (document is not null)
+            var actions = await GetCodeFixActions(project, analyzerDiagnostics, cancellationToken);
+            if (actions.Length == 0)
             {
-                var updatedSource = await GetUpdatedCode(document, cancellationToken);
-                updatedSources.Add(new(projectDocument.Name, updatedSource, []));
+                break;
             }
+            var actionsByDocumentName = actions.ToLookup(a => a.Document.Name);
+
+            List<SourceFile> updatedSources = [];
+            foreach (var projectDocument in project.Documents)
+            {
+                var document = projectDocument;
+                var docActions = actionsByDocumentName[document.Name];
+                // TODO: Replace Take(1) with First() and remove loop if I keep this
+                foreach (var action in docActions.Take(1))
+                {
+                    var operations = await action.Action.GetOperationsAsync(cancellationToken);
+                    var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
+                    document = solution.GetDocument(document!.Id);
+                    var tmpSrc = await GetUpdatedCode(document!, cancellationToken);
+                    _ = tmpSrc;
+                }
+
+                if (document is not null)
+                {
+                    var updatedSource = await GetUpdatedCode(document, cancellationToken);
+                    updatedSources.Add(new(projectDocument.Name, updatedSource, []));
+                }
+            }
+
+            currentSources = updatedSources.ToArray();
+
+            // var updatedProject = CreateProject(updatedSources);
+            // var updatedDiagnostics = await GetCompilerDiagnostics(updatedProject, cancellationToken);
+            //
+            // if (fixMustCompile)
+            // {
+            //     Assert.That(updatedDiagnostics, Is.EqualTo(compilerDiagnostics).AsCollection, "Fix introduced new compiler diagnostics.");
+            // }
         }
 
-        var updatedProject = CreateProject(updatedSources);
-        var updatedDiagnostics = await GetCompilerDiagnostics(updatedProject, cancellationToken);
-
-        if (fixMustCompile)
-        {
-            Assert.That(updatedDiagnostics, Is.EqualTo(compilerDiagnostics).AsCollection, "Fix introduced new compiler diagnostics.");
-        }
-
-        var updatedSourcesByFilename = updatedSources.ToDictionary(s => s.Filename);
-        foreach (var expectedSource in expectedFixResults)
+        var updatedSourcesByFilename = currentSources.ToDictionary(s => s.Filename);
+        foreach (var expectedSource in expectedResults)
         {
             var updated = updatedSourcesByFilename.GetValueOrDefault(expectedSource.Filename);
             Assert.That(updated, Is.Not.Null, $"No updated code for source filename {expectedSource.Filename}");
-            Assert.That(updated!.Source, Is.EqualTo(expectedSource.Expected).IgnoreLineEndingFormat);
+            Assert.That(updated!.Source, Is.EqualTo(expectedSource.Source).IgnoreLineEndingFormat);
         }
     }
 
@@ -197,7 +222,9 @@ public partial class AnalyzerTest
         return [.. actions];
     }
 
-    public async Task AssertDiagnostics(params string[] expectedDiagnosticIds)
+    public Task AssertDiagnostics(params string[] expectedDiagnosticIds) => AssertDiagnostics(expectedDiagnosticIds, []);
+
+    public async Task AssertDiagnostics(string[] expectedDiagnosticIds, string[] ignoreDiagnosticIds)
     {
         var cancellationToken = TestContext.CurrentContext.CancellationToken;
 
@@ -209,9 +236,9 @@ public partial class AnalyzerTest
         _ = await GetCompilerDiagnostics(project, cancellationToken);
 
         var compilation = await project.GetCompilationAsync(cancellationToken);
-        compilation.Compile();
+        compilation.Compile(mustCompile);
 
-        var analyzerDiagnostics = await GetAnalyzerDiagnostics(compilation, cancellationToken);
+        var analyzerDiagnostics = await GetAnalyzerDiagnostics(compilation, ignoreDiagnosticIds, cancellationToken);
 
         var expectedDiagnostics = codeSources.SelectMany(src => src.Spans.Select(span => (src.Filename, span)))
             .SelectMany(src => expectedDiagnosticIds.Select(id => new DiagnosticInfo(src.Filename, src.span, id)));
@@ -248,7 +275,7 @@ public partial class AnalyzerTest
         return compilerDiagnostics;
     }
 
-    async Task<Diagnostic[]> GetAnalyzerDiagnostics(Compilation? compilation, CancellationToken cancellationToken)
+    async Task<Diagnostic[]> GetAnalyzerDiagnostics(Compilation? compilation, string[] ignoreDiagnosticIds, CancellationToken cancellationToken)
     {
         var analyzerTasks = analyzers
             .Select(analyzer => compilation.GetAnalyzerDiagnostics(analyzer, cancellationToken))
@@ -258,6 +285,7 @@ public partial class AnalyzerTest
 
         var analyzerDiagnostics = analyzerTasks
             .SelectMany(t => t.Result)
+            .Where(d => !ignoreDiagnosticIds.Contains(d.Id))
             .ToArray();
 
         OutputAnalyzerDiagnostics(analyzerDiagnostics);

@@ -2,7 +2,6 @@
 
 namespace Particular.AnalyzerTesting;
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,16 +12,22 @@ public class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer
 
     protected virtual void ConfigureFixtureTests(AnalyzerTest test) { }
 
-    protected Task Assert(string markupCode, CancellationToken cancellationToken = default) =>
-        Assert(markupCode, [], cancellationToken);
+    protected Task Assert(string markupCode) =>
+        Assert(markupCode, [], [], true);
 
-    protected Task Assert(string markupCode, string expectedDiagnosticId, CancellationToken cancellationToken = default) =>
-        Assert(markupCode, [expectedDiagnosticId], cancellationToken);
+    protected Task Assert(string markupCode, string expectedDiagnosticId) =>
+        Assert(markupCode, [expectedDiagnosticId], [], true);
 
-    protected Task Assert(string markupCode, string[] expectedDiagnosticIds, CancellationToken cancellationToken = default)
+    protected Task Assert(string markupCode, string[] expectedDiagnosticIds) => Assert(markupCode, expectedDiagnosticIds, [], true);
+
+    protected Task Assert(string markupCode, string[] expectedDiagnosticIds, string[] ignoreDiagnosticIds)
+        => Assert(markupCode, expectedDiagnosticIds, ignoreDiagnosticIds, true);
+
+    protected Task Assert(string markupCode, string[] expectedDiagnosticIds, string[] ignoreDiagnosticIds, bool mustCompile)
     {
         var test = AnalyzerTest.ForAnalyzer<TAnalyzer>("TestProject")
-            .WithLangVersion(AnalyzerLanguageVersion);
+            .WithLangVersion(AnalyzerLanguageVersion)
+            .MustCompile(mustCompile);
 
         ConfigureFixtureTests(test);
 
@@ -31,6 +36,6 @@ public class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer
             test.WithSource(file.Content, file.Filename);
         }
 
-        return test.AssertDiagnostics(expectedDiagnosticIds);
+        return test.AssertDiagnostics(expectedDiagnosticIds, ignoreDiagnosticIds);
     }
 }

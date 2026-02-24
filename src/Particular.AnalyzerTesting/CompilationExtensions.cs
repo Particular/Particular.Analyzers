@@ -12,45 +12,48 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 static class CompilationExtensions
 {
-    public static void Compile(this Compilation compilation, bool throwOnFailure = true)
+    extension(Compilation compilation)
     {
-        using var peStream = new MemoryStream();
-        var emitResult = compilation.Emit(peStream);
-
-        if (emitResult.Success)
+        public void Compile(bool throwOnFailure = true)
         {
-            return;
+            using var peStream = new MemoryStream();
+            var emitResult = compilation.Emit(peStream);
+
+            if (emitResult.Success)
+            {
+                return;
+            }
+
+            if (throwOnFailure)
+            {
+                throw new Exception("Compilation failed.");
+            }
+
+            Debug.WriteLine("Compilation failed.");
         }
 
-        if (throwOnFailure)
+        public async Task<IEnumerable<Diagnostic>> GetAnalyzerDiagnostics(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken = default)
         {
-            throw new Exception("Compilation failed.");
+            var exceptions = new List<Exception>();
+
+            var analysisOptions = new CompilationWithAnalyzersOptions(
+                new AnalyzerOptions([]),
+                (exception, _, __) => exceptions.Add(exception),
+                concurrentAnalysis: false,
+                logAnalyzerExecutionTime: false);
+
+            var diagnostics = await compilation
+                .WithAnalyzers([analyzer], analysisOptions)
+                .GetAnalyzerDiagnosticsAsync(cancellationToken);
+
+            if (exceptions.Any())
+            {
+                throw new AggregateException(exceptions);
+            }
+
+            return diagnostics.Distinct()
+                .OrderBy(diagnostic => diagnostic.Location.SourceSpan)
+                .ThenBy(diagnostic => diagnostic.Id);
         }
-
-        Debug.WriteLine("Compilation failed.");
-    }
-
-    public static async Task<IEnumerable<Diagnostic>> GetAnalyzerDiagnostics(this Compilation compilation, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken = default)
-    {
-        var exceptions = new List<Exception>();
-
-        var analysisOptions = new CompilationWithAnalyzersOptions(
-            new AnalyzerOptions([]),
-            (exception, _, __) => exceptions.Add(exception),
-            concurrentAnalysis: false,
-            logAnalyzerExecutionTime: false);
-
-        var diagnostics = await compilation
-            .WithAnalyzers([analyzer], analysisOptions)
-            .GetAnalyzerDiagnosticsAsync(cancellationToken);
-
-        if (exceptions.Any())
-        {
-            throw new AggregateException(exceptions);
-        }
-
-        return diagnostics
-            .OrderBy(diagnostic => diagnostic.Location.SourceSpan)
-            .ThenBy(diagnostic => diagnostic.Id);
     }
 }

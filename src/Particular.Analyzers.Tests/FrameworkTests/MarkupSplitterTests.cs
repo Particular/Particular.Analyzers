@@ -71,4 +71,26 @@ public class MarkupSplitterTests
 
         Assert.That(actual, Is.EqualTo(expected));
     }
+
+    [Test]
+    public void StartsAndEndsWithSeparator()
+    {
+        var code = """
+                   ----- Using it as a comment
+                   first
+                   -----
+                   second
+                   ----- This is the end
+                   """;
+
+        var expected = new MarkupFile[]
+        {
+            new("Test1.cs", "first"),
+            new("Test2.cs", "second")
+        };
+
+        var actual = MarkupSplitter.SplitMarkup(code);
+
+        Assert.That(actual, Is.EqualTo(expected));
+    }
 }
