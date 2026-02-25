@@ -20,32 +20,17 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 
-public partial class AnalyzerTest
+public partial class AnalyzerTest : CompilationTestBase<AnalyzerTest>
 {
-    readonly string outputAssemblyName;
     readonly List<(string Filename, string MarkupSource)> sources = [];
     readonly List<(string Filename, string Expected)> expectedFixResults = [];
-    readonly List<DiagnosticAnalyzer> analyzers = [];
     readonly List<CodeFixProvider> codeFixes = [];
     readonly List<string> commonUsings = [];
-    bool mustCompile = true;
     static Action<AnalyzerTest>? configureAllTests;
 
-    public List<MetadataReference> References { get; } = [];
-    public LanguageVersion LangVersion { get; set; } = LanguageVersion.CSharp14;
-
     AnalyzerTest(string? outputAssemblyName = null)
+        : base(outputAssemblyName)
     {
-        this.outputAssemblyName = outputAssemblyName ?? "TestAssembly";
-
-        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            if (!assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
-            {
-                References.Add(MetadataReference.CreateFromFile(assembly.Location));
-            }
-        }
-
         configureAllTests?.Invoke(this);
     }
 
@@ -71,42 +56,15 @@ public partial class AnalyzerTest
         return this;
     }
 
-    public AnalyzerTest WithAnalyzer<TAnalyzer>() where TAnalyzer : DiagnosticAnalyzer, new()
-    {
-        analyzers.Add(new TAnalyzer());
-        return this;
-    }
-
     public AnalyzerTest WithCodeFix<TCodeFix>() where TCodeFix : CodeFixProvider, new()
     {
         codeFixes.Add(new TCodeFix());
         return this;
     }
 
-    public AnalyzerTest WithLangVersion(LanguageVersion langVersion)
-    {
-        LangVersion = langVersion;
-        return this;
-    }
-
-    public AnalyzerTest AddReferences(params MetadataReference[] references)
-        => AddReferences(references.AsEnumerable());
-
-    public AnalyzerTest AddReferences(IEnumerable<MetadataReference> references)
-    {
-        References.AddRange(references);
-        return this;
-    }
-
     public AnalyzerTest WithCommonUsings(params string[] namespaceNames)
     {
         commonUsings.AddRange(namespaceNames);
-        return this;
-    }
-
-    public AnalyzerTest MustCompile(bool codeMustCompile)
-    {
-        mustCompile = codeMustCompile;
         return this;
     }
 
@@ -132,7 +90,7 @@ public partial class AnalyzerTest
             var compilerDiagnostics = await GetCompilerDiagnostics(project, cancellationToken);
 
             var compilation = await project.GetCompilationAsync(cancellationToken);
-            compilation.Compile(mustCompile);
+            compilation.Compile(!suppressCompilationErrors);
 
             var analyzerDiagnostics = await GetAnalyzerDiagnostics(compilation, [], cancellationToken);
 
@@ -236,7 +194,7 @@ public partial class AnalyzerTest
         _ = await GetCompilerDiagnostics(project, cancellationToken);
 
         var compilation = await project.GetCompilationAsync(cancellationToken);
-        compilation.Compile(mustCompile);
+        compilation.Compile(!suppressCompilationErrors);
 
         var analyzerDiagnostics = await GetAnalyzerDiagnostics(compilation, ignoreDiagnosticIds, cancellationToken);
 
@@ -251,9 +209,13 @@ public partial class AnalyzerTest
 
     Project CreateProject(IEnumerable<SourceFile> codeSources)
     {
+        var parseOptions = new CSharpParseOptions(LangVersion)
+            .WithFeatures(features);
+
         var project = new AdhocWorkspace()
             .AddProject(outputAssemblyName, LanguageNames.CSharp)
-            .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .WithParseOptions(parseOptions)
+            .WithCompilationOptions(new CSharpCompilationOptions(buildOutputType))
             .AddMetadataReferences(References);
 
         foreach (var source in codeSources)

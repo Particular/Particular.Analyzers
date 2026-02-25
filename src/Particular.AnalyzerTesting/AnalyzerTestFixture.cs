@@ -26,8 +26,12 @@ public class AnalyzerTestFixture<TAnalyzer> where TAnalyzer : DiagnosticAnalyzer
     protected Task Assert(string markupCode, string[] expectedDiagnosticIds, string[] ignoreDiagnosticIds, bool mustCompile)
     {
         var test = AnalyzerTest.ForAnalyzer<TAnalyzer>("TestProject")
-            .WithLangVersion(AnalyzerLanguageVersion)
-            .MustCompile(mustCompile);
+            .WithLangVersion(AnalyzerLanguageVersion);
+
+        if (!mustCompile)
+        {
+            test.SuppressCompilationErrors();
+        }
 
         ConfigureFixtureTests(test);
 

@@ -16,51 +16,33 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using NUnit.Framework;
 using Particular.Approvals;
 
-public partial class SourceGeneratorTest
+public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTest>
 {
-    readonly List<(string Filename, string Source)> sources;
-    readonly List<ISourceGenerator> generators;
-    readonly List<DiagnosticAnalyzer> analyzers;
-    readonly List<DiagnosticSuppressor> suppressors;
-    readonly Dictionary<string, string> features;
-    readonly string outputAssemblyName;
+    readonly List<(string Filename, string Source)> sources = [];
+    readonly List<ISourceGenerator> generators = [];
+    readonly List<DiagnosticSuppressor> suppressors = [];
     string? scenarioName;
     Compilation? initialCompilation;
     Build? build;
     Build? clonedBuild;
     ImmutableArray<Diagnostic> compilationDiagnostics;
-    bool suppressDiagnosticErrors;
-    bool suppressCompilationErrors;
     bool wroteToConsole;
     GeneratorTestOutput outputType;
-    OutputKind buildOutputType = OutputKind.DynamicallyLinkedLibrary;
     readonly Dictionary<string, HashSet<string>> generatorStages = [];
+    bool suppressDiagnosticErrors;
 
     static readonly Type WrapperType = typeof(ISourceGenerator).Assembly.GetType("Microsoft.CodeAnalysis.IncrementalGeneratorWrapper", throwOnError: true)!;
     static readonly MethodInfo GeneratorPropertyGetter = WrapperType.GetProperty("Generator", BindingFlags.Instance | BindingFlags.NonPublic)!.GetMethod!;
+    static Action<SourceGeneratorTest>? configureAllTests;
 
     SourceGeneratorTest(string? outputAssemblyName = null)
+        : base(outputAssemblyName)
     {
-        sources = [];
-        generators = [];
-        analyzers = [];
-        suppressors = [];
-        this.outputAssemblyName = outputAssemblyName ?? "TestAssembly";
-
-        features = new()
-        {
-            ["InterceptorsNamespaces"] = "NServiceBus"
-        };
-
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        foreach (var assembly in assemblies)
-        {
-            if (!assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
-            {
-                References.Add(MetadataReference.CreateFromFile(assembly.Location));
-            }
-        }
+        configureAllTests?.Invoke(this);
     }
+
+    public static void ConfigureAllSourceGeneratorTests(Action<SourceGeneratorTest> configure)
+        => configureAllTests = configure;
 
     public static SourceGeneratorTest ForSourceGenerator<TGenerator>([CallerMemberName] string? outputAssemblyName = null)
         where TGenerator : ISourceGenerator, new()
@@ -69,16 +51,6 @@ public partial class SourceGeneratorTest
     public static SourceGeneratorTest ForIncrementalGenerator<TGenerator>(string[]? stages = null, [CallerMemberName] string? outputAssemblyName = null)
         where TGenerator : IIncrementalGenerator, new()
         => new SourceGeneratorTest(outputAssemblyName).WithIncrementalGenerator<TGenerator>(stages ?? []);
-
-    public List<MetadataReference> References { get; } = [];
-
-    public LanguageVersion LangVersion { get; set; } = LanguageVersion.CSharp14;
-
-    public SourceGeneratorTest BuildAs(OutputKind outputKind)
-    {
-        buildOutputType = outputKind;
-        return this;
-    }
 
     public SourceGeneratorTest WithSource(string source, string? filename = null)
     {
@@ -90,27 +62,6 @@ public partial class SourceGeneratorTest
     public SourceGeneratorTest WithScenarioName(string name)
     {
         scenarioName = name;
-        return this;
-    }
-
-    public SourceGeneratorTest AddReferences(params MetadataReference[] references)
-        => AddReferences(references.AsEnumerable());
-
-    public SourceGeneratorTest AddReferences(IEnumerable<MetadataReference> references)
-    {
-        References.AddRange(references);
-        return this;
-    }
-
-    public SourceGeneratorTest SuppressDiagnosticErrors()
-    {
-        suppressDiagnosticErrors = true;
-        return this;
-    }
-
-    public SourceGeneratorTest SuppressCompilationErrors()
-    {
-        suppressCompilationErrors = true;
         return this;
     }
 
@@ -132,21 +83,15 @@ public partial class SourceGeneratorTest
         return this;
     }
 
-    public SourceGeneratorTest WithAnalyzer<TAnalyzer>() where TAnalyzer : DiagnosticAnalyzer, new()
-    {
-        analyzers.Add(new TAnalyzer());
-        return this;
-    }
-
     public SourceGeneratorTest WithSuppressor<TSuppressor>() where TSuppressor : DiagnosticSuppressor, new()
     {
         suppressors.Add(new TSuppressor());
         return this;
     }
 
-    public SourceGeneratorTest WithProperty(string name, string value)
+    public SourceGeneratorTest SuppressDiagnosticErrors()
     {
-        features.Add(name, value);
+        suppressDiagnosticErrors = true;
         return this;
     }
 
@@ -176,8 +121,7 @@ public partial class SourceGeneratorTest
             .Select(src =>
             {
                 var tree = CSharpSyntaxTree.ParseText(src.Source, path: src.Filename);
-                var options = parseOptions;
-                return tree.WithRootAndOptions(tree.GetRoot(), options);
+                return tree.WithRootAndOptions(tree.GetRoot(), parseOptions);
             });
 
         var driverOpts = new GeneratorDriverOptions(

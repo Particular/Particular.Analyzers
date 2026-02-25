@@ -20,8 +20,12 @@ public abstract class CodeFixTestFixture<TAnalyzer, TCodeFix> : AnalyzerTestFixt
         NUnit.Framework.Assert.That(originalFiles.Keys, Is.EquivalentTo(fixedFiles.Keys));
 
         var test = AnalyzerTest.ForAnalyzer<TAnalyzer>("TestProject")
-            .WithCodeFix<TCodeFix>()
-            .MustCompile(mustCompile);
+            .WithCodeFix<TCodeFix>();
+
+        if (!mustCompile)
+        {
+            test.SuppressCompilationErrors();
+        }
 
         ConfigureFixtureTests(test);
 
