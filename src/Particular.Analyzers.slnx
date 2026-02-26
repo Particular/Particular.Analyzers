@@ -5,5 +5,4 @@
   </Folder>
   <Project Path="Particular.Analyzers.Tests/Particular.Analyzers.Tests.csproj" />
   <Project Path="Particular.Analyzers/Particular.Analyzers.csproj" />
-  <Project Path="Particular.AnalyzerTesting/Particular.AnalyzerTesting.csproj" />
 </Solution>
