@@ -8,10 +8,17 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using NUnit.Framework;
 
+/// <summary>
+/// A test fixture that runs multiple tests on source code using a Roslyn analyzer and code fix to ensure that the changes
+/// made to the source code match the expected results.
+/// </summary>
 public abstract class CodeFixTestFixture<TAnalyzer, TCodeFix> : AnalyzerTestFixture<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
     where TCodeFix : CodeFixProvider, new()
 {
+    /// <summary>
+    /// Assert that the code fix applied to the original code creates the expected output.
+    /// </summary>
     protected async Task Assert(string original, string expected, bool mustCompile = true)
     {
         var originalFiles = MarkupSplitter.SplitMarkup(original).ToDictionary(f => f.Filename);

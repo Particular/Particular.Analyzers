@@ -20,7 +20,10 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
 
-public partial class AnalyzerTest : CompilationTestBase<AnalyzerTest>
+/// <summary>
+/// Lower-level API used to test Roslyn analyzers.
+/// </summary>
+public sealed partial class AnalyzerTest : CompilationTestBase<AnalyzerTest>
 {
     readonly List<(string Filename, string MarkupSource)> sources = [];
     readonly List<(string Filename, string Expected)> expectedFixResults = [];
@@ -34,13 +37,24 @@ public partial class AnalyzerTest : CompilationTestBase<AnalyzerTest>
         configureAllTests?.Invoke(this);
     }
 
+    /// <summary>
+    /// Configures all analyzer tests (including those built using <see cref="AnalyzerTest" /> and <see cref="AnalyzerTestFixture&lt;TAnalyzer&gt;" />
+    /// in the project by storing a configuration action in a static variable. Use sparingly from within a <see cref="SetUpFixtureAttribute">SetUpFixture</see>.
+    /// </summary>
     public static void ConfigureAllAnalyzerTests(Action<AnalyzerTest> configure)
         => configureAllTests = configure;
 
+    /// <summary>
+    /// Begin an analyzer test by specifying the analyzer that should be tested.
+    /// </summary>
     public static AnalyzerTest ForAnalyzer<TAnalyzer>([CallerMemberName] string? outputAssemblyName = null)
         where TAnalyzer : DiagnosticAnalyzer, new()
         => new AnalyzerTest(outputAssemblyName).WithAnalyzer<TAnalyzer>();
 
+    /// <summary>
+    /// Adds a code source to the test, which contains [|diagnostic markers|] to show where the the
+    /// analyzer should report diagnostics (squiggles) in the code.
+    /// </summary>
     public AnalyzerTest WithSource(string source, string? filename = null)
     {
         filename ??= $"CodeFile{sources.Count:00}.cs";
@@ -48,6 +62,18 @@ public partial class AnalyzerTest : CompilationTestBase<AnalyzerTest>
         return this;
     }
 
+    /// <summary>
+    /// Specify a Code Fix to make changes to the source.
+    /// </summary>
+    public AnalyzerTest WithCodeFix<TCodeFix>() where TCodeFix : CodeFixProvider, new()
+    {
+        codeFixes.Add(new TCodeFix());
+        return this;
+    }
+
+    /// <summary>
+    /// Specify a source file and how it should look after the Code Fix is applied.
+    /// </summary>
     public AnalyzerTest WithCodeFixSource(string source, string expectedResult, string? filename = null)
     {
         filename ??= $"CodeFile{sources.Count:00}.cs";
@@ -56,12 +82,9 @@ public partial class AnalyzerTest : CompilationTestBase<AnalyzerTest>
         return this;
     }
 
-    public AnalyzerTest WithCodeFix<TCodeFix>() where TCodeFix : CodeFixProvider, new()
-    {
-        codeFixes.Add(new TCodeFix());
-        return this;
-    }
-
+    /// <summary>
+    /// To save typing in tests, specify common namespaces that should be prepended to all code sources in the test.
+    /// </summary>
     public AnalyzerTest WithCommonUsings(params string[] namespaceNames)
     {
         commonUsings.AddRange(namespaceNames);
@@ -71,6 +94,9 @@ public partial class AnalyzerTest : CompilationTestBase<AnalyzerTest>
     [GeneratedRegex(@"\r?\n", RegexOptions.Compiled)]
     private static partial Regex NewLineRegex();
 
+    /// <summary>
+    /// Apply the code fixes and assert that the expected results match the modified source code.
+    /// </summary>
     public async Task AssertCodeFixes()
     {
         var cancellationToken = TestContext.CurrentContext.CancellationToken;
@@ -129,14 +155,6 @@ public partial class AnalyzerTest : CompilationTestBase<AnalyzerTest>
             }
 
             currentSources = updatedSources.ToArray();
-
-            // var updatedProject = CreateProject(updatedSources);
-            // var updatedDiagnostics = await GetCompilerDiagnostics(updatedProject, cancellationToken);
-            //
-            // if (fixMustCompile)
-            // {
-            //     Assert.That(updatedDiagnostics, Is.EqualTo(compilerDiagnostics).AsCollection, "Fix introduced new compiler diagnostics.");
-            // }
         }
 
         var updatedSourcesByFilename = currentSources.ToDictionary(s => s.Filename);
@@ -180,8 +198,14 @@ public partial class AnalyzerTest : CompilationTestBase<AnalyzerTest>
         return [.. actions];
     }
 
+    /// <summary>
+    /// Assert that the analyzer detects the expected diagnostic ids.
+    /// </summary>
     public Task AssertDiagnostics(params string[] expectedDiagnosticIds) => AssertDiagnostics(expectedDiagnosticIds, []);
 
+    /// <summary>
+    /// Assert that the analyzer detects the expected diagnostic ids.
+    /// </summary>
     public async Task AssertDiagnostics(string[] expectedDiagnosticIds, string[] ignoreDiagnosticIds)
     {
         var cancellationToken = TestContext.CurrentContext.CancellationToken;

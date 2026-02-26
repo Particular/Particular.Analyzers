@@ -16,7 +16,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using NUnit.Framework;
 using Particular.Approvals;
 
-public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTest>
+/// <summary>
+/// A tool for testing Roslyn source generators.
+/// </summary>
+public sealed partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTest>
 {
     readonly List<(string Filename, string Source)> sources = [];
     readonly List<ISourceGenerator> generators = [];
@@ -41,17 +44,30 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
         configureAllTests?.Invoke(this);
     }
 
+    /// <summary>
+    /// Configures all source generator tests in the project by storing a configuration action in a static variable.
+    /// Use sparingly from within a <see cref="SetUpFixtureAttribute">SetUpFixture</see>.
+    /// </summary>
     public static void ConfigureAllSourceGeneratorTests(Action<SourceGeneratorTest> configure)
         => configureAllTests = configure;
 
+    /// <summary>
+    /// Start a test for a non-incremental source generator.
+    /// </summary>
     public static SourceGeneratorTest ForSourceGenerator<TGenerator>([CallerMemberName] string? outputAssemblyName = null)
         where TGenerator : ISourceGenerator, new()
         => new SourceGeneratorTest(outputAssemblyName).WithSourceGenerator<TGenerator>();
 
+    /// <summary>
+    /// Start a test for an incremental source generator.
+    /// </summary>
     public static SourceGeneratorTest ForIncrementalGenerator<TGenerator>(string[]? stages = null, [CallerMemberName] string? outputAssemblyName = null)
         where TGenerator : IIncrementalGenerator, new()
         => new SourceGeneratorTest(outputAssemblyName).WithIncrementalGenerator<TGenerator>(stages ?? []);
 
+    /// <summary>
+    /// Add a source file to the project.
+    /// </summary>
     public SourceGeneratorTest WithSource(string source, string? filename = null)
     {
         filename ??= $"Source{sources.Count:00}.cs";
@@ -59,12 +75,18 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
         return this;
     }
 
+    /// <summary>
+    /// Specify a scenario name that is passed to Approver.Verify for tests that have multiple test cases.
+    /// </summary>
     public SourceGeneratorTest WithScenarioName(string name)
     {
         scenarioName = name;
         return this;
     }
 
+    /// <summary>
+    /// Add an incremental source generator (<see cref="IIncrementalGenerator" />) to the compilation.
+    /// </summary>
     public SourceGeneratorTest WithIncrementalGenerator<TGenerator>(params string[] stages) where TGenerator : IIncrementalGenerator, new()
     {
         if (stages.Length == 0 && TryGetTrackingNames(typeof(TGenerator), out var trackingNames))
@@ -77,30 +99,48 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
         return this;
     }
 
+    /// <summary>
+    /// Add a non-incremental source generator (<see cref="ISourceGenerator" />) to the compilation.
+    /// </summary>
     public SourceGeneratorTest WithSourceGenerator<TGenerator>() where TGenerator : ISourceGenerator, new()
     {
         generators.Add(new TGenerator());
         return this;
     }
 
+    /// <summary>
+    /// Add a Roslyn diagnostic suppressor to the compilation.
+    /// </summary>
     public SourceGeneratorTest WithSuppressor<TSuppressor>() where TSuppressor : DiagnosticSuppressor, new()
     {
+        // TODO: Suppressors in analyzer tests?
         suppressors.Add(new TSuppressor());
         return this;
     }
 
+    /// <summary>
+    /// Do not fail the test if Roslyn diagnostics raise errors.
+    /// </summary>
     public SourceGeneratorTest SuppressDiagnosticErrors()
     {
         suppressDiagnosticErrors = true;
         return this;
     }
 
+    /// <summary>
+    /// A design-time tool to control the console output of the test to make debugging easier.
+    /// </summary>
+    /// <param name="output"></param>
+    /// <returns></returns>
     public SourceGeneratorTest ControlOutput(GeneratorTestOutput output)
     {
         outputType = output;
         return this;
     }
 
+    /// <summary>
+    /// Run the source generator test without running an approval test on the results.
+    /// </summary>
     [MemberNotNull(nameof(build))]
     public SourceGeneratorTest Run()
     {
@@ -177,6 +217,9 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
         clonedBuild ??= build.Clone();
     }
 
+    /// <summary>
+    /// Assert that duplicate runs of the source generator used cached outputs to ensure performance.
+    /// </summary>
     public SourceGeneratorTest AssertRunsAreEqual()
     {
         if (generatorStages.Count == 0)
@@ -240,6 +283,9 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
         }
     }
 
+    /// <summary>
+    /// Get the compilation output of the source generator as a string.
+    /// </summary>
     public string GetCompilationOutput(bool withLineNumbers = false)
     {
         if (build is null)
@@ -308,6 +354,9 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
         return sb.ToString().TrimEnd();
     }
 
+    /// <summary>
+    /// Run the source generator (if it hasn't been run already) and run an approval test on the results.
+    /// </summary>
     public SourceGeneratorTest Approve(Func<string, string>? scrubber = null, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null)
     {
         if (build is null)
@@ -315,6 +364,7 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
             _ = Run();
         }
 
+        // TODO: Align with AnalyzerTestFixtureState
         if (Environment.GetEnvironmentVariable("CI") != "true")
         {
             _ = ToConsole();
@@ -328,6 +378,9 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
         return this;
     }
 
+    /// <summary>
+    /// Assert that the source generator should not generate any new code given the current sources.
+    /// </summary>
     public SourceGeneratorTest ShouldNotGenerateCode()
     {
         if (build is null)
@@ -349,6 +402,10 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
     [GeneratedRegex("""System\.CodeDom\.Compiler\.GeneratedCodeAttribute\("(?<AssemblyName>[^"]+)",\s*"(?<Version>[^"]+)"\)""", RegexOptions.Compiled | RegexOptions.NonBacktracking)]
     private static partial Regex ScrubVersionSpecificAttributeData();
 
+    /// <summary>
+    /// Run the source generator and write the results to the Console. Most useful for initial development of a source generator.
+    /// </summary>
+    /// <returns></returns>
     public SourceGeneratorTest ToConsole()
     {
         if (wroteToConsole)
@@ -367,6 +424,9 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
         return this;
     }
 
+    /// <summary>
+    /// Output the steps of a source generator to the console for debugging purposes.
+    /// </summary>
     public SourceGeneratorTest OutputSteps(params ReadOnlySpan<string> specificStages)
     {
         RunClonedBuild();
@@ -515,15 +575,27 @@ public partial class SourceGeneratorTest : CompilationTestBase<SourceGeneratorTe
     }
 }
 
+/// <summary>
+/// Options for the output of a source generator either for the console or for an approval test.
+/// </summary>
 public enum GeneratorTestOutput
 {
+    /// <summary>
+    /// Output only the code generated by the source generator(s).
+    /// </summary>
     GeneratedOnly = 0,
+    /// <summary>
+    /// Output only the source code.
+    /// </summary>
     SourceOnly = 1,
+    /// <summary>
+    /// Output original source code along with code generated by the source generator.
+    /// </summary>
     All = 2
 }
 
 #pragma warning disable RS1001 // Missing DiagnosticAnalyzer attribute - but we don't actually want it to be "found"
-public class NoOpAnalyzer : DiagnosticAnalyzer
+class NoOpAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [];
 
