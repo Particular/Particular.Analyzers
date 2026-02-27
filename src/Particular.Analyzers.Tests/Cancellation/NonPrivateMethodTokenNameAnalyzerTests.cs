@@ -3,9 +3,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using AnalyzerTesting;
+    using Helpers;
     using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
-    using Particular.Analyzers.Tests.Helpers;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class NonPrivateMethodTokenNameAnalyzerTests : AnalyzerTestFixture<NonPrivateMethodTokenNameAnalyzer>
@@ -56,13 +57,11 @@ class MyClass : IMyInterface
     {0} void MyMethod({1});
 }}";
 
-#if NET
         static readonly string interfaceDefaultMethods =
 @"interface IMyType
 {{
     {0} void MyMethod({1}) {{ }}
 }}";
-#endif
 
         static readonly List<string> sadParams =
         [
@@ -79,24 +78,24 @@ class MyClass : IMyInterface
         ];
 
         public static Data SadData =>
-            NonPrivateModifiers.SelectMany(modifiers => sadParams.Select(param => (modifiers, param))).ToData();
+            ModifierLists.NonPrivateModifiers.SelectMany(modifiers => sadParams.Select(param => (modifiers, param))).ToData();
 
         public static Data HappyData =>
-            PrivateModifiers.SelectMany(modifiers => sadParams.Concat(happyParams).Select(param => (modifiers, param)))
-            .Concat(NonPrivateModifiers.SelectMany(modifiers => happyParams.Select(param => (modifiers, param)))).ToData();
+            ModifierLists.PrivateModifiers.SelectMany(modifiers => sadParams.Concat(happyParams).Select(param => (modifiers, param)))
+            .Concat(ModifierLists.NonPrivateModifiers.SelectMany(modifiers => happyParams.Select(param => (modifiers, param)))).ToData();
 
         public static Data HappyOverridesData =>
-            NonPrivateModifiers.SelectMany(modifiers => happyParams.Select(param => (modifiers, param))).ToData();
+            ModifierLists.NonPrivateModifiers.SelectMany(modifiers => happyParams.Select(param => (modifiers, param))).ToData();
 
         public static Data SadInterfaceData =>
-            InterfaceNonPrivateModifiers.SelectMany(modifiers => sadParams.Select(param => (modifiers, param))).ToData();
+            ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => sadParams.Select(param => (modifiers, param))).ToData();
 
         public static Data HappyInterfaceMethodData =>
-            InterfaceNonPrivateModifiers.SelectMany(modifiers => happyParams.Select(param => (modifiers, param))).ToData();
+            ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => happyParams.Select(param => (modifiers, param))).ToData();
 
         public static Data HappyInterfaceDefaultMethodData =>
-            InterfacePrivateModifiers.SelectMany(modifiers => sadParams.Concat(happyParams).Select(param => (modifiers, param)))
-            .Concat(InterfaceNonPrivateModifiers.SelectMany(modifiers => happyParams.Select(param => (modifiers, param)))).ToData();
+            ModifierLists.InterfacePrivateModifiers.SelectMany(modifiers => sadParams.Concat(happyParams).Select(param => (modifiers, param)))
+            .Concat(ModifierLists.InterfaceNonPrivateModifiers.SelectMany(modifiers => happyParams.Select(param => (modifiers, param)))).ToData();
 
         [Test]
         [TestCaseSource(nameof(SadData))]
@@ -146,7 +145,6 @@ class MyClass : IMyInterface
         [TestCaseSource(nameof(HappyInterfaceMethodData))]
         public Task HappyInterfaceMethods(string modifiers, string @params) => Assert(GetCode(interfaceMethods, modifiers, @params));
 
-#if NET
         [Test]
         [TestCaseSource(nameof(SadInterfaceData))]
         public Task SadInterfaceDefaultMethods(string modifiers, string @params) => Assert(GetCode(interfaceDefaultMethods, modifiers, @params), DiagnosticIds.NonPrivateMethodSingleCancellationTokenMisnamed);
@@ -154,7 +152,6 @@ class MyClass : IMyInterface
         [Test]
         [TestCaseSource(nameof(HappyInterfaceDefaultMethodData))]
         public Task HappyInterfaceDefaultMethods(string modifiers, string @params) => Assert(GetCode(interfaceDefaultMethods, modifiers, @params));
-#endif
 
         static string GetCode(string template, string modifiers, string @params) => string.Format(template, modifiers, @params);
     }

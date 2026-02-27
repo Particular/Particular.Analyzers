@@ -2,9 +2,10 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using AnalyzerTesting;
+    using Helpers;
     using NUnit.Framework;
     using Particular.Analyzers.Cancellation;
-    using Particular.Analyzers.Tests.Helpers;
     using Data = System.Collections.Generic.IEnumerable<object[]>;
 
     public class MethodParametersAnalyzerTests : AnalyzerTestFixture<MethodParametersAnalyzer>

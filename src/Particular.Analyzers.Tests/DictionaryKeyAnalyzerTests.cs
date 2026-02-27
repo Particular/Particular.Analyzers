@@ -1,10 +1,8 @@
 ﻿namespace Particular.Analyzers.Tests
 {
-    using System.Collections.Concurrent;
-    using System.Collections.Immutable;
     using System.Threading.Tasks;
+    using AnalyzerTesting;
     using NUnit.Framework;
-    using Particular.Analyzers.Tests.Helpers;
 
     public class DictionaryKeysAnalyzerTests : AnalyzerTestFixture<DictionaryKeysAnalyzer>
     {
@@ -93,15 +91,9 @@
                 public class BadKey { }
                 """;
 
-            return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType, config => config
-#if NETFRAMEWORK
-                    .AddMetadataReferenceUsing<System.Collections.Generic.ISet<string>>()
-#endif
-                    .AddMetadataReferenceUsing<ConcurrentDictionary<string, string>>()
-                    .AddMetadataReferenceUsing<ImmutableDictionary<string, string>>());
+            return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
         }
 
-#if NET
         [Test]
         public Task RecordTypesOk()
         {
@@ -119,7 +111,6 @@
 
             return Assert(code, DiagnosticIds.DictionaryHasUnsupportedKeyType);
         }
-#endif
 
         [Test]
         public Task IgnoreGenericParameters()
