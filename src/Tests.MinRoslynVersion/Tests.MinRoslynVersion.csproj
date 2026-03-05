@@ -9,10 +9,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(RoslynPackageVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" Version="3.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageReference Include="NUnit" Version="4.5.0" />
@@ -22,8 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(RoslynPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\SharedTests\**\*.cs" LinkBase="Shared" />
-    <None Include="..\SharedTests\**\*.*" Exclude="..\SharedTests\**\*.cs" LinkBase="Shared" />
   </ItemGroup>
 
 </Project>
