@@ -5,4 +5,10 @@
     <MinVerAutoIncrement>minor</MinVerAutoIncrement>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Package version controls what .NET and Visual Studio versions are supported by the analyzers. Update with care. -->
+    <RoslynPackageVersion>4.14.0</RoslynPackageVersion>
+    <RoslynPackagePathVersion>$(RoslynPackageVersion.Split(`.`)[0]).$(RoslynPackageVersion.Split(`.`)[1])</RoslynPackagePathVersion>
+  </PropertyGroup>
+
 </Project>

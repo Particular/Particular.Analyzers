@@ -2,8 +2,8 @@
 {
     using System;
     using System.Threading.Tasks;
+    using AnalyzerTesting;
     using NUnit.Framework;
-    using Particular.Analyzers.Tests.Helpers;
 
     public class LoggingAnalyzerTests : AnalyzerTestFixture<LoggingAnalyzer>
     {
