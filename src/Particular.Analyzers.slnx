@@ -3,6 +3,7 @@
     <File Path="..\global.json" />
     <File Path="Custom.Build.props" />
   </Folder>
-  <Project Path="Particular.Analyzers.Tests/Particular.Analyzers.Tests.csproj" />
   <Project Path="Particular.Analyzers/Particular.Analyzers.csproj" />
+  <Project Path="Tests.CurrentRoslynVersion/Tests.CurrentRoslynVersion.csproj" />
+  <Project Path="Tests.MinRoslynVersion/Tests.MinRoslynVersion.csproj" />
 </Solution>
