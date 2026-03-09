@@ -131,5 +131,60 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
         public Task SadExplicits(string @params, params string[] diagnosticIds) => Assert(GetCode(@explicit, @params), diagnosticIds);
 
         static string GetCode(string template, string @params) => string.Format(template, @params);
+
+        [Test]
+        public Task DontReportForIHandleMessagesImplementation()
+        {
+            var code = $$"""
+                       // MoreNServiceBus.cs
+                       namespace NServiceBus;
+                       
+                       interface IMessageHandlerContext : ICancellableContext { }
+                       interface IHandleMessages<T>
+                       {
+                           Task Handle(T message, IMessageHandlerContext context);
+                       }
+                       -----
+                       // Test.cs
+                       public class MyMessage : IMessage;
+                       
+                       class MyHandler : IHandleMessages<MyMessage>
+                       {
+                           public Task Handle(MyMessage message, IMessageHandlerContext context)
+                               => Task.CompletedTask;
+                       }
+                       """;
+
+            return Assert(code);
+        }
+
+        [Test]
+        public Task DontReportForInterfacelessHandler()
+        {
+            var code = $$"""
+                         // MoreNServiceBus.cs
+                         namespace NServiceBus;
+
+                         interface IMessageHandlerContext : ICancellableContext { }
+                         interface IHandleMessages<T>
+                         {
+                             Task Handle(T message, IMessageHandlerContext context);
+                         }
+                         [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+                         public sealed class HandlerAttribute : Attribute;
+                         -----
+                         // Test.cs
+                         public class MyMessage : IMessage;
+
+                         [Handler]
+                         class MyHandler
+                         {
+                             public Task Handle(MyMessage message, IMessageHandlerContext context, CancellationToken ct)
+                                 => Task.CompletedTask;
+                         }
+                         """;
+
+            return Assert(code);
+        }
     }
 }
