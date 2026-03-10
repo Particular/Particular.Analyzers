@@ -76,10 +76,63 @@
                 context.ReportDiagnostic(DiagnosticDescriptors.MethodMultipleCancellableContexts, declaredSymbol);
             }
 
-            if (tokens > 0 && contexts > 0)
+            if (tokens > 0 && contexts > 0 && !IsInterfacelessHandlerMethod(method))
             {
                 context.ReportDiagnostic(DiagnosticDescriptors.MethodMixedCancellation, declaredSymbol);
             }
         }
+
+        static bool IsInterfacelessHandlerMethod(IMethodSymbol method)
+        {
+            if (method.Name is not ("Handle" or "HandleAsync" or "Process" or "ProcessAsync"))
+            {
+                return false;
+            }
+
+            var type = method.ContainingType;
+
+            if (!type.GetAttributes().Any(IsHandlerAttribute))
+            {
+                return false;
+            }
+
+            if (type.AllInterfaces.Any(IsHandlerInterface))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        static bool IsHandlerAttribute(AttributeData att) => att is
+        {
+            AttributeClass:
+            {
+                Name: "HandlerAttribute",
+                ContainingNamespace:
+                {
+                    Name: "NServiceBus",
+                    ContainingNamespace:
+                    {
+                        IsGlobalNamespace: true
+                    }
+                }
+            }
+        };
+
+        static bool IsHandlerInterface(INamedTypeSymbol type) => type is
+        {
+            Name: "IHandleMessages",
+            IsGenericType: true,
+            TypeParameters.Length: 1,
+            ContainingNamespace:
+            {
+                Name: "NServiceBus",
+                ContainingNamespace:
+                {
+                    IsGlobalNamespace: true
+                }
+            }
+        };
     }
 }

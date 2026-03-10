@@ -133,7 +133,7 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
         static string GetCode(string template, string @params) => string.Format(template, @params);
 
         [Test]
-        public Task DontReportForIHandleMessagesImplementation()
+        public Task MessageHandlerHasARogueProcessMethod()
         {
             var code = $$"""
                        // MoreNServiceBus.cs
@@ -144,18 +144,25 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
                        {
                            Task Handle(T message, IMessageHandlerContext context);
                        }
+                       [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+                       public sealed class HandlerAttribute : Attribute;
                        -----
                        // Test.cs
                        public class MyMessage : IMessage;
                        
+                       [Handler]
                        class MyHandler : IHandleMessages<MyMessage>
                        {
                            public Task Handle(MyMessage message, IMessageHandlerContext context)
                                => Task.CompletedTask;
+                               
+                           public Task [|ProcessAsync|](MyMessage message, IMessageHandlerContext context, CancellationToken ct)
+                               => Task.CompletedTask;
                        }
                        """;
 
-            return Assert(code);
+            // Not a true interfaceless handler because it still has IHandleMessages<T>
+            return Assert(code, DiagnosticIds.MethodMixedCancellation);
         }
 
         [Test]
