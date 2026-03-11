@@ -156,13 +156,13 @@ class MyClass<T> : IMyInterface<T> where T : CancellableContext
                            public Task Handle(MyMessage message, IMessageHandlerContext context)
                                => Task.CompletedTask;
                                
-                           public Task [|ProcessAsync|](MyMessage message, IMessageHandlerContext context, CancellationToken ct)
+                           public Task ProcessAsync(MyMessage message, IMessageHandlerContext context, CancellationToken ct)
                                => Task.CompletedTask;
                        }
                        """;
 
-            // Not a true interfaceless handler because it still has IHandleMessages<T>
-            return Assert(code, DiagnosticIds.MethodMixedCancellation);
+            // Once we're in what *might* be an interfaceless handler, we don't care
+            return Assert(code);
         }
 
         [Test]

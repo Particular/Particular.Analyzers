@@ -76,13 +76,13 @@
                 context.ReportDiagnostic(DiagnosticDescriptors.MethodMultipleCancellableContexts, declaredSymbol);
             }
 
-            if (tokens > 0 && contexts > 0 && !IsInterfacelessHandlerMethod(method))
+            if (tokens > 0 && contexts > 0 && !CouldBeInterfacelessHandlerMethod(method))
             {
                 context.ReportDiagnostic(DiagnosticDescriptors.MethodMixedCancellation, declaredSymbol);
             }
         }
 
-        static bool IsInterfacelessHandlerMethod(IMethodSymbol method)
+        static bool CouldBeInterfacelessHandlerMethod(IMethodSymbol method)
         {
             if (method.Name is not ("Handle" or "HandleAsync" or "Process" or "ProcessAsync"))
             {
@@ -92,11 +92,6 @@
             var type = method.ContainingType;
 
             if (!type.GetAttributes().Any(IsHandlerAttribute))
-            {
-                return false;
-            }
-
-            if (type.AllInterfaces.Any(IsHandlerInterface))
             {
                 return false;
             }
@@ -116,21 +111,6 @@
                     {
                         IsGlobalNamespace: true
                     }
-                }
-            }
-        };
-
-        static bool IsHandlerInterface(INamedTypeSymbol type) => type is
-        {
-            Name: "IHandleMessages",
-            IsGenericType: true,
-            TypeParameters.Length: 1,
-            ContainingNamespace:
-            {
-                Name: "NServiceBus",
-                ContainingNamespace:
-                {
-                    IsGlobalNamespace: true
                 }
             }
         };
